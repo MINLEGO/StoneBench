@@ -1,0 +1,174 @@
+{
+  "success": true,
+  "runs": [
+    {
+      "name": "piston-open-1",
+      "status": "terminated",
+      "tick": 7,
+      "reason": "quiescent",
+      "firstTransferTick": -1,
+      "quietWithPendingTicks": 3
+    },
+    {
+      "name": "piston-open-2",
+      "status": "terminated",
+      "tick": 7,
+      "reason": "quiescent",
+      "firstTransferTick": -1,
+      "quietWithPendingTicks": 3
+    },
+    {
+      "name": "piston-open-3",
+      "status": "terminated",
+      "tick": 7,
+      "reason": "quiescent",
+      "firstTransferTick": -1,
+      "quietWithPendingTicks": 3
+    },
+    {
+      "name": "piston-close-1",
+      "status": "terminated",
+      "tick": 7,
+      "reason": "quiescent",
+      "firstTransferTick": -1,
+      "quietWithPendingTicks": 3
+    },
+    {
+      "name": "piston-close-2",
+      "status": "terminated",
+      "tick": 7,
+      "reason": "quiescent",
+      "firstTransferTick": -1,
+      "quietWithPendingTicks": 3
+    },
+    {
+      "name": "piston-close-3",
+      "status": "terminated",
+      "tick": 7,
+      "reason": "quiescent",
+      "firstTransferTick": -1,
+      "quietWithPendingTicks": 3
+    },
+    {
+      "name": "delayed-1",
+      "status": "terminated",
+      "tick": 27,
+      "reason": "quiescent",
+      "firstTransferTick": -1,
+      "quietWithPendingTicks": 21
+    },
+    {
+      "name": "delayed-2",
+      "status": "terminated",
+      "tick": 27,
+      "reason": "quiescent",
+      "firstTransferTick": -1,
+      "quietWithPendingTicks": 21
+    },
+    {
+      "name": "delayed-3",
+      "status": "terminated",
+      "tick": 27,
+      "reason": "quiescent",
+      "firstTransferTick": -1,
+      "quietWithPendingTicks": 21
+    },
+    {
+      "name": "hopper-cooldown-1",
+      "status": "indeterminate",
+      "tick": 32,
+      "reason": "hopper-lastTickTime-keeps-changing",
+      "firstTransferTick": 8,
+      "quietWithPendingTicks": 0
+    },
+    {
+      "name": "hopper-cooldown-2",
+      "status": "indeterminate",
+      "tick": 32,
+      "reason": "hopper-lastTickTime-keeps-changing",
+      "firstTransferTick": 8,
+      "quietWithPendingTicks": 0
+    },
+    {
+      "name": "hopper-cooldown-3",
+      "status": "indeterminate",
+      "tick": 32,
+      "reason": "hopper-lastTickTime-keeps-changing",
+      "firstTransferTick": 8,
+      "quietWithPendingTicks": 0
+    },
+    {
+      "name": "hopper-locked-1",
+      "status": "indeterminate",
+      "tick": 1,
+      "reason": "hopper-lastTickTime-keeps-changing",
+      "firstTransferTick": -1,
+      "quietWithPendingTicks": 0
+    },
+    {
+      "name": "hopper-locked-2",
+      "status": "indeterminate",
+      "tick": 1,
+      "reason": "hopper-lastTickTime-keeps-changing",
+      "firstTransferTick": -1,
+      "quietWithPendingTicks": 0
+    },
+    {
+      "name": "hopper-locked-3",
+      "status": "indeterminate",
+      "tick": 1,
+      "reason": "hopper-lastTickTime-keeps-changing",
+      "firstTransferTick": -1,
+      "quietWithPendingTicks": 0
+    },
+    {
+      "name": "hopper-empty-1",
+      "status": "indeterminate",
+      "tick": 1,
+      "reason": "hopper-lastTickTime-keeps-changing",
+      "firstTransferTick": -1,
+      "quietWithPendingTicks": 0
+    },
+    {
+      "name": "hopper-empty-2",
+      "status": "indeterminate",
+      "tick": 1,
+      "reason": "hopper-lastTickTime-keeps-changing",
+      "firstTransferTick": -1,
+      "quietWithPendingTicks": 0
+    },
+    {
+      "name": "hopper-empty-3",
+      "status": "indeterminate",
+      "tick": 1,
+      "reason": "hopper-lastTickTime-keeps-changing",
+      "firstTransferTick": -1,
+      "quietWithPendingTicks": 0
+    },
+    {
+      "name": "clock-1",
+      "status": "limit-reached",
+      "tick": 36000,
+      "reason": "pending-events",
+      "firstTransferTick": -1,
+      "quietWithPendingTicks": 18000
+    },
+    {
+      "name": "clock-2",
+      "status": "limit-reached",
+      "tick": 36000,
+      "reason": "pending-events",
+      "firstTransferTick": -1,
+      "quietWithPendingTicks": 18000
+    },
+    {
+      "name": "clock-3",
+      "status": "limit-reached",
+      "tick": 36000,
+      "reason": "pending-events",
+      "firstTransferTick": -1,
+      "quietWithPendingTicks": 18000
+    }
+  ],
+  "failures": []
+}

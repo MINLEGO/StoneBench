@@ -1,0 +1,9 @@
+{
+  "schemaVersion": 1,
+  "id": "stonebench_transition_prototype",
+  "version": "0.1.0",
+  "name": "StoneBench transition PROTOTYPE",
+  "environment": "server",
+  "mixins": ["transition.mixins.json"],
+  "depends": {"fabricloader": "0.19.5", "minecraft": "1.21.11", "java": ">=21"}
+}
