@@ -1,0 +1,3 @@
+# Fournir les outils à un harness existant
+
+StoneBench expose le contrôle et l'évaluation de Minecraft à un agent exécuté dans Inspect AI, via MCP, plutôt que de développer sa propre boucle d'appel aux modèles. Ce choix concentre l'alpha sur les outils du domaine et réutilise l'exécution d'agents, les budgets de tokens et les journaux du harness. MCP rend les outils réutilisables dans d'autres harness compatibles, notamment pour des essais interactifs. Il reste à définir le contrat des outils et le contrôle du serveur Minecraft. La décision a été confirmée en Q24 ; les éléments factuels et leurs limites sont consignés dans ../recherche-harness.md.
