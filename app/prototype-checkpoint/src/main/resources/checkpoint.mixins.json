@@ -1,0 +1,7 @@
+{
+  "required": true,
+  "package": "stonebench.prototype.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "mixins": ["ServerMixin", "CommandMixin", "WorldAccess", "SchedulerAccess"],
+  "injectors": {"defaultRequire": 1}
+}

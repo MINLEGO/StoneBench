@@ -1,0 +1,9 @@
+{
+  "schemaVersion": 1,
+  "id": "stonebench_checkpoint_prototype",
+  "version": "0.1.0",
+  "name": "StoneBench checkpoint PROTOTYPE",
+  "environment": "server",
+  "mixins": ["checkpoint.mixins.json"],
+  "depends": {"fabricloader": "0.19.5", "minecraft": "1.21.11", "java": ">=21"}
+}

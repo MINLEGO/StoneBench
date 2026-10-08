@@ -1,0 +1,11 @@
+plugins { id 'fabric-loom' version '1.14.10' }
+version = '0.1.0'
+group = 'stonebench.prototype'
+repositories { mavenCentral() }
+dependencies {
+    minecraft 'com.mojang:minecraft:1.21.11'
+    mappings 'net.fabricmc:yarn:1.21.11+build.3:v2'
+    modImplementation 'net.fabricmc:fabric-loader:0.19.5'
+}
+java { sourceCompatibility = JavaVersion.VERSION_21; targetCompatibility = JavaVersion.VERSION_21 }
+tasks.withType(JavaCompile).configureEach { options.release = 21 }
