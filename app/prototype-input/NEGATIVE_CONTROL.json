@@ -1,0 +1,13 @@
+{
+  "originalArchiveAccepted": true,
+  "originalRuns": 72,
+  "allArchivedHashesVerified": true,
+  "corruptedCopyRejected": true,
+  "mutation": "Only initial observation of torch-lever-direct-1: chest (5,80,4), diamond count 7 -> 8.",
+  "preserved": "Original campaigns and EVIDENCE.zip unchanged.",
+  "failures": [
+    "torch-lever-direct-1 : initial trace differs from checkpoint",
+    "torch/lever/direct : nonrepeatable trace or state",
+    "torch/lever/direct : nonrepeatable trace or state"
+  ]
+}
