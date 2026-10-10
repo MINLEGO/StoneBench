@@ -69,4 +69,3 @@ Les méthodes examinées montrent qu’une extension peut attendre la préparati
 - `ServerChunkManager.isTickingFutureReady(long)` n’est vrai que si `ServerWorld.shouldTickBlocksInChunk` l’est, qu’un `ChunkHolder` existe et que son `tickingFuture` contient un `WorldChunk` présent.
 
 Le hook `afterTick` peut sonder le prédicat de readiness sur les boucles serveur suivantes tandis que le tick manager reste gelé. Le delta `world.getTime()` doit rester nul pendant cette phase; il ne faut pas demander un `step(1)` pour attendre l’extension. Le timeout de l’opération reste nécessaire si les futurs n’atteignent jamais l’état prêt.
-

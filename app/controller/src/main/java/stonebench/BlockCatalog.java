@@ -100,4 +100,3 @@ final class BlockCatalog {
         row.add("inventory",inventory);return row;
     }
 }
-
