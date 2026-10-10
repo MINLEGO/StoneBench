@@ -1,0 +1,55 @@
+{
+  "status": "ok",
+  "journals": [
+    {
+      "attempt_id": "746da4e0-d668-49dd-a66e-a4fc6a8292e7",
+      "operations": 21,
+      "simulation_ticks": 6044,
+      "preparation_ticks": 11,
+      "world_time": 6055,
+      "errors": [
+        {
+          "code": "invalid_arguments",
+          "ticks_executed": 0
+        },
+        {
+          "code": "invalid_arguments",
+          "ticks_executed": 0
+        },
+        {
+          "code": "invalid_arguments",
+          "ticks_executed": 0
+        },
+        {
+          "code": "invalid_arguments",
+          "ticks_executed": 0
+        },
+        {
+          "code": "invalid_arguments",
+          "ticks_executed": 0
+        },
+        {
+          "code": "invalid_arguments",
+          "ticks_executed": 0
+        }
+      ]
+    },
+    {
+      "attempt_id": "1966940d-16db-46a1-a99d-d5ee59dede72",
+      "operations": 15,
+      "simulation_ticks": 1,
+      "preparation_ticks": 33,
+      "world_time": 34,
+      "errors": [
+        {
+          "code": "chunks_unavailable",
+          "ticks_executed": 0
+        },
+        {
+          "code": "chunks_unavailable",
+          "ticks_executed": 1
+        }
+      ]
+    }
+  ]
+}
