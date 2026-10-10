@@ -1,0 +1,29 @@
+test_real_mcp_server_contract (__main__.ConstructionRuntimeIntegration.test_real_mcp_server_contract) ... Executing <Task pending name='Task-2' coro=<ConstructionRuntimeIntegration.test_real_mcp_server_contract() running at C:\Users\minle\.codex\worktrees\issue-6\StoneBench\tests\construction.py:29> cb=[_run_until_complete_cb() at C:\Users\minle\AppData\Local\Programs\Python\Python312\Lib\asyncio\base_events.py:181] created at C:\Users\minle\AppData\Local\Programs\Python\Python312\Lib\asyncio\runners.py:100> took 0.219 seconds
+Executing <Task pending name='Task-2' coro=<ConstructionRuntimeIntegration.test_real_mcp_server_contract() running at C:\Users\minle\.codex\worktrees\issue-6\StoneBench\tests\construction.py:29> cb=[_run_until_complete_cb() at C:\Users\minle\AppData\Local\Programs\Python\Python312\Lib\asyncio\base_events.py:181] created at C:\Users\minle\AppData\Local\Programs\Python\Python312\Lib\asyncio\runners.py:100> took 0.172 seconds
+FAIL
+
+======================================================================
+FAIL: test_real_mcp_server_contract (__main__.ConstructionRuntimeIntegration.test_real_mcp_server_contract)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\minle\AppData\Local\Programs\Python\Python312\Lib\asyncio\runners.py", line 118, in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\minle\AppData\Local\Programs\Python\Python312\Lib\asyncio\base_events.py", line 691, in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+  File "C:\Users\minle\.codex\worktrees\issue-6\StoneBench\tests\construction.py", line 74, in test_real_mcp_server_contract
+    await self._assert_chunk_expansion_without_simulation(session_b)
+  File "C:\Users\minle\.codex\worktrees\issue-6\StoneBench\tests\construction.py", line 694, in _assert_chunk_expansion_without_simulation
+    self.assert_error(unprepared, "validation", "scope_unprepared")
+  File "C:\Users\minle\.codex\worktrees\issue-6\StoneBench\tests\integration.py", line 76, in assert_error
+    self.assertEqual(error["code"], code, payload)
+AssertionError: 'invalid_arguments' != 'scope_unprepared'
+- invalid_arguments
++ scope_unprepared
+ : {'operation_id': 'ed7b268f-1d04-49d2-8f75-68b497b0d12d', 'operation': 'read_blocks', 'attempt_id': '5f07c553-069c-4d92-a19b-f34e5edee78c', 'phase': 'validation', 'status': 'error', 'ticks_executed': 0, 'simulation_ticks': 0, 'preparation_ticks': 17, 'world_time': 17, 'preparation_initial_loaded': False, 'preparation_initial_ready': False, 'frozen': True, 'mutated': False, 'error': {'kind': 'validation', 'code': 'invalid_arguments', 'message': 'scope_unprepared: coordinate outside prepared chunks', 'effects': 'No mutation performed'}}
+
+----------------------------------------------------------------------
+Ran 1 test in 11.034s
+
+FAILED (failures=1)

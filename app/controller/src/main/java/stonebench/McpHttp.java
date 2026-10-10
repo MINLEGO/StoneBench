@@ -67,11 +67,19 @@ public final class McpHttp implements AutoCloseable {
         finally {exchange.close();}
     }
     private static Set<String> names() {
-        Set<String> names=new LinkedHashSet<>(List.of("start_attempt","describe_task","read_blocks","advance"));
-        if(Controller.TEST) names.addAll(List.of("__test_release_chunks","__test_restore_chunks","__test_place_block"));return names;
+        Set<String> names=new LinkedHashSet<>(List.of("start_attempt","describe_task","read_blocks","describe_blocks","modify_blocks","advance"));
+        if(Controller.TEST) names.addAll(List.of("__test_release_chunks","__test_restore_chunks","__test_place_block","__test_fail_next_lot","__test_default_wire"));return names;
     }
     private static JsonObject property(String type) {JsonObject p=new JsonObject();p.addProperty("type",type);return p;}
     private static JsonObject integer(int min,int max) {JsonObject p=property("integer");p.addProperty("minimum",min);p.addProperty("maximum",max);return p;}
+    private static JsonObject placementSchema() {
+        JsonObject placement=property("object"),properties=new JsonObject();JsonArray required=new JsonArray();
+        for(String coordinate:List.of("x","y","z")) {properties.add(coordinate,property("integer"));required.add(coordinate);}
+        properties.add("block",property("string"));required.add("block");
+        JsonObject parameters=property("object");parameters.add("additionalProperties",property("string"));properties.add("parameters",parameters);
+        JsonObject inventory=property("array"),item=property("object"),itemProperties=new JsonObject();itemProperties.add("slot",integer(0,26));itemProperties.add("item",property("string"));itemProperties.add("count",integer(1,Integer.MAX_VALUE));item.add("properties",itemProperties);JsonArray itemRequired=new JsonArray();for(String key:List.of("slot","item","count")) itemRequired.add(key);item.add("required",itemRequired);item.addProperty("additionalProperties",false);inventory.add("items",item);properties.add("inventory",inventory);
+        placement.add("properties",properties);placement.add("required",required);placement.addProperty("additionalProperties",false);return placement;
+    }
     private static JsonArray tools() {
         JsonArray tools=new JsonArray();
         for(String name:names()) {
@@ -80,12 +88,15 @@ public final class McpHttp implements AutoCloseable {
                 case "start_attempt"->"Initialize one fresh isolated regular DOOR attempt; budget in tokens is supplied by the caller.";
                 case "describe_task"->"Describe immutable task, effective clock, environment and chunk readiness.";
                 case "read_blocks"->"Read 1..256 actual block states in prepared chunks; larger reads must be split.";
+                case "describe_blocks"->"Discover explicit construction coverage, in-game configurable parameters, computed states and inventory slots.";
+                case "modify_blocks"->"Validate an entire ordered lot, place all geometry/inventories with deferred callbacks then optionally notify in submitted order; errors report actual effects.";
                 case "advance"->"Advance exactly 1..6000 vanilla world ticks and return frozen; infrastructure failure reports partial effects.";
                 default->"TEST ONLY: controlled fixture/fault injection. Never enabled in campaign servers.";});
             switch(name) {
                 case "start_attempt"->{properties.add("task_id",property("string"));JsonObject budget=integer(1,Integer.MAX_VALUE);JsonArray budgetTypes=new JsonArray();budgetTypes.add("integer");budgetTypes.add("null");budget.add("type",budgetTypes);properties.add("budget_tokens",budget);required.add("task_id");}
                 case "advance"->{properties.add("ticks",integer(1,6000));required.add("ticks");}
                 case "read_blocks"->{JsonObject positions=property("array"),position=property("object"),coords=new JsonObject();for(String axis:List.of("x","y","z")) coords.add(axis,property("integer"));position.add("properties",coords);JsonArray axes=new JsonArray();axes.add("x");axes.add("y");axes.add("z");position.add("required",axes);positions.add("items",position);positions.addProperty("minItems",1);positions.addProperty("maxItems",256);properties.add("positions",positions);required.add("positions");}
+                case "modify_blocks"->{JsonObject blocks=property("array");blocks.addProperty("minItems",1);blocks.addProperty("maxItems",256);blocks.add("items",placementSchema());properties.add("blocks",blocks);properties.add("notify_neighbors",property("boolean"));required.add("blocks");required.add("notify_neighbors");}
                 case "__test_release_chunks"->properties.add("after_ticks",integer(0,6000));
             }
             schema.add("properties",properties);schema.add("required",required);schema.addProperty("additionalProperties",false);tool.add("inputSchema",schema);tools.add(tool);

@@ -39,6 +39,7 @@ public final class Controller implements ModInitializer {
         long beforeTime;
         int executed, requested;
         boolean mutated, preparationInitialLoaded, preparationInitialReady;
+        Runnable continuation; List<Construction.Placement> placements;
         Operation(String tool,JsonObject args) {this.tool=tool;this.args=args;}
     }
     @Override public void onInitialize() {}
@@ -68,6 +69,7 @@ public final class Controller implements ModInitializer {
             active=QUEUE.poll();
             if (active!=null) {
                 try { active.deadline=System.nanoTime()+420_000_000_000L; dispatch(); }
+                catch (UnsupportedOperationException e) { fail("unsupported","unsupported_component",e.getMessage()); }
                 catch (IllegalArgumentException e) { fail("validation","invalid_arguments",e.getMessage()); }
                 catch (Exception e) { fail("infrastructure","server_error",e.toString()); }
             }
@@ -89,8 +91,8 @@ public final class Controller implements ModInitializer {
                         JsonObject metadata=description();
                         Files.writeString(Path.of("stonebench/attempt.json"),JSON.toJson(metadata),StandardOpenOption.CREATE_NEW);
                     }
-                    succeed(description());
-                } else step();
+                    if(active.continuation!=null) {freeze();active.phase="mutation";active.continuation.run();} else succeed(description());
+                } else if(active.continuation==null) step();
             } else if (active.phase.equals("simulation")) {
                 active.executed+=delta; simulationTicks+=delta;
                 if (releaseAt>0 && active.executed>=releaseAt) { force(false); releaseAt=0; }
@@ -105,6 +107,7 @@ public final class Controller implements ModInitializer {
             case "start_attempt" -> Set.of("task_id","budget_tokens");
             case "advance" -> Set.of("ticks");
             case "read_blocks" -> Set.of("positions");
+            case "modify_blocks" -> Set.of("blocks","notify_neighbors");
             case "__test_release_chunks" -> Set.of("after_ticks");
             default -> Set.of();
         };
@@ -121,6 +124,15 @@ public final class Controller implements ModInitializer {
                 active.phase="preparation"; step();
             }
             case "describe_task" -> succeed(description());
+            case "describe_blocks" -> succeed(BlockCatalog.describe());
+            case "modify_blocks" -> {
+                active.placements=Construction.validate(world(),active.args);
+                Set<ChunkPos> chunks=new LinkedHashSet<>();
+                for(var p:active.placements) for(int dx=-1;dx<=1;dx++) for(int dz=-1;dz<=1;dz++) chunks.add(new ChunkPos(p.pos().add(dx,0,dz)));
+                Runnable placement=()->{active.phase="mutation";active.mutated=true;succeed(Construction.apply(world(),active.placements,active.args.get("notify_neighbors").getAsBoolean()));};
+                if(chunks.stream().allMatch(c->CHUNKS.contains(c.toLong())) && ready()) placement.run();
+                else prepareChunks(chunks,placement);
+            }
             case "read_blocks" -> {
                 JsonElement value=active.args.get("positions");
                 if (value==null || !value.isJsonArray() || value.getAsJsonArray().size()<1 || value.getAsJsonArray().size()>256)
@@ -136,8 +148,7 @@ public final class Controller implements ModInitializer {
                 if (!ready()) { fail("infrastructure","chunks_unavailable","Read requires ticking-ready chunks"); return; }
                 JsonArray blocks=new JsonArray();
                 for(BlockPos pos:positions) {
-                    JsonObject block=Task.position(pos.getX(),pos.getY(),pos.getZ());
-                    block.addProperty("state",world().getBlockState(pos).toString()); blocks.add(block);
+                    blocks.add(BlockCatalog.read(world(),pos));
                 }
                 JsonObject result=new JsonObject();result.add("blocks",blocks);succeed(result);
             }
@@ -147,6 +158,8 @@ public final class Controller implements ModInitializer {
                 if(server.getPlayerManager().getCurrentPlayerCount()!=0) {fail("infrastructure","players_present","Dedicated attempts cannot contain players");return;}
                 active.phase="simulation";active.mutated=true;step();
             }
+            case "__test_default_wire" -> {requireTest();active.mutated=true;world().setBlockState(new BlockPos(1036,80,1030),Blocks.REDSTONE_WIRE.getDefaultState(),net.minecraft.block.Block.FORCE_STATE_AND_SKIP_CALLBACKS_AND_DROPS);JsonObject result=new JsonObject();result.add("block",BlockCatalog.read(world(),new BlockPos(1036,80,1030)));succeed(result);}
+            case "__test_fail_next_lot" -> {requireTest();Construction.failNextLot=true;succeed(new JsonObject());}
             case "__test_release_chunks" -> {
                 requireTest();releaseAt=active.args.has("after_ticks")?Task.integer(active.args,"after_ticks",0,6000):0;
                 if(releaseAt==0) force(false);active.mutated=true;succeed(new JsonObject());
@@ -180,10 +193,13 @@ public final class Controller implements ModInitializer {
         ((TickManagerAccess)server.getTickManager()).stonebench$shouldTick(false);
     }
     /** Extension seam for placement/observation: call on server thread before any mutation. */
-    public static void prepareChunks(Collection<ChunkPos> chunks) {
+    public static void prepareChunks(Collection<ChunkPos> chunks) {prepareChunks(chunks,null);}
+    /** Resume an operation after frozen chunk preparation; completion belongs to its action. */
+    public static void prepareChunks(Collection<ChunkPos> chunks,Runnable continuation) {
         if (!server.isOnThread() || active==null) throw new IllegalStateException("Preparation requires an active server-thread operation");
+        active.continuation=continuation;
         for(ChunkPos chunk:chunks) CHUNKS.add(chunk.toLong());
-        force(true); active.phase="preparation"; step();
+        force(true); active.phase="preparation"; if(active.continuation==null) step(); else freeze();
     }
     private static void step() {if(!server.getTickManager().step(1)) throw new IllegalStateException("Vanilla tick manager refused step");}
     private static JsonObject description() {
@@ -221,7 +237,7 @@ public final class Controller implements ModInitializer {
         if(active==null) return;
         freeze();
         JsonObject result=envelope("error"),error=new JsonObject();error.addProperty("kind",kind);error.addProperty("code",code);error.addProperty("message",message);
-        error.addProperty("effects",active.mutated?"World may have changed; inspect reported effective state before retry":"No mutation performed");result.add("error",error);finish(result);
+        error.addProperty("effects",active.mutated?"World may have changed; inspect reported effective state before retry":"No mutation performed");result.add("error",error);if(active.placements!=null && active.mutated) {result.add("blocks",Construction.read(world(),active.placements));result.addProperty("recovery","Inspect actual blocks; retry a validated repair lot or restore a checkpoint when checkpoint support is available");}finish(result);
     }
     public static void shutdown() {
         if(active!=null) fail("infrastructure","server_stopped","Server shutdown interrupted operation");

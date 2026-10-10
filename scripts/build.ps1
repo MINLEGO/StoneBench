@@ -56,6 +56,13 @@ if ($CacheSource) {
         }
     }
 
+    # Loom consults its root version manifest even in offline mode.
+    $sourceManifest = Join-Path $sourceGradleHome 'caches\fabric-loom\mojang_versions_manifest.json'
+    if (Test-Path -LiteralPath $sourceManifest) {
+        $targetLoomRoot = Join-Path $gradleHome 'caches\fabric-loom'
+        New-Item -ItemType Directory -Force -Path $targetLoomRoot | Out-Null
+        Copy-Item -LiteralPath $sourceManifest -Destination (Join-Path $targetLoomRoot 'mojang_versions_manifest.json') -Force
+    }
     $sourceLoom = Join-Path $sourceGradleHome 'caches\fabric-loom\1.21.11'
     $sourceServer = Join-Path $sourceLoom 'minecraft-server.jar'
     $sourceInfoPath = Join-Path $sourceLoom 'mojang_minecraft_info.json'
