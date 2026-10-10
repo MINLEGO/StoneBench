@@ -96,8 +96,9 @@ public final class Construction {
                 state.onBlockAdded(world,p.pos,before,false);
             }
             world.updateNeighbors(p.pos,state.getBlock());
+            if(state.hasComparatorOutput()) world.updateComparators(p.pos,state.getBlock());
             before.prepare(world,p.pos,Block.NOTIFY_ALL|Block.SKIP_DROPS);state.updateNeighbors(world,p.pos,Block.NOTIFY_ALL|Block.SKIP_DROPS);state.prepare(world,p.pos,Block.NOTIFY_ALL|Block.SKIP_DROPS);
-            world.updateComparators(p.pos,state.getBlock());order.add(Task.position(p.pos.getX(),p.pos.getY(),p.pos.getZ()));
+            order.add(Task.position(p.pos.getX(),p.pos.getY(),p.pos.getZ()));
         }
         JsonObject result=new JsonObject();result.add("blocks",read(world,placements));result.add("notification_order",order);result.addProperty("placements_applied",placements.size());if(events!=null) {result.add("events",events);result.addProperty("deferred_comparator_updates",deferredComparators);}return result;
         } finally {installing=false;events=null;observedWorld=null;observedPlacements=null;rootIndex=-1;}

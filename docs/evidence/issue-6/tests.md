@@ -19,4 +19,4 @@ Or, with two fresh servers already running:
 
     python tests/construction.py
 
-No server or build was started during test authoring. This file records intended evidence and does not claim the runtime suite passed until the runtime execution result is recorded.Final execution: the expanded suite (including wall lever, comparator subtract mode, hopper inventory and powered piston source-last fixture) passed on Minecraft 1.21.11 in 22.984 seconds. See README.md, runtime.log and the hashed JSONL journals for the complete scope and evidence.
+Final execution: the expanded suite, including the comparator notification regression, passed on Minecraft 1.21.11 in 21.951 seconds. The old jar fails the new regression after the unrelated stone placement. See README.md, runtime.log, comparator-negative.log and the hashed JSONL journals for scope and evidence.

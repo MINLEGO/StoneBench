@@ -4,23 +4,23 @@ Daemon will be stopped at the end of the build
 > Configure project :
 Fabric Loom: 1.14.10
 
-> Task :compileJava UP-TO-DATE
+> Task :compileJava
 > Task :processResources UP-TO-DATE
-> Task :classes UP-TO-DATE
-> Task :jar UP-TO-DATE
+> Task :classes
+> Task :jar
 > Task :processIncludeJars UP-TO-DATE
-> Task :remapJar UP-TO-DATE
-> Task :remapSourcesJar SKIPPED
-> Task :assemble UP-TO-DATE
 > Task :compileTestJava NO-SOURCE
 > Task :processTestResources NO-SOURCE
 > Task :testClasses UP-TO-DATE
 > Task :test NO-SOURCE
 > Task :validateAccessWidener NO-SOURCE
 > Task :check UP-TO-DATE
-> Task :build UP-TO-DATE
+> Task :remapJar
+> Task :remapSourcesJar SKIPPED
+> Task :assemble
+> Task :build
 
-BUILD SUCCESSFUL in 14s
-5 actionable tasks: 5 up-to-date
+BUILD SUCCESSFUL in 35s
+5 actionable tasks: 3 executed, 2 up-to-date
 Consider enabling configuration cache to speed up this build: https://docs.gradle.org/9.2.1/userguide/configuration_cache_enabling.html
 C:\Users\minle\.codex\worktrees\issue-6\StoneBench\app\controller\build\libs\stonebench-controller-0.1.0.jar

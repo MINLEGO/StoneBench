@@ -1,29 +1,34 @@
 {
-  "engine_hook_events": 181,
+  "engine_hook_events": 187,
   "all_engine_inventories_complete": true,
   "minecraft": "1.21.11",
   "catalog_entries": 61,
-  "result": "MCP integration PASS 22.984s; journal clock verifier PASS",
+  "result": "MCP integration PASS 21.951s; journal clock verifier PASS",
   "all_engine_parameters_complete": true,
-  "jar_sha256": "B388D85BBD4B118563F513F2DE50E7D43E585903B688FF06DF5017DFCB2F1BEE",
+  "jar_sha256": "BB24735143B61AA72F38C4273CD22552AD258272730F58E9D1BABC4A298B21F6",
   "server_2": {
-    "preparation_ticks": 17,
-    "world_time": 17,
-    "operations": 24,
-    "simulation_ticks": 0
+    "preparation_ticks": 24,
+    "simulation_ticks": 16,
+    "world_time": 40,
+    "operations": 36
   },
   "server_1": {
-    "preparation_ticks": 20,
-    "world_time": 47,
-    "operations": 93,
-    "simulation_ticks": 27
+    "preparation_ticks": 9,
+    "simulation_ticks": 27,
+    "world_time": 36,
+    "operations": 93
   },
   "mcp_sdk": "1.26.0",
   "journal_sha256": {
-    "server-2.jsonl": "D8A3A6E0F4C5795396B309E0EA0C740F6248541367AF54C74910F60065B7151E",
-    "server-1.jsonl": "E5BEAE3038D26D2907CAA1A74C215EC68797036DDC049AAE7DA892E9DFFCE930"
+    "server-1.jsonl": "05CCB61C081072C4131AACE09DD50F9E4C450AD951EE57BACC9D63829EEF3F10",
+    "server-2.jsonl": "4F2DB5D5D3D8BF5E5AF65E7EDC79BEC55B7518EAAF3102AC8BA5271BC89F63C7"
   },
   "all_engine_geometry_complete": true,
   "java": "21.0.12",
-  "base_commit": "effa00e5a4efd23578e3f45ae5888cf8a9581e7b"
+  "base_commit": "effa00e5a4efd23578e3f45ae5888cf8a9581e7b",
+  "comparator_regression": {
+    "old_jar_sha256": "B388D85BBD4B118563F513F2DE50E7D43E585903B688FF06DF5017DFCB2F1BEE",
+    "old_result": "FAIL: unrelated stone cleared stale powered comparator",
+    "fixed_result": "PASS: stone leaves comparator stale; explicit chest notification clears it"
+  }
 }

@@ -1,10 +1,10 @@
 # Issue #6 — ordered construction evidence
 
-Executed 2026-10-10 on Windows, Minecraft 1.21.11 / Yarn 1.21.11+build.3 / Fabric Loader 0.19.5, JDK 21.0.12, Python 3.12.9 and MCP SDK 1.26.0. Base: `effa00e5a4efd23578e3f45ae5888cf8a9581e7b` (issue #5). The pinned, isolated build passes; the final controller jar SHA-256 is `B388D85BBD4B118563F513F2DE50E7D43E585903B688FF06DF5017DFCB2F1BEE`. See `summary.json` for journal hashes and exact counters.
+Executed 2026-10-11 on Windows, Minecraft 1.21.11 / Yarn 1.21.11+build.3 / Fabric Loader 0.19.5, JDK 21.0.12, Python 3.12.9 and MCP SDK 1.26.0. Base: `effa00e5a4efd23578e3f45ae5888cf8a9581e7b` (issue #5). The pinned, isolated build passes; the final controller jar SHA-256 is `BB24735143B61AA72F38C4273CD22552AD258272730F58E9D1BABC4A298B21F6`. See `summary.json` for journal hashes and exact counters.
 
 ## Results
 
-`tests/construction.py`: **PASS**, `Ran 1 test in 22.984s / OK`, through the real MCP SDK against two fresh dedicated Minecraft servers. `tests/verify_journals.py`: **PASS**, independently rerun against the saved copies here. Server 1 completed 93 operations, 27 simulation ticks and 20 preparation ticks (world time 47); server 2 completed 24 operations, no simulation ticks and 17 initial preparation ticks (world time 17). All owned servers stopped cleanly. Worlds and jars remain ignored locally; evidence contains only logs and JSONL records.
+`tests/construction.py`: **PASS**, `Ran 1 test in 21.951s / OK`, through the real MCP SDK against two fresh dedicated Minecraft servers. `tests/verify_journals.py`: **PASS**, independently rerun against the saved copies here. Server 1 completed 93 operations, 27 simulation ticks and 9 preparation ticks (world time 36); server 2 completed 36 operations, 16 simulation ticks and 24 initial preparation ticks (world time 40). All owned servers stopped cleanly. Worlds and jars remain ignored locally; evidence contains only logs and JSONL records.
 
 | Requirement | Actual evidence |
 |---|---|
@@ -26,6 +26,10 @@ Executed 2026-10-10 on Windows, Minecraft 1.21.11 / Yarn 1.21.11+build.3 / Fabri
 ```
 
 The shared issue-5 cache/SDK was read only; the issue-6 cache and server roots are isolated. The initial cache seed exposed a missing root Loom Mojang version manifest; `build.ps1` now copies that manifest for reproducible offline cache seeding and still excludes lock files. Two earlier fresh runs stopped on incorrect test expectations (dust endpoint connection, then the existing #5 generic error code whose message starts `scope_unprepared`); the assertions were corrected to the observed engine/API contract, without changing production behavior. The second failed assertion log is retained. The final run uses the last compiled Java code and the corrected suite.
+
+## Comparator notification regression
+
+Review found an unconditional comparator notification after shape propagation. The pinned vanilla path only notifies comparators when the new state has comparator output, before shape propagation. The targeted real MCP fixture powers a comparator from a chest, silently empties the chest, and places stone two blocks away across a solid bridge. The old jar fails because that unrelated stone clears the stale comparator; the corrected jar leaves it powered until an explicit chest notification. Each stage advances four explicit ticks. `comparator-negative.log` and the selected `comparator-negative.jsonl` records preserve the old-jar failure; the complete positive journals preserve the passing run. Installation still completes all inventories before notifications.
 
 ## Scope and contracts for #7
 

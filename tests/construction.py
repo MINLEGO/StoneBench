@@ -73,6 +73,7 @@ class ConstructionRuntimeIntegration(StoneBenchRuntimeIntegration):
             await self._assert_same_block_and_inventory_replacement(session_b)
             await self._assert_post_mutation_failure_and_recovery(session_b)
             await self._assert_chunk_expansion_without_simulation(session_b)
+            await self._assert_comparator_notification_scope(session_b)
             await self._assert_powered_neighbor_batch(session_a)
             await self._assert_clock_and_readiness(session_a)
         finally:
@@ -760,6 +761,41 @@ class ConstructionRuntimeIntegration(StoneBenchRuntimeIntegration):
         records = await self._read(session, positions)
         for position in positions:
             self.assert_block_record(records[coordinates(position)], "minecraft:stone")
+
+    async def _assert_comparator_notification_scope(self, session):
+        comparator = point(1032, 80, 1037)
+        chest = point(1033, 80, 1037)
+        bridge = point(1032, 80, 1036)
+        unrelated = point(1032, 80, 1035)
+        setup = [
+            placement(comparator, "minecraft:comparator", {"facing": "east"}),
+            placement(chest, "minecraft:chest", inventory=[{"slot": 0, "item": "minecraft:stone", "count": 64}]),
+            placement(point(1032, 79, 1037), "minecraft:stone"),
+            placement(bridge, "minecraft:stone"),
+        ]
+        result = await self.call(session, "modify_blocks", {"blocks": setup, "notify_neighbors": True})
+        self.assert_ok(result)
+        self.assert_ok(await self.call(session, "advance", {"ticks": 4}))
+        powered = await self._read(session, [comparator])
+        self.assertEqual(powered[coordinates(comparator)]["parameters"]["powered"], "true", powered)
+        silent = await self.call(session, "modify_blocks", {"blocks": [placement(chest, "minecraft:chest", inventory=[])], "notify_neighbors": False})
+        self.assert_ok(silent)
+        self.assertEqual(silent["events"], [], silent)
+        self.assert_ok(await self.call(session, "advance", {"ticks": 4}))
+        stale = await self._read(session, [comparator])
+        self.assertEqual(stale[coordinates(comparator)]["parameters"]["powered"], "true", stale)
+        stone = await self.call(session, "modify_blocks", {"blocks": [placement(unrelated, "minecraft:stone")], "notify_neighbors": True})
+        self.assert_ok(stone)
+        self.assert_ok(await self.call(session, "advance", {"ticks": 4}))
+        after_stone = await self._read(session, [comparator])
+        self.assertEqual(after_stone[coordinates(comparator)]["parameters"]["powered"], "true", after_stone)
+        self.assertFalse(any(event["kind"] == "update_comparators" for event in stone["events"]), stone)
+        notified = await self.call(session, "modify_blocks", {"blocks": [placement(chest, "minecraft:chest", inventory=[])], "notify_neighbors": True})
+        self.assert_ok(notified)
+        self.assertTrue(any(event["kind"] == "update_comparators" for event in notified["events"]), notified)
+        self.assert_ok(await self.call(session, "advance", {"ticks": 4}))
+        refreshed = await self._read(session, [comparator])
+        self.assertEqual(refreshed[coordinates(comparator)]["parameters"]["powered"], "false", refreshed)
 
     async def _assert_powered_neighbor_batch(self, session):
         piston = point(1032, 80, 1034)
