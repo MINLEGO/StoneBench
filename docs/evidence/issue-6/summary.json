@@ -1,0 +1,29 @@
+{
+  "engine_hook_events": 181,
+  "all_engine_inventories_complete": true,
+  "minecraft": "1.21.11",
+  "catalog_entries": 61,
+  "result": "MCP integration PASS 22.984s; journal clock verifier PASS",
+  "all_engine_parameters_complete": true,
+  "jar_sha256": "B388D85BBD4B118563F513F2DE50E7D43E585903B688FF06DF5017DFCB2F1BEE",
+  "server_2": {
+    "preparation_ticks": 17,
+    "world_time": 17,
+    "operations": 24,
+    "simulation_ticks": 0
+  },
+  "server_1": {
+    "preparation_ticks": 20,
+    "world_time": 47,
+    "operations": 93,
+    "simulation_ticks": 27
+  },
+  "mcp_sdk": "1.26.0",
+  "journal_sha256": {
+    "server-2.jsonl": "D8A3A6E0F4C5795396B309E0EA0C740F6248541367AF54C74910F60065B7151E",
+    "server-1.jsonl": "E5BEAE3038D26D2907CAA1A74C215EC68797036DDC049AAE7DA892E9DFFCE930"
+  },
+  "all_engine_geometry_complete": true,
+  "java": "21.0.12",
+  "base_commit": "effa00e5a4efd23578e3f45ae5888cf8a9581e7b"
+}

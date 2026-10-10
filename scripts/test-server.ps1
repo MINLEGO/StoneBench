@@ -4,6 +4,7 @@ param(
     [switch]$SkipBuild,
     [string]$Java = 'java',
     [string]$Python = 'python',
+    [string]$Suite = 'tests\integration.py',
     [string]$CacheSource,
     [string]$ServerCacheSource,
     [ValidateRange(1, 65534)][int]$BaseMcpPort = 18765,
@@ -19,7 +20,7 @@ $repoRoot = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
 $controllerRoot = Join-Path $repoRoot 'app\controller'
 $runtime = Join-Path $controllerRoot '.runtime'
 $artifact = Join-Path $controllerRoot 'build\libs\stonebench-controller-0.1.0.jar'
-$integration = Join-Path $repoRoot 'tests\integration.py'
+$integration = Join-Path $repoRoot $Suite
 $buildScript = Join-Path $PSScriptRoot 'build.ps1'
 
 if (!$SkipBuild) {
