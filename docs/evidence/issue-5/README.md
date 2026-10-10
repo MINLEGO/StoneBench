@@ -16,7 +16,7 @@ Executed 2026-10-10 on Windows, JDK 21.0.12 / Python 3.12.9, with `tests/require
 
 `full/` is the first complete temporal scenario. All domain assertions passed, including the 6000-tick call, but the original harness exited with an AnyIO cancellation-scope error in `asyncTearDown`. That client bug was fixed by entering and closing MCP contexts in the same test task. The journal clock verifier passes independently for every full operation.
 
-`final/` is the final jar with the corrected client harness: `Ran 1 test ... OK`, all contract/readiness/isolation/concurrency checks, 40-tick final advance, and independent journal clock verification. Final useful clocks: 84 and 1; preparation clocks: 3 and 12; world clocks: 87 and 13. The only production-code difference between these two jars is `GsonBuilder.serializeNulls()` in Controller and McpHttp; tick, freeze, queue and readiness logic did not change. The 6000 test was not repeated after this serialization-only correction.
+`final/` is the final jar with the corrected client harness: `Ran 1 test ... OK`, all contract/readiness/isolation/concurrency checks, 40-tick final advance, and independent journal clock verification. Final useful clocks: 84 and 1; preparation clocks: 7 and 12; world clocks: 91 and 13. The only production-code difference between these two jars is `GsonBuilder.serializeNulls()` in Controller and McpHttp; tick, freeze, queue and readiness logic did not change. The 6000 test was not repeated after this serialization-only correction.
 
 - Full jar SHA-256: `3F37117CDB5D023038D2A8900F22F481D0479CC29ADB02EF6B62347167A2A75E`
 - Final jar SHA-256: `3BE40D76F7341495C2B402CCB2573C7E39430E1C5B46F16D7871923AE4ECDB0B`
