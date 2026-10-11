@@ -1,0 +1,73 @@
+Disposable server data and logs: C:\Users\minle\.codex\worktrees\issue-7\StoneBench\app\controller\.runtime\tests-c401e7785d964c88b252fc709c0a0ad1
+Starting server 1: MCP 127.0.0.1:18969, Minecraft 127.0.0.1:25785
+Starting server 2: MCP 127.0.0.1:18970, Minecraft 127.0.0.1:25786
+test_real_mcp_server_contract (__main__.StoneBenchRuntimeIntegration.test_real_mcp_server_contract) ... Executing <Task pending name='Task-2' coro=<StoneBenchRuntimeIntegration.test_real_mcp_server_contract() running at C:\Users\minle\.codex\worktrees\issue-7\StoneBench\tests\integration.py:142> cb=[_run_until_complete_cb() at C:\Users\minle\AppData\Local\Programs\Python\Python312\Lib\asyncio\base_events.py:181] created at C:\Users\minle\AppData\Local\Programs\Python\Python312\Lib\asyncio\runners.py:100> took 0.625 seconds
+Executing <Task pending name='Task-2' coro=<StoneBenchRuntimeIntegration.test_real_mcp_server_contract() running at C:\Users\minle\.codex\worktrees\issue-7\StoneBench\tests\integration.py:142> cb=[_run_until_complete_cb() at C:\Users\minle\AppData\Local\Programs\Python\Python312\Lib\asyncio\base_events.py:181] created at C:\Users\minle\AppData\Local\Programs\Python\Python312\Lib\asyncio\runners.py:100> took 0.360 seconds
+Executing <Task pending name='mcp.client.streamable_http.StreamableHTTPTransport.post_writer.<locals>.handle_request_async' coro=<TaskHandle._run_coro() running at C:\Users\minle\.codex\worktrees\issue-5\StoneBench\app\controller\.runtime\test-venv\Lib\site-packages\anyio\_core\_tasks.py:327> cb=[TaskGroup._spawn.<locals>.task_done() at C:\Users\minle\.codex\worktrees\issue-5\StoneBench\app\controller\.runtime\test-venv\Lib\site-packages\anyio\_backends\_asyncio.py:870] created at C:\Users\minle\.codex\worktrees\issue-5\StoneBench\app\controller\.runtime\test-venv\Lib\site-packages\anyio\_backends\_asyncio.py:944> took 0.109 seconds
+Checking final advance of 6000 ticks
+ok
+
+----------------------------------------------------------------------
+Ran 1 test in 310.817s
+
+OK
+{
+  "status": "ok",
+  "journals": [
+    {
+      "attempt_id": "d57f0430-feb8-4bbf-b446-c66f2f04bb00",
+      "operations": 22,
+      "simulation_ticks": 6044,
+      "preparation_ticks": 7,
+      "world_time": 6051,
+      "errors": [
+        {
+          "code": "invalid_arguments",
+          "ticks_executed": 0
+        },
+        {
+          "code": "invalid_arguments",
+          "ticks_executed": 0
+        },
+        {
+          "code": "invalid_arguments",
+          "ticks_executed": 0
+        },
+        {
+          "code": "invalid_arguments",
+          "ticks_executed": 0
+        },
+        {
+          "code": "invalid_arguments",
+          "ticks_executed": 0
+        },
+        {
+          "code": "invalid_arguments",
+          "ticks_executed": 0
+        },
+        {
+          "code": "invalid_arguments",
+          "ticks_executed": 0
+        }
+      ]
+    },
+    {
+      "attempt_id": "79466721-678c-4912-88b6-94b9c744fb00",
+      "operations": 15,
+      "simulation_ticks": 1,
+      "preparation_ticks": 6,
+      "world_time": 7,
+      "errors": [
+        {
+          "code": "chunks_unavailable",
+          "ticks_executed": 0
+        },
+        {
+          "code": "chunks_unavailable",
+          "ticks_executed": 1
+        }
+      ]
+    }
+  ]
+}
+Integration suite finished; server logs and worlds remain under C:\Users\minle\.codex\worktrees\issue-7\StoneBench\app\controller\.runtime\tests-c401e7785d964c88b252fc709c0a0ad1

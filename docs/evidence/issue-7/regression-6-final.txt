@@ -1,0 +1,127 @@
+Disposable server data and logs: C:\Users\minle\.codex\worktrees\issue-7\StoneBench\app\controller\.runtime\tests-65d54039f17b4eefb00044b909cba184
+Starting server 1: MCP 127.0.0.1:18967, Minecraft 127.0.0.1:25783
+Starting server 2: MCP 127.0.0.1:18968, Minecraft 127.0.0.1:25784
+test_real_mcp_server_contract (__main__.ConstructionRuntimeIntegration.test_real_mcp_server_contract) ... Executing <Task pending name='Task-2' coro=<ConstructionRuntimeIntegration.test_real_mcp_server_contract() running at C:\Users\minle\.codex\worktrees\issue-7\StoneBench\tests\construction.py:29> cb=[_run_until_complete_cb() at C:\Users\minle\AppData\Local\Programs\Python\Python312\Lib\asyncio\base_events.py:181] created at C:\Users\minle\AppData\Local\Programs\Python\Python312\Lib\asyncio\runners.py:100> took 0.218 seconds
+Executing <Task pending name='Task-2' coro=<ConstructionRuntimeIntegration.test_real_mcp_server_contract() running at C:\Users\minle\.codex\worktrees\issue-7\StoneBench\tests\construction.py:29> cb=[_run_until_complete_cb() at C:\Users\minle\AppData\Local\Programs\Python\Python312\Lib\asyncio\base_events.py:181] created at C:\Users\minle\AppData\Local\Programs\Python\Python312\Lib\asyncio\runners.py:100> took 0.172 seconds
+ok
+
+----------------------------------------------------------------------
+Ran 1 test in 13.076s
+
+OK
+{
+  "status": "ok",
+  "journals": [
+    {
+      "attempt_id": "accea555-b5ff-45ea-b2ae-b571952d608c",
+      "operations": 93,
+      "simulation_ticks": 27,
+      "preparation_ticks": 6,
+      "world_time": 33,
+      "errors": [
+        {
+          "code": "invalid_arguments",
+          "ticks_executed": 0
+        },
+        {
+          "code": "invalid_arguments",
+          "ticks_executed": 0
+        },
+        {
+          "code": "invalid_arguments",
+          "ticks_executed": 0
+        },
+        {
+          "code": "invalid_arguments",
+          "ticks_executed": 0
+        },
+        {
+          "code": "invalid_arguments",
+          "ticks_executed": 0
+        },
+        {
+          "code": "invalid_arguments",
+          "ticks_executed": 0
+        },
+        {
+          "code": "invalid_arguments",
+          "ticks_executed": 0
+        },
+        {
+          "code": "invalid_arguments",
+          "ticks_executed": 0
+        },
+        {
+          "code": "invalid_arguments",
+          "ticks_executed": 0
+        },
+        {
+          "code": "invalid_arguments",
+          "ticks_executed": 0
+        },
+        {
+          "code": "unsupported_component",
+          "ticks_executed": 0
+        },
+        {
+          "code": "invalid_arguments",
+          "ticks_executed": 0
+        },
+        {
+          "code": "invalid_arguments",
+          "ticks_executed": 0
+        },
+        {
+          "code": "invalid_arguments",
+          "ticks_executed": 0
+        },
+        {
+          "code": "invalid_arguments",
+          "ticks_executed": 0
+        },
+        {
+          "code": "invalid_arguments",
+          "ticks_executed": 0
+        },
+        {
+          "code": "invalid_arguments",
+          "ticks_executed": 0
+        },
+        {
+          "code": "invalid_arguments",
+          "ticks_executed": 0
+        },
+        {
+          "code": "invalid_arguments",
+          "ticks_executed": 0
+        },
+        {
+          "code": "invalid_arguments",
+          "ticks_executed": 0
+        },
+        {
+          "code": "chunks_unavailable",
+          "ticks_executed": 1
+        }
+      ]
+    },
+    {
+      "attempt_id": "da141e11-8e68-4b1d-b35b-c380891ee5a5",
+      "operations": 36,
+      "simulation_ticks": 16,
+      "preparation_ticks": 6,
+      "world_time": 22,
+      "errors": [
+        {
+          "code": "server_error",
+          "ticks_executed": 0
+        },
+        {
+          "code": "invalid_arguments",
+          "ticks_executed": 0
+        }
+      ]
+    }
+  ]
+}
+Integration suite finished; server logs and worlds remain under C:\Users\minle\.codex\worktrees\issue-7\StoneBench\app\controller\.runtime\tests-65d54039f17b4eefb00044b909cba184

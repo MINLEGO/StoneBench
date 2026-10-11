@@ -9,3 +9,26 @@ dependencies {
 }
 java { sourceCompatibility = JavaVersion.VERSION_21; targetCompatibility = JavaVersion.VERSION_21 }
 tasks.withType(JavaCompile).configureEach { options.release = 21 }
+def observationChecksWorkingDir = layout.buildDirectory.dir('tmp/observationChecks').get().asFile
+tasks.register('observationChecks', JavaExec) {
+    group = 'verification'
+    description = 'Runs focused assertion-based checks for observation serialization, continuity, comparison, and artifacts.'
+    dependsOn tasks.named('testClasses')
+    // The assertion runner needs the game/compile libraries, not Loom's interactive dev launcher.
+    classpath = sourceSets.test.output + sourceSets.main.output + configurations.testCompileClasspath
+    mainClass = 'stonebench.ObservationChecks'
+    workingDir = observationChecksWorkingDir
+    doFirst {
+        project.delete(observationChecksWorkingDir)
+        if (!observationChecksWorkingDir.mkdirs() && !observationChecksWorkingDir.isDirectory()) {
+            throw new GradleException('Could not create isolated observation-check working directory')
+        }
+    }
+    doLast {
+        project.delete(observationChecksWorkingDir)
+    }
+}
+tasks.named('check') {
+    dependsOn tasks.named('observationChecks')
+}
+tasks.named('test') { enabled = false } // No JUnit engine; observationChecks is the executable verification suite.

@@ -54,7 +54,7 @@ final class BlockCatalog {
                 JsonArray values=new JsonArray(); for(Object value:p.getValues()) values.add(name(p,value));
                 (item.getValue().parameters.contains(p.getName())?configurable:computed).add(p.getName(),values);
             }
-            if(item.getValue().block instanceof HopperBlock) {JsonObject field=new JsonObject();field.addProperty("source","block_entity_runtime");field.addProperty("editable",false);field.addProperty("observation","Typed internal observation is a subsequent tool; inventory and block states are available now");computed.add("cooldown",field);computed.add("last_tick_time",field.deepCopy());}
+            if(item.getValue().block instanceof HopperBlock) {JsonObject field=new JsonObject();field.addProperty("source","block_entity_runtime");field.addProperty("editable",false);field.addProperty("observation","Typed read-only runtime fields are included in read_blocks/region and tick snapshots; faithful restoration and rest remain indeterminate");computed.add("cooldown",field);computed.add("last_tick_time",field.deepCopy());}
             row.add("configurable",configurable);row.add("computed",computed);row.addProperty("inventory_slots",item.getValue().slots);catalog.add(row);
         }
         result.add("catalog",catalog);result.addProperty("coverage","Explicit supported block ids only; unsupported components are errors, never implicit conformity rules");
@@ -97,6 +97,22 @@ final class BlockCatalog {
         JsonArray inventory=new JsonArray();if(world.getBlockEntity(pos) instanceof Inventory inv) for(int slot=0;slot<inv.size();slot++) {
             ItemStack stack=inv.getStack(slot);if(stack.isEmpty()) continue;JsonObject item=new JsonObject();item.addProperty("slot",slot);item.addProperty("item",Registries.ITEM.getId(stack.getItem()).toString());item.addProperty("count",stack.getCount());inventory.add(item);
         }
-        row.add("inventory",inventory);return row;
+        row.add("inventory",inventory);
+        BlockEntity entity=world.getBlockEntity(pos);
+        if(entity!=null) {
+            row.add("nbt",TypedNbt.encode(entity.createNbtWithIdentifyingData(world.getRegistryManager())));
+            row.addProperty("block_entity_type",Registries.BLOCK_ENTITY_TYPE.getId(entity.getType()).toString());
+            if(entity instanceof net.minecraft.block.entity.HopperBlockEntity) {
+                var access=(stonebench.mixin.ObservationHopperAccess)entity;JsonObject runtime=new JsonObject();
+                runtime.addProperty("last_tick_time",Long.toString(access.stonebench$lastTickTime()));runtime.addProperty("last_tick_time_type","long");
+                runtime.addProperty("transfer_cooldown",access.stonebench$cooldown());row.add("runtime",runtime);
+                row.addProperty("runtime_coverage","Known hopper memory observed; behavioral restoration remains indeterminate until a differential replay establishes it");
+            } else if(entity instanceof net.minecraft.block.entity.PistonBlockEntity) {
+                var access=(stonebench.mixin.ObservationPistonAccess)entity;JsonObject runtime=new JsonObject();
+                runtime.addProperty("progress",Float.toString(access.stonebench$progress()));runtime.addProperty("last_progress",Float.toString(access.stonebench$lastProgress()));runtime.addProperty("saved_world_time",Long.toString(access.stonebench$savedWorldTime()));
+                runtime.addProperty("progress_type","float");runtime.addProperty("saved_world_time_type","long");row.add("runtime",runtime);row.addProperty("runtime_coverage","Moving piston NBT and dedicated-server progress/time observed; saving in motion is not certified");
+            } else row.addProperty("runtime_coverage","Serialized NBT observed; completeness of nonserialized memory not certified");
+        }
+        return row;
     }
 }
