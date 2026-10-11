@@ -1,0 +1,91 @@
+Disposable server data and logs: C:\Users\minle\.codex\worktrees\issue-9\StoneBench\app\controller\.runtime\tests-b83fddbd000946e98c7f6f2b6a13942f
+Starting server 1: MCP 127.0.0.1:19165, Minecraft 127.0.0.1:25981
+Starting server 2: MCP 127.0.0.1:19166, Minecraft 127.0.0.1:25982
+test_real_mcp_server_contract (__main__.TransitionRuntimeIntegration.test_real_mcp_server_contract) ... Executing <Task pending name='Task-2' coro=<TransitionRuntimeIntegration.test_real_mcp_server_contract() running at C:\Users\minle\.codex\worktrees\issue-9\StoneBench\tests\transition.py:56> cb=[_run_until_complete_cb() at C:\Users\minle\AppData\Local\Programs\Python\Python312\Lib\asyncio\base_events.py:181] created at C:\Users\minle\AppData\Local\Programs\Python\Python312\Lib\asyncio\runners.py:100> took 1.625 seconds
+Executing <Task pending name='mcp.client.streamable_http.StreamableHTTPTransport.post_writer.<locals>.handle_request_async' coro=<TaskHandle._run_coro() running at C:\Users\minle\.codex\worktrees\issue-5\StoneBench\app\controller\.runtime\test-venv\Lib\site-packages\anyio\_core\_tasks.py:327> wait_for=<Future pending cb=[Task.task_wakeup()] created at C:\Users\minle\AppData\Local\Programs\Python\Python312\Lib\asyncio\base_events.py:448> cb=[TaskGroup._spawn.<locals>.task_done() at C:\Users\minle\.codex\worktrees\issue-5\StoneBench\app\controller\.runtime\test-venv\Lib\site-packages\anyio\_backends\_asyncio.py:870] created at C:\Users\minle\.codex\worktrees\issue-5\StoneBench\app\controller\.runtime\test-venv\Lib\site-packages\anyio\_backends\_asyncio.py:944> took 0.203 seconds
+Executing <Task pending name='Task-2' coro=<TransitionRuntimeIntegration.test_real_mcp_server_contract() running at C:\Users\minle\.codex\worktrees\issue-9\StoneBench\tests\transition.py:56> cb=[_run_until_complete_cb() at C:\Users\minle\AppData\Local\Programs\Python\Python312\Lib\asyncio\base_events.py:181] created at C:\Users\minle\AppData\Local\Programs\Python\Python312\Lib\asyncio\runners.py:100> took 1.484 seconds
+Executing <Handle _ProactorReadPipeTransport._loop_reading(<_OverlappedF...events.py:506>) created at C:\Users\minle\AppData\Local\Programs\Python\Python312\Lib\asyncio\windows_events.py:93> took 0.296 seconds
+Executing <Task pending name='mcp.client.streamable_http.StreamableHTTPTransport.post_writer.<locals>.handle_request_async' coro=<TaskHandle._run_coro() running at C:\Users\minle\.codex\worktrees\issue-5\StoneBench\app\controller\.runtime\test-venv\Lib\site-packages\anyio\_core\_tasks.py:327> wait_for=<Future pending cb=[Task.task_wakeup()] created at C:\Users\minle\AppData\Local\Programs\Python\Python312\Lib\asyncio\base_events.py:448> cb=[TaskGroup._spawn.<locals>.task_done() at C:\Users\minle\.codex\worktrees\issue-5\StoneBench\app\controller\.runtime\test-venv\Lib\site-packages\anyio\_backends\_asyncio.py:870] created at C:\Users\minle\.codex\worktrees\issue-5\StoneBench\app\controller\.runtime\test-venv\Lib\site-packages\anyio\_backends\_asyncio.py:944> took 0.656 seconds
+Executing <Handle _ProactorReadPipeTransport._loop_reading(<_OverlappedF...events.py:506>) created at C:\Users\minle\AppData\Local\Programs\Python\Python312\Lib\asyncio\windows_events.py:93> took 0.219 seconds
+Executing <Handle _ProactorReadPipeTransport._loop_reading(<_OverlappedF...events.py:506>) created at C:\Users\minle\AppData\Local\Programs\Python\Python312\Lib\asyncio\proactor_events.py:322> took 0.125 seconds
+Executing <Task pending name='mcp.client.streamable_http.StreamableHTTPTransport.post_writer.<locals>.handle_request_async' coro=<TaskHandle._run_coro() running at C:\Users\minle\.codex\worktrees\issue-5\StoneBench\app\controller\.runtime\test-venv\Lib\site-packages\anyio\_core\_tasks.py:327> cb=[TaskGroup._spawn.<locals>.task_done() at C:\Users\minle\.codex\worktrees\issue-5\StoneBench\app\controller\.runtime\test-venv\Lib\site-packages\anyio\_backends\_asyncio.py:870] created at C:\Users\minle\.codex\worktrees\issue-5\StoneBench\app\controller\.runtime\test-venv\Lib\site-packages\anyio\_backends\_asyncio.py:944> took 0.110 seconds
+Executing <Task pending name='mcp.client.streamable_http.StreamableHTTPTransport.post_writer.<locals>.handle_request_async' coro=<TaskHandle._run_coro() running at C:\Users\minle\.codex\worktrees\issue-5\StoneBench\app\controller\.runtime\test-venv\Lib\site-packages\anyio\_core\_tasks.py:327> cb=[TaskGroup._spawn.<locals>.task_done() at C:\Users\minle\.codex\worktrees\issue-5\StoneBench\app\controller\.runtime\test-venv\Lib\site-packages\anyio\_backends\_asyncio.py:870] created at C:\Users\minle\.codex\worktrees\issue-5\StoneBench\app\controller\.runtime\test-venv\Lib\site-packages\anyio\_backends\_asyncio.py:944> took 0.109 seconds
+Executing <Task finished name='mcp.client.streamable_http.StreamableHTTPTransport.post_writer.<locals>.handle_request_async' coro=<TaskHandle._run_coro() done, defined at C:\Users\minle\.codex\worktrees\issue-5\StoneBench\app\controller\.runtime\test-venv\Lib\site-packages\anyio\_core\_tasks.py:322> result=None created at C:\Users\minle\.codex\worktrees\issue-5\StoneBench\app\controller\.runtime\test-venv\Lib\site-packages\anyio\_backends\_asyncio.py:944> took 0.141 seconds
+Executing <Task pending name='mcp.shared.session.BaseSession._receive_loop' coro=<TaskHandle._run_coro() running at C:\Users\minle\.codex\worktrees\issue-5\StoneBench\app\controller\.runtime\test-venv\Lib\site-packages\anyio\_core\_tasks.py:327> cb=[TaskGroup._spawn.<locals>.task_done() at C:\Users\minle\.codex\worktrees\issue-5\StoneBench\app\controller\.runtime\test-venv\Lib\site-packages\anyio\_backends\_asyncio.py:870] created at C:\Users\minle\.codex\worktrees\issue-5\StoneBench\app\controller\.runtime\test-venv\Lib\site-packages\anyio\_backends\_asyncio.py:944> took 0.110 seconds
+Executing <Handle _ProactorReadPipeTransport._loop_reading(<_OverlappedF...events.py:506>) created at C:\Users\minle\AppData\Local\Programs\Python\Python312\Lib\asyncio\proactor_events.py:322> took 0.156 seconds
+Executing <Task pending name='mcp.shared.session.BaseSession._receive_loop' coro=<TaskHandle._run_coro() running at C:\Users\minle\.codex\worktrees\issue-5\StoneBench\app\controller\.runtime\test-venv\Lib\site-packages\anyio\_core\_tasks.py:327> cb=[TaskGroup._spawn.<locals>.task_done() at C:\Users\minle\.codex\worktrees\issue-5\StoneBench\app\controller\.runtime\test-venv\Lib\site-packages\anyio\_backends\_asyncio.py:870] created at C:\Users\minle\.codex\worktrees\issue-5\StoneBench\app\controller\.runtime\test-venv\Lib\site-packages\anyio\_backends\_asyncio.py:944> took 0.234 seconds
+Executing <Task pending name='Task-2' coro=<TransitionRuntimeIntegration.test_real_mcp_server_contract() running at C:\Users\minle\.codex\worktrees\issue-9\StoneBench\tests\transition.py:67> cb=[_run_until_complete_cb() at C:\Users\minle\AppData\Local\Programs\Python\Python312\Lib\asyncio\base_events.py:181] created at C:\Users\minle\AppData\Local\Programs\Python\Python312\Lib\asyncio\runners.py:100> took 0.109 seconds
+Executing <Task pending name='mcp.client.streamable_http.StreamableHTTPTransport.post_writer.<locals>.handle_request_async' coro=<TaskHandle._run_coro() running at C:\Users\minle\.codex\worktrees\issue-5\StoneBench\app\controller\.runtime\test-venv\Lib\site-packages\anyio\_core\_tasks.py:327> cb=[TaskGroup._spawn.<locals>.task_done() at C:\Users\minle\.codex\worktrees\issue-5\StoneBench\app\controller\.runtime\test-venv\Lib\site-packages\anyio\_backends\_asyncio.py:870] created at C:\Users\minle\.codex\worktrees\issue-5\StoneBench\app\controller\.runtime\test-venv\Lib\site-packages\anyio\_backends\_asyncio.py:944> took 0.140 seconds
+Executing <Task pending name='mcp.shared.session.BaseSession._receive_loop' coro=<TaskHandle._run_coro() running at C:\Users\minle\.codex\worktrees\issue-5\StoneBench\app\controller\.runtime\test-venv\Lib\site-packages\anyio\_core\_tasks.py:327> cb=[TaskGroup._spawn.<locals>.task_done() at C:\Users\minle\.codex\worktrees\issue-5\StoneBench\app\controller\.runtime\test-venv\Lib\site-packages\anyio\_backends\_asyncio.py:870] created at C:\Users\minle\.codex\worktrees\issue-5\StoneBench\app\controller\.runtime\test-venv\Lib\site-packages\anyio\_backends\_asyncio.py:944> took 0.188 seconds
+Executing <Handle _ProactorReadPipeTransport._loop_reading(<_OverlappedF...events.py:506>) created at C:\Users\minle\AppData\Local\Programs\Python\Python312\Lib\asyncio\windows_events.py:93> took 0.125 seconds
+Executing <Task pending name='mcp.shared.session.BaseSession._receive_loop' coro=<TaskHandle._run_coro() running at C:\Users\minle\.codex\worktrees\issue-5\StoneBench\app\controller\.runtime\test-venv\Lib\site-packages\anyio\_core\_tasks.py:327> cb=[TaskGroup._spawn.<locals>.task_done() at C:\Users\minle\.codex\worktrees\issue-5\StoneBench\app\controller\.runtime\test-venv\Lib\site-packages\anyio\_backends\_asyncio.py:870] created at C:\Users\minle\.codex\worktrees\issue-5\StoneBench\app\controller\.runtime\test-venv\Lib\site-packages\anyio\_backends\_asyncio.py:944> took 0.156 seconds
+Executing <Task pending name='mcp.client.streamable_http.StreamableHTTPTransport.post_writer' coro=<TaskHandle._run_coro() running at C:\Users\minle\.codex\worktrees\issue-5\StoneBench\app\controller\.runtime\test-venv\Lib\site-packages\anyio\_core\_tasks.py:327> cb=[TaskGroup._spawn.<locals>.task_done() at C:\Users\minle\.codex\worktrees\issue-5\StoneBench\app\controller\.runtime\test-venv\Lib\site-packages\anyio\_backends\_asyncio.py:870] created at C:\Users\minle\.codex\worktrees\issue-5\StoneBench\app\controller\.runtime\test-venv\Lib\site-packages\anyio\_backends\_asyncio.py:944> took 0.110 seconds
+Executing <Task pending name='mcp.client.streamable_http.StreamableHTTPTransport.post_writer.<locals>.handle_request_async' coro=<TaskHandle._run_coro() running at C:\Users\minle\.codex\worktrees\issue-5\StoneBench\app\controller\.runtime\test-venv\Lib\site-packages\anyio\_core\_tasks.py:327> wait_for=<Future pending cb=[Task.task_wakeup()] created at C:\Users\minle\AppData\Local\Programs\Python\Python312\Lib\asyncio\base_events.py:448> cb=[TaskGroup._spawn.<locals>.task_done() at C:\Users\minle\.codex\worktrees\issue-5\StoneBench\app\controller\.runtime\test-venv\Lib\site-packages\anyio\_backends\_asyncio.py:870] created at C:\Users\minle\.codex\worktrees\issue-5\StoneBench\app\controller\.runtime\test-venv\Lib\site-packages\anyio\_backends\_asyncio.py:944> took 0.109 seconds
+Executing <Handle _ProactorReadPipeTransport._loop_reading(None) created at C:\Users\minle\AppData\Local\Programs\Python\Python312\Lib\asyncio\proactor_events.py:223> took 0.250 seconds
+Executing <Task pending name='mcp.client.streamable_http.StreamableHTTPTransport.post_writer.<locals>.handle_request_async' coro=<TaskHandle._run_coro() running at C:\Users\minle\.codex\worktrees\issue-5\StoneBench\app\controller\.runtime\test-venv\Lib\site-packages\anyio\_core\_tasks.py:327> cb=[TaskGroup._spawn.<locals>.task_done() at C:\Users\minle\.codex\worktrees\issue-5\StoneBench\app\controller\.runtime\test-venv\Lib\site-packages\anyio\_backends\_asyncio.py:870] created at C:\Users\minle\.codex\worktrees\issue-5\StoneBench\app\controller\.runtime\test-venv\Lib\site-packages\anyio\_backends\_asyncio.py:944> took 0.250 seconds
+Executing <Task pending name='mcp.client.streamable_http.StreamableHTTPTransport.post_writer.<locals>.handle_request_async' coro=<TaskHandle._run_coro() running at C:\Users\minle\.codex\worktrees\issue-5\StoneBench\app\controller\.runtime\test-venv\Lib\site-packages\anyio\_core\_tasks.py:327> cb=[TaskGroup._spawn.<locals>.task_done() at C:\Users\minle\.codex\worktrees\issue-5\StoneBench\app\controller\.runtime\test-venv\Lib\site-packages\anyio\_backends\_asyncio.py:870] created at C:\Users\minle\.codex\worktrees\issue-5\StoneBench\app\controller\.runtime\test-venv\Lib\site-packages\anyio\_backends\_asyncio.py:944> took 0.203 seconds
+Executing <Task pending name='mcp.shared.session.BaseSession._receive_loop' coro=<TaskHandle._run_coro() running at C:\Users\minle\.codex\worktrees\issue-5\StoneBench\app\controller\.runtime\test-venv\Lib\site-packages\anyio\_core\_tasks.py:327> wait_for=<Future pending cb=[Task.task_wakeup()] created at C:\Users\minle\AppData\Local\Programs\Python\Python312\Lib\asyncio\base_events.py:448> cb=[TaskGroup._spawn.<locals>.task_done() at C:\Users\minle\.codex\worktrees\issue-5\StoneBench\app\controller\.runtime\test-venv\Lib\site-packages\anyio\_backends\_asyncio.py:870] created at C:\Users\minle\.codex\worktrees\issue-5\StoneBench\app\controller\.runtime\test-venv\Lib\site-packages\anyio\_backends\_asyncio.py:944> took 0.109 seconds
+Executing <Task pending name='mcp.client.streamable_http.StreamableHTTPTransport.post_writer.<locals>.handle_request_async' coro=<TaskHandle._run_coro() running at C:\Users\minle\.codex\worktrees\issue-5\StoneBench\app\controller\.runtime\test-venv\Lib\site-packages\anyio\_core\_tasks.py:327> cb=[TaskGroup._spawn.<locals>.task_done() at C:\Users\minle\.codex\worktrees\issue-5\StoneBench\app\controller\.runtime\test-venv\Lib\site-packages\anyio\_backends\_asyncio.py:870] created at C:\Users\minle\.codex\worktrees\issue-5\StoneBench\app\controller\.runtime\test-venv\Lib\site-packages\anyio\_backends\_asyncio.py:944> took 0.235 seconds
+Executing <Task pending name='mcp.client.streamable_http.StreamableHTTPTransport.post_writer.<locals>.handle_request_async' coro=<TaskHandle._run_coro() running at C:\Users\minle\.codex\worktrees\issue-5\StoneBench\app\controller\.runtime\test-venv\Lib\site-packages\anyio\_core\_tasks.py:327> cb=[TaskGroup._spawn.<locals>.task_done() at C:\Users\minle\.codex\worktrees\issue-5\StoneBench\app\controller\.runtime\test-venv\Lib\site-packages\anyio\_backends\_asyncio.py:870] created at C:\Users\minle\.codex\worktrees\issue-5\StoneBench\app\controller\.runtime\test-venv\Lib\site-packages\anyio\_backends\_asyncio.py:944> took 0.109 seconds
+Executing <Task pending name='mcp.client.streamable_http.StreamableHTTPTransport.post_writer.<locals>.handle_request_async' coro=<TaskHandle._run_coro() running at C:\Users\minle\.codex\worktrees\issue-5\StoneBench\app\controller\.runtime\test-venv\Lib\site-packages\anyio\_core\_tasks.py:327> cb=[TaskGroup._spawn.<locals>.task_done() at C:\Users\minle\.codex\worktrees\issue-5\StoneBench\app\controller\.runtime\test-venv\Lib\site-packages\anyio\_backends\_asyncio.py:870] created at C:\Users\minle\.codex\worktrees\issue-5\StoneBench\app\controller\.runtime\test-venv\Lib\site-packages\anyio\_backends\_asyncio.py:944> took 0.140 seconds
+Executing <Task pending name='mcp.client.streamable_http.StreamableHTTPTransport.post_writer' coro=<TaskHandle._run_coro() running at C:\Users\minle\.codex\worktrees\issue-5\StoneBench\app\controller\.runtime\test-venv\Lib\site-packages\anyio\_core\_tasks.py:327> cb=[TaskGroup._spawn.<locals>.task_done() at C:\Users\minle\.codex\worktrees\issue-5\StoneBench\app\controller\.runtime\test-venv\Lib\site-packages\anyio\_backends\_asyncio.py:870] created at C:\Users\minle\.codex\worktrees\issue-5\StoneBench\app\controller\.runtime\test-venv\Lib\site-packages\anyio\_backends\_asyncio.py:944> took 0.219 seconds
+Executing <Task pending name='Task-2' coro=<TransitionRuntimeIntegration.test_real_mcp_server_contract() running at C:\Users\minle\.codex\worktrees\issue-9\StoneBench\tests\transition.py:71> wait_for=<Future pending cb=[Task.task_wakeup()] created at C:\Users\minle\AppData\Local\Programs\Python\Python312\Lib\asyncio\base_events.py:448> cb=[_run_until_complete_cb() at C:\Users\minle\AppData\Local\Programs\Python\Python312\Lib\asyncio\base_events.py:181] created at C:\Users\minle\AppData\Local\Programs\Python\Python312\Lib\asyncio\runners.py:100> took 0.218 seconds
+Executing <Task pending name='mcp.client.streamable_http.StreamableHTTPTransport.post_writer' coro=<TaskHandle._run_coro() running at C:\Users\minle\.codex\worktrees\issue-5\StoneBench\app\controller\.runtime\test-venv\Lib\site-packages\anyio\_core\_tasks.py:327> wait_for=<Future pending cb=[Task.task_wakeup()] created at C:\Users\minle\AppData\Local\Programs\Python\Python312\Lib\asyncio\base_events.py:448> cb=[TaskGroup._spawn.<locals>.task_done() at C:\Users\minle\.codex\worktrees\issue-5\StoneBench\app\controller\.runtime\test-venv\Lib\site-packages\anyio\_backends\_asyncio.py:870] created at C:\Users\minle\.codex\worktrees\issue-5\StoneBench\app\controller\.runtime\test-venv\Lib\site-packages\anyio\_backends\_asyncio.py:944> took 0.141 seconds
+ok
+
+----------------------------------------------------------------------
+Ran 1 test in 134.103s
+
+OK
+{
+  "status": "ok",
+  "journals": [
+    {
+      "attempt_id": "bebc22ee-edf0-42cf-93c3-b567b86a86da",
+      "operations": 181,
+      "simulation_ticks": 36301,
+      "preparation_ticks": 20,
+      "world_time": 36321,
+      "errors": [
+        {
+          "code": "invalid_arguments",
+          "ticks_executed": 0
+        },
+        {
+          "code": "invalid_arguments",
+          "ticks_executed": 0
+        },
+        {
+          "code": "invalid_arguments",
+          "ticks_executed": 0
+        },
+        {
+          "code": "invalid_arguments",
+          "ticks_executed": 0
+        },
+        {
+          "code": "invalid_arguments",
+          "ticks_executed": 0
+        },
+        {
+          "code": "invalid_arguments",
+          "ticks_executed": 0
+        }
+      ]
+    },
+    {
+      "attempt_id": "07aa2332-fd1d-4f8c-89d1-6e9ba9a68350",
+      "operations": 9,
+      "simulation_ticks": 14,
+      "preparation_ticks": 14,
+      "world_time": 28,
+      "errors": [
+        {
+          "code": "chunks_unavailable",
+          "ticks_executed": 1
+        }
+      ]
+    }
+  ]
+}
+Integration suite finished; server logs and worlds remain under C:\Users\minle\.codex\worktrees\issue-9\StoneBench\app\controller\.runtime\tests-b83fddbd000946e98c7f6f2b6a13942f

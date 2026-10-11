@@ -15,7 +15,9 @@ import stonebench.mixin.*;
 public final class Observation {
     private static final Set<BlockPos> POSITIONS=new LinkedHashSet<>();
     private static final List<JsonObject> EVENTS=new ArrayList<>();
-    private static final List<JsonObject> OPERATION_EVENTS=new ArrayList<>();
+    private static Artifacts.Writer operationWriter;
+    private static JsonObject operationArtifact;
+    private static int operationOrder;
     private static final Set<BlockPos> OUTSIDE=new LinkedHashSet<>();
     private static boolean recording;
     private static int internalReads;
@@ -24,10 +26,13 @@ public final class Observation {
     private static String phase="between_ticks";
     public static void track(BlockPos pos) {POSITIONS.add(pos.toImmutable());}
     static void begin(long index,int tick,String value) {recording=true;simulationIndex=index;tickIndex=tick;phase=value;EVENTS.clear();}
-    static void end() {recording=false;}
-    static void start() {EVENTS.clear();OPERATION_EVENTS.clear();}
+    static void end() {recording=false;if(operationWriter!=null) operationWriter.close();}
+    static void start() {EVENTS.clear();if(operationWriter!=null) operationWriter.close();operationWriter=null;operationArtifact=null;operationOrder=0;}
     static List<JsonObject> currentEvents() {return EVENTS;}
-    static List<JsonObject> operationEvents() {return OPERATION_EVENTS;}
+    static JsonObject operationEvents() {
+        if(operationArtifact==null) operationArtifact=operationWriter==null?Artifacts.write("intratick_events",List.of()):operationWriter.finish();
+        return operationArtifact.deepCopy();
+    }
     static void phase(String value) {phase=value;}
     public static void event(ServerWorld world,String kind,BlockPos pos,JsonObject detail) {
         if(!recording || world!=Controller.world() || !world.getServer().isOnThread()) return;
@@ -35,7 +40,10 @@ public final class Observation {
         track(pos);if(!Controller.prepared(pos)) OUTSIDE.add(pos.toImmutable());
         JsonObject event=new JsonObject();event.addProperty("order",EVENTS.size());event.addProperty("kind",kind);event.addProperty("phase",phase);
         event.addProperty("tick_index",tickIndex);event.addProperty("simulation_index",simulationIndex);event.addProperty("world_time",world.getTime());event.addProperty("time_of_day",world.getTimeOfDay());
-        event.addProperty("operation_order",OPERATION_EVENTS.size());event.add("position",Task.position(pos.getX(),pos.getY(),pos.getZ()));event.add("detail",detail);EVENTS.add(event);OPERATION_EVENTS.add(event);
+        event.addProperty("operation_order",operationOrder++);event.add("position",Task.position(pos.getX(),pos.getY(),pos.getZ()));event.add("detail",detail);EVENTS.add(event);
+        if(operationArtifact!=null) throw new IllegalStateException("Event after operation artifact was finalized");
+        if(operationWriter==null) operationWriter=Artifacts.writer("intratick_events");
+        operationWriter.add(event);
     }
     public static JsonObject detail(String key,String value) {JsonObject detail=new JsonObject();detail.addProperty(key,value);return detail;}
     public static void read(ServerWorld world,BlockPos pos,BlockState state) {
