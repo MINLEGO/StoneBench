@@ -1,0 +1,700 @@
+{
+  "replays": [
+    {
+      "index": 1,
+      "observations": 83,
+      "exact_equal": true,
+      "sha256": "82a09b30520e2ff904900f1b73ab1ad8f4851f80b06028188aeae43f251b3591",
+      "description": {
+        "operation_id": "b0c96c70-2ff5-49c9-b38a-0cafb793e8bb",
+        "operation": "describe_task",
+        "attempt_id": "ad9cc2fc-c9f5-4e36-b28c-ec8dfadd9e14",
+        "phase": "validation",
+        "status": "ok",
+        "ticks_executed": 0,
+        "simulation_ticks": 20,
+        "preparation_ticks": 13,
+        "world_time": 33,
+        "preparation_initial_loaded": false,
+        "preparation_initial_ready": false,
+        "frozen": true,
+        "mutated": false,
+        "task": {
+          "task_id": "2x2-volume",
+          "minecraft": "1.21.11",
+          "category": "regular DOOR",
+          "width": 2,
+          "height": 2,
+          "objective": "minimize_volume",
+          "rules_reference": "https://docs.google.com/document/d/1kDNXIvQ8uAMU5qRFXIk6nLxbVliIjcMu1MjHjLJrRH4/edit",
+          "budget_tokens": null,
+          "passage": {
+            "origin": {
+              "x": 1024,
+              "y": 80,
+              "z": 1024
+            },
+            "vertical_axis": "+Y",
+            "horizontal_axis": "+X",
+            "normal": "+Z"
+          },
+          "expected_frame": [
+            {
+              "x": 1024,
+              "y": 80,
+              "z": 1024
+            },
+            {
+              "x": 1025,
+              "y": 80,
+              "z": 1024
+            },
+            {
+              "x": 1024,
+              "y": 81,
+              "z": 1024
+            },
+            {
+              "x": 1025,
+              "y": 81,
+              "z": 1024
+            }
+          ],
+          "prepared_region": {
+            "min": {
+              "x": 1024,
+              "y": 64,
+              "z": 1024
+            },
+            "max": {
+              "x": 1039,
+              "y": 111,
+              "z": 1039
+            },
+            "meaning": "initial prepared observation scope; not a conformity boundary"
+          }
+        },
+        "chunks_ready": true,
+        "input": null,
+        "restoration": {
+          "request_id": "c06f74de-0e13-49d0-aeac-bf423919482b",
+          "checkpoint_id": "00bc8699-2daa-4cd5-ae7f-b84163441e61",
+          "attempt_id": "ad9cc2fc-c9f5-4e36-b28c-ec8dfadd9e14",
+          "manifest_sha256": "4adc92cb27dc7f5984273af01444fdc950e46839f9cfe42791b2120c70d825b9",
+          "world_time": 33,
+          "simulation_ticks": 20,
+          "preparation_ticks": 13,
+          "status": "equal",
+          "mutates_attempt": true,
+          "previous_world": "stonebench\\restore-history\\c06f74de-0e13-49d0-aeac-bf423919482b\\world-before",
+          "preparation_game_ticks": 0,
+          "comparison": {
+            "status": "equal",
+            "first_tick": 0,
+            "phase": "before_first_useful_tick",
+            "complete": true,
+            "first_fields": [],
+            "scope": "Exact observed clocks, queues, typed NBT, inventories and runtime; not all JVM memory",
+            "checkpoint_id": "00bc8699-2daa-4cd5-ae7f-b84163441e61",
+            "useful_ticks_before_comparison": 0
+          },
+          "chunks_ready": true,
+          "preparation_changes": {
+            "artifact_id": "c37aba21-d267-48ab-a03f-9330f26d3764",
+            "kind": "checkpoint_preparation_diff",
+            "count": 2,
+            "sha256": "d2ef59ec45bd50653481f873d5f4f29dcdd4bca7a22082a5646fadd597b409cf",
+            "bytes": 235,
+            "complete": true
+          },
+          "preparation_initial_chunks_ready": false,
+          "preparation_construction_preserved": true
+        },
+        "restore_pending": false,
+        "environment": {
+          "minecraft": "1.21.11",
+          "yarn": "1.21.11+build.3",
+          "fabric_loader": "0.19.5",
+          "controller": "0.1.0",
+          "java": "21.0.12",
+          "tick_rate": 20.0,
+          "tick_execution": "sprint",
+          "test_initial_preparation_ticks": 0,
+          "seed": 731928,
+          "generator": "flat_air",
+          "random_tick_speed": 0,
+          "mob_spawning": false,
+          "advance_weather": false,
+          "players_allowed": false,
+          "server_directory": "C:\\Users\\minle\\.codex\\worktrees\\issue-10\\StoneBench\\app\\controller\\.runtime\\tests-446d554654e64d7282c4ddc93b1cb849\\server-1"
+        }
+      },
+      "checkpoint_manifest_sha256": "4adc92cb27dc7f5984273af01444fdc950e46839f9cfe42791b2120c70d825b9"
+    },
+    {
+      "index": 2,
+      "observations": 83,
+      "exact_equal": true,
+      "sha256": "82a09b30520e2ff904900f1b73ab1ad8f4851f80b06028188aeae43f251b3591",
+      "description": {
+        "operation_id": "ddd6338a-f03c-4ad8-844c-686371af477c",
+        "operation": "describe_task",
+        "attempt_id": "ad9cc2fc-c9f5-4e36-b28c-ec8dfadd9e14",
+        "phase": "validation",
+        "status": "ok",
+        "ticks_executed": 0,
+        "simulation_ticks": 20,
+        "preparation_ticks": 13,
+        "world_time": 33,
+        "preparation_initial_loaded": false,
+        "preparation_initial_ready": false,
+        "frozen": true,
+        "mutated": false,
+        "task": {
+          "task_id": "2x2-volume",
+          "minecraft": "1.21.11",
+          "category": "regular DOOR",
+          "width": 2,
+          "height": 2,
+          "objective": "minimize_volume",
+          "rules_reference": "https://docs.google.com/document/d/1kDNXIvQ8uAMU5qRFXIk6nLxbVliIjcMu1MjHjLJrRH4/edit",
+          "budget_tokens": null,
+          "passage": {
+            "origin": {
+              "x": 1024,
+              "y": 80,
+              "z": 1024
+            },
+            "vertical_axis": "+Y",
+            "horizontal_axis": "+X",
+            "normal": "+Z"
+          },
+          "expected_frame": [
+            {
+              "x": 1024,
+              "y": 80,
+              "z": 1024
+            },
+            {
+              "x": 1025,
+              "y": 80,
+              "z": 1024
+            },
+            {
+              "x": 1024,
+              "y": 81,
+              "z": 1024
+            },
+            {
+              "x": 1025,
+              "y": 81,
+              "z": 1024
+            }
+          ],
+          "prepared_region": {
+            "min": {
+              "x": 1024,
+              "y": 64,
+              "z": 1024
+            },
+            "max": {
+              "x": 1039,
+              "y": 111,
+              "z": 1039
+            },
+            "meaning": "initial prepared observation scope; not a conformity boundary"
+          }
+        },
+        "chunks_ready": true,
+        "input": null,
+        "restoration": {
+          "request_id": "511d6d63-a827-4d58-b601-951b34f95d2b",
+          "checkpoint_id": "00bc8699-2daa-4cd5-ae7f-b84163441e61",
+          "attempt_id": "ad9cc2fc-c9f5-4e36-b28c-ec8dfadd9e14",
+          "manifest_sha256": "4adc92cb27dc7f5984273af01444fdc950e46839f9cfe42791b2120c70d825b9",
+          "world_time": 33,
+          "simulation_ticks": 20,
+          "preparation_ticks": 13,
+          "status": "equal",
+          "mutates_attempt": true,
+          "previous_world": "stonebench\\restore-history\\511d6d63-a827-4d58-b601-951b34f95d2b\\world-before",
+          "preparation_game_ticks": 0,
+          "comparison": {
+            "status": "equal",
+            "first_tick": 0,
+            "phase": "before_first_useful_tick",
+            "complete": true,
+            "first_fields": [],
+            "scope": "Exact observed clocks, queues, typed NBT, inventories and runtime; not all JVM memory",
+            "checkpoint_id": "00bc8699-2daa-4cd5-ae7f-b84163441e61",
+            "useful_ticks_before_comparison": 0
+          },
+          "chunks_ready": true,
+          "preparation_changes": {
+            "artifact_id": "d117fdfb-5fc0-458e-9948-d23b6f483260",
+            "kind": "checkpoint_preparation_diff",
+            "count": 2,
+            "sha256": "d2ef59ec45bd50653481f873d5f4f29dcdd4bca7a22082a5646fadd597b409cf",
+            "bytes": 235,
+            "complete": true
+          },
+          "preparation_initial_chunks_ready": false,
+          "preparation_construction_preserved": true
+        },
+        "restore_pending": false,
+        "environment": {
+          "minecraft": "1.21.11",
+          "yarn": "1.21.11+build.3",
+          "fabric_loader": "0.19.5",
+          "controller": "0.1.0",
+          "java": "21.0.12",
+          "tick_rate": 20.0,
+          "tick_execution": "sprint",
+          "test_initial_preparation_ticks": 0,
+          "seed": 731928,
+          "generator": "flat_air",
+          "random_tick_speed": 0,
+          "mob_spawning": false,
+          "advance_weather": false,
+          "players_allowed": false,
+          "server_directory": "C:\\Users\\minle\\.codex\\worktrees\\issue-10\\StoneBench\\app\\controller\\.runtime\\tests-446d554654e64d7282c4ddc93b1cb849\\server-1"
+        }
+      },
+      "checkpoint_manifest_sha256": "4adc92cb27dc7f5984273af01444fdc950e46839f9cfe42791b2120c70d825b9"
+    },
+    {
+      "index": 3,
+      "observations": 83,
+      "exact_equal": true,
+      "sha256": "82a09b30520e2ff904900f1b73ab1ad8f4851f80b06028188aeae43f251b3591",
+      "description": {
+        "operation_id": "49254e6e-6ebc-4d4c-99a0-1e96f3385650",
+        "operation": "describe_task",
+        "attempt_id": "ad9cc2fc-c9f5-4e36-b28c-ec8dfadd9e14",
+        "phase": "validation",
+        "status": "ok",
+        "ticks_executed": 0,
+        "simulation_ticks": 20,
+        "preparation_ticks": 13,
+        "world_time": 33,
+        "preparation_initial_loaded": false,
+        "preparation_initial_ready": false,
+        "frozen": true,
+        "mutated": false,
+        "task": {
+          "task_id": "2x2-volume",
+          "minecraft": "1.21.11",
+          "category": "regular DOOR",
+          "width": 2,
+          "height": 2,
+          "objective": "minimize_volume",
+          "rules_reference": "https://docs.google.com/document/d/1kDNXIvQ8uAMU5qRFXIk6nLxbVliIjcMu1MjHjLJrRH4/edit",
+          "budget_tokens": null,
+          "passage": {
+            "origin": {
+              "x": 1024,
+              "y": 80,
+              "z": 1024
+            },
+            "vertical_axis": "+Y",
+            "horizontal_axis": "+X",
+            "normal": "+Z"
+          },
+          "expected_frame": [
+            {
+              "x": 1024,
+              "y": 80,
+              "z": 1024
+            },
+            {
+              "x": 1025,
+              "y": 80,
+              "z": 1024
+            },
+            {
+              "x": 1024,
+              "y": 81,
+              "z": 1024
+            },
+            {
+              "x": 1025,
+              "y": 81,
+              "z": 1024
+            }
+          ],
+          "prepared_region": {
+            "min": {
+              "x": 1024,
+              "y": 64,
+              "z": 1024
+            },
+            "max": {
+              "x": 1039,
+              "y": 111,
+              "z": 1039
+            },
+            "meaning": "initial prepared observation scope; not a conformity boundary"
+          }
+        },
+        "chunks_ready": true,
+        "input": null,
+        "restoration": {
+          "request_id": "cc3cba0c-cda6-4d9e-b78c-3a3bb08aaaea",
+          "checkpoint_id": "00bc8699-2daa-4cd5-ae7f-b84163441e61",
+          "attempt_id": "ad9cc2fc-c9f5-4e36-b28c-ec8dfadd9e14",
+          "manifest_sha256": "4adc92cb27dc7f5984273af01444fdc950e46839f9cfe42791b2120c70d825b9",
+          "world_time": 33,
+          "simulation_ticks": 20,
+          "preparation_ticks": 13,
+          "status": "equal",
+          "mutates_attempt": true,
+          "previous_world": "stonebench\\restore-history\\cc3cba0c-cda6-4d9e-b78c-3a3bb08aaaea\\world-before",
+          "preparation_game_ticks": 0,
+          "comparison": {
+            "status": "equal",
+            "first_tick": 0,
+            "phase": "before_first_useful_tick",
+            "complete": true,
+            "first_fields": [],
+            "scope": "Exact observed clocks, queues, typed NBT, inventories and runtime; not all JVM memory",
+            "checkpoint_id": "00bc8699-2daa-4cd5-ae7f-b84163441e61",
+            "useful_ticks_before_comparison": 0
+          },
+          "chunks_ready": true,
+          "preparation_changes": {
+            "artifact_id": "4bb73fb0-8c20-446c-a53d-5b180068b948",
+            "kind": "checkpoint_preparation_diff",
+            "count": 2,
+            "sha256": "d2ef59ec45bd50653481f873d5f4f29dcdd4bca7a22082a5646fadd597b409cf",
+            "bytes": 235,
+            "complete": true
+          },
+          "preparation_initial_chunks_ready": false,
+          "preparation_construction_preserved": true
+        },
+        "restore_pending": false,
+        "environment": {
+          "minecraft": "1.21.11",
+          "yarn": "1.21.11+build.3",
+          "fabric_loader": "0.19.5",
+          "controller": "0.1.0",
+          "java": "21.0.12",
+          "tick_rate": 20.0,
+          "tick_execution": "sprint",
+          "test_initial_preparation_ticks": 0,
+          "seed": 731928,
+          "generator": "flat_air",
+          "random_tick_speed": 0,
+          "mob_spawning": false,
+          "advance_weather": false,
+          "players_allowed": false,
+          "server_directory": "C:\\Users\\minle\\.codex\\worktrees\\issue-10\\StoneBench\\app\\controller\\.runtime\\tests-446d554654e64d7282c4ddc93b1cb849\\server-1"
+        }
+      },
+      "checkpoint_manifest_sha256": "4adc92cb27dc7f5984273af01444fdc950e46839f9cfe42791b2120c70d825b9"
+    }
+  ],
+  "negative_controls": [
+    {
+      "no_established_rest": {
+        "operation_id": "82c7b3c8-8485-482c-9327-29c8621bf149",
+        "operation": "create_checkpoint",
+        "attempt_id": "ad9cc2fc-c9f5-4e36-b28c-ec8dfadd9e14",
+        "phase": "checkpoint_between_ticks",
+        "status": "error",
+        "ticks_executed": 0,
+        "simulation_ticks": 0,
+        "preparation_ticks": 13,
+        "world_time": 13,
+        "preparation_initial_loaded": false,
+        "preparation_initial_ready": false,
+        "frozen": true,
+        "mutated": false,
+        "error": {
+          "kind": "validation",
+          "code": "invalid_arguments",
+          "message": "checkpoint_requires_established_rest: call transition first",
+          "effects": "No mutation performed"
+        }
+      }
+    },
+    {
+      "seven_to_eight": {
+        "status": "different",
+        "first_tick": 0,
+        "phase": "before_first_useful_tick",
+        "complete": true,
+        "first_fields": [
+          {
+            "field": "$.state.blocks.7,80,3.nbt.value.Items.value[0].value.count.value",
+            "before_present": true,
+            "after_present": true,
+            "before": "7",
+            "after": "8"
+          }
+        ],
+        "scope": "Exact observed clocks, queues, typed NBT, inventories and runtime; not all JVM memory"
+      }
+    },
+    {
+      "moving_checkpoint_refused": {
+        "operation_id": "4d688103-0234-48b7-affa-c73dc0e8ac76",
+        "operation": "create_checkpoint",
+        "attempt_id": "ad9cc2fc-c9f5-4e36-b28c-ec8dfadd9e14",
+        "phase": "checkpoint_between_ticks",
+        "status": "error",
+        "ticks_executed": 0,
+        "simulation_ticks": 105,
+        "preparation_ticks": 13,
+        "world_time": 118,
+        "preparation_initial_loaded": false,
+        "preparation_initial_ready": false,
+        "frozen": true,
+        "mutated": false,
+        "error": {
+          "kind": "validation",
+          "code": "invalid_arguments",
+          "message": "checkpoint_requires_established_rest: call transition first",
+          "effects": "No mutation performed"
+        }
+      }
+    },
+    {
+      "indeterminate_hopper_checkpoint_refused": {
+        "operation_id": "f6970b39-6957-4154-9497-34cd40827b1b",
+        "operation": "create_checkpoint",
+        "attempt_id": "cd2d43cd-1242-4a79-8b3c-066e55682823",
+        "phase": "checkpoint_between_ticks",
+        "status": "error",
+        "ticks_executed": 0,
+        "simulation_ticks": 94,
+        "preparation_ticks": 23,
+        "world_time": 117,
+        "preparation_initial_loaded": false,
+        "preparation_initial_ready": false,
+        "frozen": true,
+        "mutated": false,
+        "error": {
+          "kind": "validation",
+          "code": "invalid_arguments",
+          "message": "checkpoint_requires_established_rest: call transition first",
+          "effects": "No mutation performed"
+        }
+      }
+    }
+  ],
+  "prototype_commit": "7bcdf3daaab752eef6d3f14011427c30c62f0e51",
+  "checkpoints": [
+    {
+      "format": 1,
+      "checkpoint_id": "00bc8699-2daa-4cd5-ae7f-b84163441e61",
+      "created_at": "2026-10-11T22:29:21.396536600Z",
+      "provenance": {
+        "minecraft": "1.21.11",
+        "yarn": "1.21.11+build.3",
+        "fabric_loader": "0.19.5",
+        "controller": "0.1.0",
+        "java": "21.0.12",
+        "tick_rate": 20.0,
+        "tick_execution": "sprint",
+        "test_initial_preparation_ticks": 0,
+        "seed": 731928,
+        "generator": "flat_air",
+        "random_tick_speed": 0,
+        "mob_spawning": false,
+        "advance_weather": false,
+        "players_allowed": false,
+        "server_directory": "C:\\Users\\minle\\.codex\\worktrees\\issue-10\\StoneBench\\app\\controller\\.runtime\\tests-446d554654e64d7282c4ddc93b1cb849\\server-1",
+        "memory_coverage": {
+          "restorable_observed_scope": true,
+          "uncovered_components": [],
+          "memory_inventory": [
+            "Moving piston runtime progress/saved time: observed, checkpoints in motion rejected",
+            "Hopper last_tick_time: observed but nonserialized effect/reprise unestablished, rejected",
+            "Redstone torch burnout history: nonserialized and unobserved, rejected",
+            "Chest viewers/lid animation/cache: new process resets them; no players and closed ordinary chest fixture only",
+            "World scheduler sub-tick counter: process-local; no pending work at capture; exact subsequent order remains compared",
+            "Block events/neighbor propagation: process-local; required empty/drained between operations",
+            "Observation influence and input sampling ownership: persisted explicitly in controller context",
+            "Entity state, arbitrary JVM memory and all RNG streams: outside proof scope; no universal claim"
+          ],
+          "universal_capture": false
+        }
+      },
+      "world_copy": "save(flush=true) while frozen; matching source/copy/source SHA-256 maps",
+      "session_lock": "excluded; recreated by the next Minecraft process",
+      "files": {
+        "context.json": "6ce46c2209b55f6970de9a9c976eb0975731f68c51f22fc038261fd0e9c6eea2",
+        "state.json": "ec2863538ff0d933ed6ac95e650b3dd50564a4b155ade93fd6350c66cca1139c",
+        "world/DIM-1/data/chunks.dat": "080c0d0f8efd493041eec144ca4516c4d86a7e0a1115bbe868312fddce7eb894",
+        "world/DIM-1/data/raids.dat": "b9df046934ac96b1fddee79c0cab523ef6c15d2f49f1a9b0a8b49067b12d66e1",
+        "world/DIM-1/data/world_border.dat": "cf53fb302a0e4e5695f3c8612419bd61f9284c305fdcc3c618e264298bfce0a2",
+        "world/DIM1/data/chunks.dat": "080c0d0f8efd493041eec144ca4516c4d86a7e0a1115bbe868312fddce7eb894",
+        "world/DIM1/data/raids_end.dat": "b9df046934ac96b1fddee79c0cab523ef6c15d2f49f1a9b0a8b49067b12d66e1",
+        "world/DIM1/data/world_border.dat": "cf53fb302a0e4e5695f3c8612419bd61f9284c305fdcc3c618e264298bfce0a2",
+        "world/data/chunks.dat": "6663d615d0c53fe543b910a36eb4dc480f0ba7a77c66889d94001558d3b3b1dd",
+        "world/data/raids.dat": "b9df046934ac96b1fddee79c0cab523ef6c15d2f49f1a9b0a8b49067b12d66e1",
+        "world/data/random_sequences.dat": "e9290f328aadf5d72e6fd37c6c672b1d29b8171e526b3cd28c24e1bf31693358",
+        "world/data/scoreboard.dat": "080c0d0f8efd493041eec144ca4516c4d86a7e0a1115bbe868312fddce7eb894",
+        "world/data/stopwatches.dat": "1c7faade2121b543bb23252e81dda119cf0eb6a9fd9072e149992f7fcd938071",
+        "world/data/world_border.dat": "cf53fb302a0e4e5695f3c8612419bd61f9284c305fdcc3c618e264298bfce0a2",
+        "world/entities/r.-1.-1.mca": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "world/entities/r.-1.0.mca": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "world/entities/r.0.-1.mca": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "world/entities/r.0.0.mca": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "world/entities/r.1.1.mca": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "world/entities/r.1.2.mca": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "world/entities/r.2.1.mca": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "world/entities/r.2.2.mca": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "world/level.dat": "879c84bbf98b4c114ecf01fd783459ee94590439fc92cf58a7b38a981a270f79",
+        "world/level.dat_old": "58602160297bf4020173977b3f4e65f43ea8f3e9aa756174bebbf041ce450285",
+        "world/poi/r.-1.-1.mca": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "world/poi/r.-1.0.mca": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "world/poi/r.0.-1.mca": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "world/poi/r.0.0.mca": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "world/poi/r.1.1.mca": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "world/poi/r.1.2.mca": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "world/poi/r.2.1.mca": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "world/poi/r.2.2.mca": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "world/region/r.-1.-1.mca": "79a965845bf4e906f5e315c4746163a00bc9aee1d5501cccae80262bf9f7e0e5",
+        "world/region/r.-1.0.mca": "3563d719ad368575ecb37be2785e515953d5b249275cd372805faac77dcc53e9",
+        "world/region/r.0.-1.mca": "78e5a2cdad7d9262480d3a5e96d242ab1e1810641fa51d05764e290eca0c16da",
+        "world/region/r.0.0.mca": "7cb027f36aedfc37eb325ac3ef788d7a5d9edb6cc049abf15a774c5ce424d8c6",
+        "world/region/r.1.1.mca": "c49c8236065bb2722d33010ba09aff67a63cbb03489aa05aa5dbef178632940e",
+        "world/region/r.1.2.mca": "6f4c85021650ef170f886fe50bf08568170ab22ef2bc257bde400b7ad377030b",
+        "world/region/r.2.1.mca": "fb8da110d962491c8e2f530e626d4764e156d33680d8c5c976bbbc7083ef85d3",
+        "world/region/r.2.2.mca": "994f57ed7964dc9253bec8427d28aa0cf2e576b2a99b5ffeeb9fad8c332f2acf"
+      },
+      "manifest_sha256": "4adc92cb27dc7f5984273af01444fdc950e46839f9cfe42791b2120c70d825b9",
+      "verified": true
+    },
+    {
+      "format": 1,
+      "checkpoint_id": "73bad971-8e64-4fa8-86b8-33e0ba3535db",
+      "created_at": "2026-10-11T22:29:21.941854900Z",
+      "provenance": {
+        "minecraft": "1.21.11",
+        "yarn": "1.21.11+build.3",
+        "fabric_loader": "0.19.5",
+        "controller": "0.1.0",
+        "java": "21.0.12",
+        "tick_rate": 20.0,
+        "tick_execution": "sprint",
+        "test_initial_preparation_ticks": 0,
+        "seed": 731928,
+        "generator": "flat_air",
+        "random_tick_speed": 0,
+        "mob_spawning": false,
+        "advance_weather": false,
+        "players_allowed": false,
+        "server_directory": "C:\\Users\\minle\\.codex\\worktrees\\issue-10\\StoneBench\\app\\controller\\.runtime\\tests-446d554654e64d7282c4ddc93b1cb849\\server-1",
+        "memory_coverage": {
+          "restorable_observed_scope": true,
+          "uncovered_components": [],
+          "memory_inventory": [
+            "Moving piston runtime progress/saved time: observed, checkpoints in motion rejected",
+            "Hopper last_tick_time: observed but nonserialized effect/reprise unestablished, rejected",
+            "Redstone torch burnout history: nonserialized and unobserved, rejected",
+            "Chest viewers/lid animation/cache: new process resets them; no players and closed ordinary chest fixture only",
+            "World scheduler sub-tick counter: process-local; no pending work at capture; exact subsequent order remains compared",
+            "Block events/neighbor propagation: process-local; required empty/drained between operations",
+            "Observation influence and input sampling ownership: persisted explicitly in controller context",
+            "Entity state, arbitrary JVM memory and all RNG streams: outside proof scope; no universal claim"
+          ],
+          "universal_capture": false
+        }
+      },
+      "world_copy": "save(flush=true) while frozen; matching source/copy/source SHA-256 maps",
+      "session_lock": "excluded; recreated by the next Minecraft process",
+      "files": {
+        "context.json": "6ce46c2209b55f6970de9a9c976eb0975731f68c51f22fc038261fd0e9c6eea2",
+        "state.json": "ec2863538ff0d933ed6ac95e650b3dd50564a4b155ade93fd6350c66cca1139c",
+        "world/DIM-1/data/chunks.dat": "080c0d0f8efd493041eec144ca4516c4d86a7e0a1115bbe868312fddce7eb894",
+        "world/DIM-1/data/raids.dat": "b9df046934ac96b1fddee79c0cab523ef6c15d2f49f1a9b0a8b49067b12d66e1",
+        "world/DIM-1/data/world_border.dat": "cf53fb302a0e4e5695f3c8612419bd61f9284c305fdcc3c618e264298bfce0a2",
+        "world/DIM1/data/chunks.dat": "080c0d0f8efd493041eec144ca4516c4d86a7e0a1115bbe868312fddce7eb894",
+        "world/DIM1/data/raids_end.dat": "b9df046934ac96b1fddee79c0cab523ef6c15d2f49f1a9b0a8b49067b12d66e1",
+        "world/DIM1/data/world_border.dat": "cf53fb302a0e4e5695f3c8612419bd61f9284c305fdcc3c618e264298bfce0a2",
+        "world/data/chunks.dat": "6663d615d0c53fe543b910a36eb4dc480f0ba7a77c66889d94001558d3b3b1dd",
+        "world/data/raids.dat": "b9df046934ac96b1fddee79c0cab523ef6c15d2f49f1a9b0a8b49067b12d66e1",
+        "world/data/random_sequences.dat": "e9290f328aadf5d72e6fd37c6c672b1d29b8171e526b3cd28c24e1bf31693358",
+        "world/data/scoreboard.dat": "080c0d0f8efd493041eec144ca4516c4d86a7e0a1115bbe868312fddce7eb894",
+        "world/data/stopwatches.dat": "1c7faade2121b543bb23252e81dda119cf0eb6a9fd9072e149992f7fcd938071",
+        "world/data/world_border.dat": "cf53fb302a0e4e5695f3c8612419bd61f9284c305fdcc3c618e264298bfce0a2",
+        "world/entities/r.-1.-1.mca": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "world/entities/r.-1.0.mca": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "world/entities/r.0.-1.mca": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "world/entities/r.0.0.mca": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "world/entities/r.1.1.mca": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "world/entities/r.1.2.mca": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "world/entities/r.2.1.mca": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "world/entities/r.2.2.mca": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "world/level.dat": "845fab34d9fe4821583bc4e261f58d9838dd92a5151922a3bf188d17a42583a3",
+        "world/level.dat_old": "879c84bbf98b4c114ecf01fd783459ee94590439fc92cf58a7b38a981a270f79",
+        "world/poi/r.-1.-1.mca": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "world/poi/r.-1.0.mca": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "world/poi/r.0.-1.mca": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "world/poi/r.0.0.mca": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "world/poi/r.1.1.mca": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "world/poi/r.1.2.mca": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "world/poi/r.2.1.mca": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "world/poi/r.2.2.mca": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "world/region/r.-1.-1.mca": "79a965845bf4e906f5e315c4746163a00bc9aee1d5501cccae80262bf9f7e0e5",
+        "world/region/r.-1.0.mca": "3563d719ad368575ecb37be2785e515953d5b249275cd372805faac77dcc53e9",
+        "world/region/r.0.-1.mca": "78e5a2cdad7d9262480d3a5e96d242ab1e1810641fa51d05764e290eca0c16da",
+        "world/region/r.0.0.mca": "7cb027f36aedfc37eb325ac3ef788d7a5d9edb6cc049abf15a774c5ce424d8c6",
+        "world/region/r.1.1.mca": "c49c8236065bb2722d33010ba09aff67a63cbb03489aa05aa5dbef178632940e",
+        "world/region/r.1.2.mca": "6f4c85021650ef170f886fe50bf08568170ab22ef2bc257bde400b7ad377030b",
+        "world/region/r.2.1.mca": "fb8da110d962491c8e2f530e626d4764e156d33680d8c5c976bbbc7083ef85d3",
+        "world/region/r.2.2.mca": "994f57ed7964dc9253bec8427d28aa0cf2e576b2a99b5ffeeb9fad8c332f2acf"
+      },
+      "manifest_sha256": "f4f3aaf03399a845e11f10e6ec46ccb6f2907d07b03c151a35af735e3361ef31",
+      "verified": true
+    }
+  ],
+  "reference_sha256": "82a09b30520e2ff904900f1b73ab1ad8f4851f80b06028188aeae43f251b3591",
+  "production_input_replay": {
+    "ticks": 80,
+    "mode": "repeater",
+    "device": "lever",
+    "exact_equal": true,
+    "restoration": {
+      "request_id": "38b7fe38-da82-47f9-a7cc-fc9cde929828",
+      "checkpoint_id": "4047ae17-f9f4-45c5-8c99-98b9a9864748",
+      "attempt_id": "cd2d43cd-1242-4a79-8b3c-066e55682823",
+      "manifest_sha256": "fea1b3fbed51aaf8c035a49e5d211bee9d0e179cd795bd6f6a538fc6ddc8ae98",
+      "world_time": 36,
+      "simulation_ticks": 13,
+      "preparation_ticks": 23,
+      "status": "equal",
+      "mutates_attempt": true,
+      "previous_world": "stonebench\\restore-history\\38b7fe38-da82-47f9-a7cc-fc9cde929828\\world-before",
+      "preparation_game_ticks": 0,
+      "comparison": {
+        "status": "equal",
+        "first_tick": 0,
+        "phase": "before_first_useful_tick",
+        "complete": true,
+        "first_fields": [],
+        "scope": "Exact observed clocks, queues, typed NBT, inventories and runtime; not all JVM memory",
+        "checkpoint_id": "4047ae17-f9f4-45c5-8c99-98b9a9864748",
+        "useful_ticks_before_comparison": 0
+      },
+      "chunks_ready": true,
+      "preparation_changes": {
+        "artifact_id": "3ab7911c-37ba-4f77-8e61-5cef2b3e224f",
+        "kind": "checkpoint_preparation_diff",
+        "count": 2,
+        "sha256": "d2ef59ec45bd50653481f873d5f4f29dcdd4bca7a22082a5646fadd597b409cf",
+        "bytes": 235,
+        "complete": true
+      },
+      "preparation_initial_chunks_ready": false,
+      "preparation_construction_preserved": true
+    }
+  },
+  "success": true,
+  "reference_observations": 83,
+  "artifact_count": 1329,
+  "runtime_root": "tests-446d554654e64d7282c4ddc93b1cb849"
+}

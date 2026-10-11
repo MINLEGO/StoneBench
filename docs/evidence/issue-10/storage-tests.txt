@@ -1,0 +1,14 @@
+test_altered_manifest_rejected_against_request_hash (__main__.RestoreTransactionChecks.test_altered_manifest_rejected_against_request_hash) ... ok
+test_corrupt_world_never_replaces_live_world (__main__.RestoreTransactionChecks.test_corrupt_world_never_replaces_live_world) ... ok
+test_failed_swap_rolls_back_live_world (__main__.RestoreTransactionChecks.test_failed_swap_rolls_back_live_world) ... ok
+test_pid_publication_failure_stops_owned_child_and_clears_marker (__main__.RestoreTransactionChecks.test_pid_publication_failure_stops_owned_child_and_clears_marker) ... ok
+test_process_crash_after_marker_finishes_bookkeeping_once (__main__.RestoreTransactionChecks.test_process_crash_after_marker_finishes_bookkeeping_once) ... ok
+test_process_crash_between_world_moves_recovers_backup (__main__.RestoreTransactionChecks.test_process_crash_between_world_moves_recovers_backup) ... ok
+test_stages_swaps_keeps_old_world_and_history (__main__.RestoreTransactionChecks.test_stages_swaps_keeps_old_world_and_history) ... ok
+test_uncertain_launch_marker_refuses_before_recovery (__main__.RestoreTransactionChecks.test_uncertain_launch_marker_refuses_before_recovery) ... ok
+test_unsafe_id_and_other_attempt_rejected (__main__.RestoreTransactionChecks.test_unsafe_id_and_other_attempt_rejected) ... ok
+
+----------------------------------------------------------------------
+Ran 9 tests in 0.932s
+
+OK
