@@ -17,14 +17,21 @@ final class Verification {
         CheckpointStorage store=new CheckpointStorage(Path.of("stonebench/checkpoints"));
         JsonObject descriptor=store.descriptor(id),context=store.context(id);
         if(!attempt.equals(context.get("attempt_id").getAsString())) throw new IllegalArgumentException("Checkpoint belongs to another attempt");
-        String requestId=UUID.randomUUID().toString();directory=Path.of("stonebench/verifications",requestId);
-        Files.createDirectories(directory);before=snapshot.deepCopy();started=System.currentTimeMillis();
+        String requestId=UUID.randomUUID().toString();Path candidate=Path.of("stonebench/verifications",requestId);
+        JsonObject initial=snapshot.deepCopy();long accepted=System.currentTimeMillis();
         JsonObject request=new JsonObject();request.addProperty("request_id",requestId);request.addProperty("checkpoint_id",id);
         request.addProperty("attempt_id",attempt);request.addProperty("manifest_sha256",descriptor.get("manifest_sha256").getAsString());
-        request.add("arguments",args.deepCopy());request.add("working_before",before);
+        request.add("arguments",args.deepCopy());request.add("working_before",initial);
         Path faults=Path.of("stonebench/verification-test-plan.json");
         if(Controller.TEST && Files.exists(faults)) request.add("test_plan",CheckpointStorage.read(faults));
-        CheckpointStorage.writeAtomic(directory.resolve("request.json"),request);
+        try {
+            Files.createDirectories(candidate);
+            if(Controller.TEST && request.has("test_plan") && request.getAsJsonObject("test_plan").get("scenario").getAsString().equals("publication_failure")) {
+                Files.createDirectory(candidate.resolve("request.json"));Files.writeString(candidate.resolve("request.json/blocker"),"test-only publication fault");
+            }
+            CheckpointStorage.writeAtomic(candidate.resolve("request.json"),request);
+        } catch(IOException error){throw new IOException("verification_publication_failed: "+candidate,error);}
+        directory=candidate;before=initial;started=accepted;
         return envelope(requestId,"running");
     }
     private static JsonObject envelope(String id,String status){JsonObject value=new JsonObject();value.addProperty("request_id",id);value.addProperty("status",status);JsonObject result=new JsonObject();result.add("verification",value);return result;}
@@ -37,13 +44,13 @@ final class Verification {
         return result;
     }
     static JsonObject cancel(JsonObject args) throws IOException {
-        JsonObject result=status(args);if(!running() || !directory.getFileName().toString().equals(Task.string(args,"request_id")))return result;
+        JsonObject result=status(args);if(!running() || !directory.getFileName().toString().equals(result.getAsJsonObject("verification").get("request_id").getAsString()))return result;
         CheckpointStorage.writeAtomic(directory.resolve("cancel.json"),new JsonObject());return envelope(directory.getFileName().toString(),"cancelling");
     }
     static JsonObject testConfig(JsonObject args) throws IOException {
         if(!Controller.TEST) throw new IllegalArgumentException("Test-only verification faults");
         String scenario=Task.string(args,"scenario");
-        if(!Set.of("none","positive","recurrence2","no_return5","direct_block","direct_inventory","direct_internal","bad_open").contains(scenario)) throw new IllegalArgumentException("Unknown verification fault scenario");
+        if(!Set.of("none","positive","recurrence2","no_return5","direct_block","direct_inventory","direct_internal","bad_open","publication_failure").contains(scenario)) throw new IllegalArgumentException("Unknown verification fault scenario");
         JsonObject result=new JsonObject();result.addProperty("scenario",scenario);result.addProperty("test_only",true);
         CheckpointStorage.writeAtomic(Path.of("stonebench/verification-test-plan.json"),result);return result;
     }
@@ -56,6 +63,7 @@ final class Verification {
         }
         JsonObject report=CheckpointStorage.read(directory.resolve("result.json"));
         JsonObject current=snapshot.get();
+        if(Files.exists(directory.resolve("cancel.json"))){JsonObject error=new JsonObject();error.addProperty("kind","cancelled");error.addProperty("diagnostic","Cancellation accepted before controller finalization");if(report.has("infrastructure_error"))error.add("worker_error",report.get("infrastructure_error"));report.add("infrastructure_error",error);report.addProperty("verdict","infrastructure_error");report.addProperty("conforms_to_alpha",false);report.addProperty("stop_cause","verification_interrupted");}
         report.addProperty("status","completed");
         JsonArray differences=ObservationComparison.fields(before,current);
         report.addProperty("working_construction_preserved",differences.isEmpty());

@@ -129,7 +129,7 @@ def _serve_owned(root, java, port, execution, test=False, verification_mcp_port=
     verification_directory = None
     heartbeat_time = 0
     verification_seen = set()
-    from verification_worker import Workers, run as run_verification
+    from verification_worker import Workers, run as run_verification, VERSION
     def listen():
         for line in sys.stdin:
             if line.strip() == "stop":
@@ -206,6 +206,8 @@ def _serve_owned(root, java, port, execution, test=False, verification_mcp_port=
         while process.poll() is None and not stopping.is_set():
             if verification_thread is None or not verification_thread.is_alive():
                 for candidate in sorted((control / "verifications").glob("*/request.json")):
+                    if not candidate.is_file():
+                        continue
                     if candidate.parent.name in verification_seen or (candidate.parent / "result.json").exists():
                         continue
                     verification_seen.add(candidate.parent.name)
@@ -226,7 +228,23 @@ def _serve_owned(root, java, port, execution, test=False, verification_mcp_port=
                         # heartbeat. Keep it intact and retry on the next owner turn.
                         pass
                 if (verification_directory / "cancel.json").exists() or time.monotonic()>verification_workers.phase_deadline:
-                    verification_workers.stop("user_cancelled" if (verification_directory / "cancel.json").exists() else "individual_phase_watchdog:" + verification_workers.phase)
+                    cancelled = (verification_directory / "cancel.json").exists()
+                    reason = "user_cancelled" if cancelled else "individual_phase_watchdog:" + verification_workers.phase
+                    verification_workers.stop(reason)
+                    if not (verification_directory / "result.json").exists():
+                        # A stalled file/tool thread must not hold the working lease
+                        # indefinitely after its owned JVMs are confirmed stopped.
+                        request = json.loads((verification_directory / "request.json").read_text(encoding="utf-8"))
+                        write_json(verification_directory / "result.json", {
+                            "request_id": request["request_id"], "checkpoint_id": request["checkpoint_id"],
+                            "protocol_version": VERSION,
+                            "manifest_sha256": request["manifest_sha256"], "criteria": [], "boundaries": [],
+                            "copies": [], "verdict": "infrastructure_error", "conforms_to_alpha": False,
+                            "stop_cause": "verification_interrupted" if cancelled else "individual_phase_watchdog", "first_difference": None,
+                            "infrastructure_error": {"kind": "cancelled" if cancelled else "phase_timeout", "diagnostic": reason,
+                                                     "progress": verification_workers.state()},
+                            "retained_worker_directory": str(verification_directory),
+                            "late_worker_result": "late-worker-result.json if the worker thread returns"})
             request_path, response_path = control / "restore-request.json", control / "restore-response.json"
             if request_path.exists() and response_path.exists():
                 request = json.loads(request_path.read_text(encoding="utf-8"))

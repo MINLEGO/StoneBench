@@ -366,6 +366,9 @@ def run(source, request_directory, java, execution, test, workers, base_mcp, bas
         except Exception as error:
             report["infrastructure_error"] = {"kind": type(error).__name__, "diagnostic": str(error)}
         report["wall_seconds"] = time.monotonic() - start
+        if workers.cancelled or (directory / "cancel.json").exists():
+            report.setdefault("infrastructure_error", {"kind": "cancelled", "diagnostic": workers.cancel_reason or "Cancellation accepted before worker publication"})
+            report["stop_cause"] = "verification_interrupted"
         report["verdict"] = verdict(report)
         report["conforms_to_alpha"] = report["verdict"] == "conforms_to_alpha"
         report["traces_retained"] = True

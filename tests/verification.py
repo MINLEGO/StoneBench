@@ -28,6 +28,18 @@ class VerificationRuntimeIntegration(integration.StoneBenchRuntimeIntegration):
 
             checkpoint = await self.prepare_powered_checkpoint(first)
             checkpoint_id = checkpoint["checkpoint_id"]
+            failure_before = await self.call(first, "verification_snapshot")
+            self.assert_ok(await self.call(first, "__test_verification_config", {"scenario": "publication_failure"}))
+            rejected = await self.call(first, "verify_checkpoint", {"checkpoint_id": checkpoint_id})
+            self.assertEqual(rejected["status"], "error", rejected)
+            self.assertIn("verification_publication_failed", json.dumps(rejected), rejected)
+            failure_after = await self.call(first, "verification_snapshot")
+            self.assertIsNone(first_difference(self.frozen_snapshot(failure_before), self.frozen_snapshot(failure_after)))
+            usable = await self.call(first, "advance", {"ticks": 1, "trace": True})
+            self.assert_ok(usable)
+            self.assertEqual(usable["ticks_executed"], 1, usable)
+            evidence["publication_failure"] = {"diagnostic": rejected["error"], "working_difference": None,
+                                               "subsequent_advance_ticks": usable["ticks_executed"]}
             before = await self.call(first, "verification_snapshot")
             self.assert_ok(before)
             evidence["checkpoint"] = checkpoint
