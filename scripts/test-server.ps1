@@ -116,8 +116,10 @@ function Assert-PortAvailable([int]$Port) {
 }
 
 function Start-Server($Server) {
-    & $pythonExe @(Join-Path $repoRoot 'scripts\checkpoint_restore.py') --server-root $Server.Root --recover
-    if ($LASTEXITCODE -ne 0) { throw 'Interrupted checkpoint transaction recovery failed.' }
+    if (!$UseCheckpointSupervisor) {
+        & $pythonExe @(Join-Path $repoRoot 'scripts\checkpoint_restore.py') --server-root $Server.Root --recover
+        if ($LASTEXITCODE -ne 0) { throw 'Interrupted checkpoint transaction recovery failed.' }
+    }
     $info = [Diagnostics.ProcessStartInfo]::new()
     $info.FileName = if ($UseCheckpointSupervisor) { $pythonExe } else { $javaExe }
     $info.WorkingDirectory = $Server.Root
@@ -151,7 +153,8 @@ function Start-Server($Server) {
     $Server.ProcessId = $Server.Process.Id
     $Server.StdoutTask = $Server.Process.StandardOutput.ReadToEndAsync()
     $Server.StderrTask = $Server.Process.StandardError.ReadToEndAsync()
-    [IO.File]::WriteAllText((Join-Path $Server.Root 'server.pid'), "$($Server.ProcessId)" + [Environment]::NewLine, [Text.UTF8Encoding]::new($false))
+    $pidFile = if ($UseCheckpointSupervisor) { 'supervisor.pid' } else { 'server.pid' }
+    [IO.File]::WriteAllText((Join-Path $Server.Root $pidFile), "$($Server.ProcessId)" + [Environment]::NewLine, [Text.UTF8Encoding]::new($false))
 }
 
 function Wait-Ready($Server, [int]$TimeoutSeconds = 180) {
