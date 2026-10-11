@@ -23,7 +23,7 @@ final class BlockCatalog {
         add("repeater",0,"facing","delay"); add("comparator",0,"facing","mode");
         add("redstone_wire redstone_torch",0);
         add("redstone_wall_torch",0,"facing");
-        add("lever stone_button oak_button",0,"face","facing");
+        add("lever stone_button oak_button spruce_button birch_button jungle_button acacia_button dark_oak_button mangrove_button cherry_button bamboo_button crimson_button warped_button pale_oak_button",0,"face","facing");
         add("stone_pressure_plate oak_pressure_plate light_weighted_pressure_plate heavy_weighted_pressure_plate redstone_lamp target note_block",0);
         add("note_block",0,"note");
         add("hopper",5,"facing"); add("chest trapped_chest barrel",27,"facing");

@@ -227,20 +227,22 @@ final class TraceComparison {
     private static List<NestedPair> nestedPairs(JsonObject before, JsonObject after) {
         return List.of(
             new NestedPair(nested(before, after, "$.state.blocks", "snapshot_blocks"), nested(after, before, "$.state.blocks", "snapshot_blocks")),
-            new NestedPair(nested(before, after, "$.events", "intratick_events"), nested(after, before, "$.events", "intratick_events"))
+            new NestedPair(nested(before, after, "$.events", "intratick_events"), nested(after, before, "$.events", "intratick_events")),
+            new NestedPair(nested(before, after, "$.adapter_blocks", "input_adapter_blocks"), nested(after, before, "$.adapter_blocks", "input_adapter_blocks")),
+            new NestedPair(nested(before, after, "$.construction_blocks", "input_construction_blocks"), nested(after, before, "$.construction_blocks", "input_construction_blocks"))
         );
     }
 
     private static Nested nested(JsonObject tick, JsonObject other, String path, String expectedKind) {
         JsonElement raw = null;
         if (tick != null) {
-            if (path.equals("$.events")) raw = tick.get("events");
+            if (!path.equals("$.state.blocks")) raw = tick.get(path.substring(2));
             else if (tick.has("state") && tick.get("state").isJsonObject()) raw = tick.getAsJsonObject("state").get("blocks");
         }
         ArtifactReference artifact = artifact(raw, expectedKind);
         // A missing sequence is empty for row traversal; its missing property remains visible in tick metadata.
         if (raw == null && other != null) {
-            JsonElement otherRaw = path.equals("$.events") ? other.get("events")
+            JsonElement otherRaw = !path.equals("$.state.blocks") ? other.get(path.substring(2))
                 : other.has("state") && other.get("state").isJsonObject() ? other.getAsJsonObject("state").get("blocks") : null;
             if (isRows(otherRaw)) return new Nested(path, null, null, true);
         }
@@ -268,8 +270,8 @@ final class TraceComparison {
     private static JsonObject withoutNestedRows(JsonObject tick) {
         JsonObject result = new JsonObject();
         for (var entry : tick.entrySet()) {
-            if (entry.getKey().equals("events")) {
-                result.add("events", rowsMarker(entry.getValue()));
+            if (Set.of("events","adapter_blocks","construction_blocks").contains(entry.getKey())) {
+                result.add(entry.getKey(), rowsMarker(entry.getValue()));
             } else if (entry.getKey().equals("state") && entry.getValue().isJsonObject()) {
                 JsonObject state = new JsonObject();
                 for (var value : entry.getValue().getAsJsonObject().entrySet()) {
