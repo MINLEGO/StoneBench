@@ -100,13 +100,13 @@ def ensure_previous_child_absent(root):
                     raise RuntimeError("World lock is held or uncertain; no world recovery performed") from error
 
 
-def serve(root, java, port, execution, test=False):
+def serve(root, java, port, execution, test=False, verification_mcp_port=None, verification_game_port=None):
     root = Path(root).resolve()
     with supervisor_lease(root):
-        _serve_owned(root, java, port, execution, test)
+        _serve_owned(root, java, port, execution, test, verification_mcp_port, verification_game_port)
 
 
-def _serve_owned(root, java, port, execution, test=False):
+def _serve_owned(root, java, port, execution, test=False, verification_mcp_port=None, verification_game_port=None):
     root = Path(root).resolve()
     for required in ("fabric-server.jar", "server.properties", "mods/stonebench-controller.jar"):
         if not (root / required).is_file():
@@ -124,6 +124,12 @@ def _serve_owned(root, java, port, execution, test=False):
     handles = []
     boot = time.time_ns()
     stopping = threading.Event()
+    verification_thread = None
+    verification_workers = None
+    verification_directory = None
+    heartbeat_time = 0
+    verification_seen = set()
+    from verification_worker import Workers, run as run_verification
     def listen():
         for line in sys.stdin:
             if line.strip() == "stop":
@@ -164,7 +170,7 @@ def _serve_owned(root, java, port, execution, test=False):
         stderr = (logs / f"boot-{boot}-stderr.log").open("xb")
         handles.extend((stdout, stderr))
         command = [java, "-Xms256M", "-Xmx1G", f"-Dstonebench.port={port}", "-Dstonebench.supervised=true",
-                   f"-Dstonebench.tickExecution={execution}"]
+                   f"-Dstonebench.tickExecution={execution}", "-Dstonebench.verificationSupervisor=true"]
         if test:
             command.append("-Dstonebench.test=true")
         command.extend(("-jar", "fabric-server.jar", "nogui"))
@@ -198,6 +204,29 @@ def _serve_owned(root, java, port, execution, test=False):
                 rollback_boot(root, pending["request_id"], str(error))
             raise
         while process.poll() is None and not stopping.is_set():
+            if verification_thread is None or not verification_thread.is_alive():
+                for candidate in sorted((control / "verifications").glob("*/request.json")):
+                    if candidate.parent.name in verification_seen or (candidate.parent / "result.json").exists():
+                        continue
+                    verification_seen.add(candidate.parent.name)
+                    verification_directory = candidate.parent
+                    verification_workers = Workers()
+                    verification_thread = threading.Thread(target=run_verification, args=(root, candidate.parent, java, execution, test, verification_workers,
+                        verification_mcp_port or port + 2, verification_game_port or int(properties["server-port"]) + 2), daemon=True)
+                    verification_thread.start()
+                    break
+            if verification_thread is not None and verification_thread.is_alive():
+                # Owner liveness is separate from progress: each finite phase has its own watchdog.
+                if time.monotonic()-heartbeat_time >= 1:
+                    try:
+                        write_json(verification_directory / "heartbeat.json", dict(verification_workers.state(), owner_time_ms=int(time.time()*1000), supervisor_pid=os.getpid()))
+                        heartbeat_time = time.monotonic()
+                    except PermissionError:
+                        # Windows can briefly deny replace while Java reads the old
+                        # heartbeat. Keep it intact and retry on the next owner turn.
+                        pass
+                if (verification_directory / "cancel.json").exists() or time.monotonic()>verification_workers.phase_deadline:
+                    verification_workers.stop("user_cancelled" if (verification_directory / "cancel.json").exists() else "individual_phase_watchdog:" + verification_workers.phase)
             request_path, response_path = control / "restore-request.json", control / "restore-response.json"
             if request_path.exists() and response_path.exists():
                 request = json.loads(request_path.read_text(encoding="utf-8"))
@@ -213,6 +242,10 @@ def _serve_owned(root, java, port, execution, test=False):
                         raise
             time.sleep(.1)
     finally:
+        if verification_workers is not None:
+            verification_workers.stop("owner_stopping")
+        if verification_thread is not None:
+            verification_thread.join(timeout=40)
         stop()
 
 
@@ -223,5 +256,7 @@ if __name__ == "__main__":
     parser.add_argument("--port", type=int, default=18765)
     parser.add_argument("--execution", choices=("unit", "sprint"), default="sprint")
     parser.add_argument("--test", action="store_true")
+    parser.add_argument("--verification-mcp-port", type=int)
+    parser.add_argument("--verification-game-port", type=int)
     args = parser.parse_args()
-    serve(args.server_root, args.java, args.port, args.execution, args.test)
+    serve(args.server_root, args.java, args.port, args.execution, args.test, args.verification_mcp_port, args.verification_game_port)
