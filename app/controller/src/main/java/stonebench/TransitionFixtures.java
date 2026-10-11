@@ -43,5 +43,3 @@ public final class TransitionFixtures {
         lever.togglePower(state,world,LEVER,null);
     }
 }
-
-
