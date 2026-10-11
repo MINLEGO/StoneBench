@@ -1,4 +1,4 @@
-"""Stopped-process world replacement, used by the owning checkpoint test supervisor.
+"""Stopped-process world replacement, used by the owning checkpoint supervisor.
 
 The caller must have stopped and waited for its own child Minecraft process. No PID
 discovery or termination occurs here. All writes stay under the named server root.
@@ -148,6 +148,18 @@ def recover_incomplete(server_root):
             continue
         saved = json.loads(record.read_text(encoding="utf-8"))
         if saved["status"] == "awaiting_loaded_comparison" and (control / "resume.json").exists():
+            marker = json.loads((control / "resume.json").read_text(encoding="utf-8"))
+            if marker["request_id"] != saved["request_id"]:
+                raise ValueError("Interrupted restore marker belongs to another transaction")
+            # A crash after marker publication may precede request archival. Complete
+            # that bookkeeping before launch so the supervisor cannot apply it twice.
+            pending = control / "restore-request.json"
+            if pending.exists():
+                request = json.loads(pending.read_text(encoding="utf-8"))
+                if request["request_id"] != saved["request_id"]:
+                    raise ValueError("Interrupted restore request belongs to another transaction")
+                os.replace(pending, transaction / "request.json")
+            (control / "restore-response.json").unlink(missing_ok=True)
             continue  # Installed world and durable marker; boot will compare it before useful ticks.
         backup = transaction / "world-before"
         world = server / "world"

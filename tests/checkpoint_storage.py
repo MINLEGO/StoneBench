@@ -100,6 +100,25 @@ class RestoreTransactionChecks(unittest.TestCase):
         self.assertEqual((self.server / "world" / "level.dat").read_bytes(), b"old world")
         self.assertFalse((self.control / "resume.json").exists())
 
+    def test_process_crash_after_marker_finishes_bookkeeping_once(self):
+        import os
+        original = os.replace
+        def replace(source, destination):
+            if Path(source).name == "restore-request.json":
+                raise SystemExit("injected death after durable marker")
+            return original(source, destination)
+        write_json(self.control / "restore-response.json", {"request_id": self.request_id})
+        with patch("checkpoint_restore.os.replace", replace):
+            with self.assertRaises(SystemExit):
+                apply_restore(self.server)
+        recover_incomplete(self.server)
+        recover_incomplete(self.server)
+        self.assertEqual((self.server / "world" / "level.dat").read_bytes(), b"new exact clocks")
+        self.assertTrue((self.control / "resume.json").exists())
+        self.assertFalse((self.control / "restore-request.json").exists())
+        self.assertFalse((self.control / "restore-response.json").exists())
+        self.assertTrue((self.control / "restore-history" / self.request_id / "request.json").exists())
+
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)

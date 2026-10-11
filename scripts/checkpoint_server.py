@@ -77,7 +77,15 @@ def serve(root, java, port, execution, test=False):
             time.sleep(.1)
 
     try:
-        start()
+        try:
+            start()
+        except Exception as error:
+            stop()
+            marker = control / "resume.json"
+            if marker.exists():
+                pending = json.loads(marker.read_text(encoding="utf-8"))
+                rollback_boot(root, pending["request_id"], str(error))
+            raise
         while process.poll() is None and not stopping.is_set():
             request_path, response_path = control / "restore-request.json", control / "restore-response.json"
             if request_path.exists() and response_path.exists():
