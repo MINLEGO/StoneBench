@@ -19,6 +19,8 @@ public final class McpHttp implements AutoCloseable {
         http.createContext("/mcp",this::handle);http.setExecutor(executor);http.start();
     }
     private void handle(HttpExchange exchange) throws IOException {
+        String restoreResponseId=null;
+        boolean responseWritten=false;
         try {
             String origin=exchange.getRequestHeaders().getFirst("Origin");
             if(origin!=null && !origin.equals("http://127.0.0.1:"+http.getAddress().getPort()) && !origin.equals("http://localhost:"+http.getAddress().getPort())) {send(exchange,403,null);return;}
@@ -55,20 +57,22 @@ public final class McpHttp implements AutoCloseable {
                     JsonObject args=params.has("arguments")?params.getAsJsonObject("arguments"):new JsonObject();
                     // A disconnected client does not cancel an operation already accepted by Minecraft.
                     JsonObject report=Controller.submit(tool,args).get();
+                    if(tool.equals("restore_checkpoint") && report.get("status").getAsString().equals("ok")) restoreResponseId=report.getAsJsonObject("restore").get("request_id").getAsString();
                     result=new JsonObject();result.add("structuredContent",report);result.addProperty("isError",report.get("status").getAsString().equals("error"));
                     JsonObject content=new JsonObject();content.addProperty("type","text");content.addProperty("text",JSON.toJson(report));JsonArray contents=new JsonArray();contents.add(content);result.add("content",contents);
                 }
                 default -> {send(exchange,200,error(id,-32601,"Method not found"));return;}
             }
             JsonObject response=new JsonObject();response.addProperty("jsonrpc","2.0");response.add("id",id);response.add("result",result);send(exchange,200,response);
+            responseWritten=true;
         } catch(InterruptedException e) {Thread.currentThread().interrupt();send(exchange,503,null);}
         catch(ExecutionException e) {send(exchange,503,null);}
         catch(RuntimeException e) {send(exchange,400,error(JsonNull.INSTANCE,-32600,"Invalid request"));}
-        finally {exchange.close();}
+        finally {exchange.close();if(responseWritten && restoreResponseId!=null) Controller.restoreResponseSent(restoreResponseId);}
     }
     private static Set<String> names() {
-        Set<String> names=new LinkedHashSet<>(List.of("start_attempt","describe_task","read_blocks","read_region","read_artifact","compare_traces","describe_blocks","modify_blocks","advance","transition","declare_input","prepare_input","act_input"));
-        if(Controller.TEST) names.addAll(List.of("__test_release_chunks","__test_restore_chunks","__test_place_block","__test_fail_next_lot","__test_default_wire","__test_outside_influence","__test_water_source","__test_transition_fixture","__test_transition_toggle","__test_transition_external_tick"));return names;
+        Set<String> names=new LinkedHashSet<>(List.of("start_attempt","describe_task","read_blocks","read_region","read_artifact","compare_traces","describe_blocks","modify_blocks","advance","transition","declare_input","prepare_input","act_input","create_checkpoint","list_checkpoints","restore_checkpoint"));
+        if(Controller.TEST) names.addAll(List.of("__test_release_chunks","__test_restore_chunks","__test_place_block","__test_fail_next_lot","__test_default_wire","__test_outside_influence","__test_water_source","__test_transition_fixture","__test_transition_toggle","__test_transition_external_tick","__test_checkpoint_fixture","__test_checkpoint_toggle","__test_checkpoint_snapshot","__test_checkpoint_compare"));return names;
     }
     private static JsonObject property(String type) {JsonObject p=new JsonObject();p.addProperty("type",type);return p;}
     private static JsonObject integer(int min,int max) {JsonObject p=property("integer");p.addProperty("minimum",min);p.addProperty("maximum",max);return p;}
@@ -98,6 +102,9 @@ public final class McpHttp implements AutoCloseable {
                 case "read_region"->"Read every coordinate in inclusive min/max bounds (at most 1000000); prepare chunks while frozen, return immutable typed block artifact.";
                 case "read_artifact"->"Retrieve immutable artifact entries at offset with limit 1..256; counts/hash and next_offset permit full reconstruction without silent truncation.";
                 case "compare_traces"->"Compare exact trace state/events/clocks with explicit continuity validation; report first divergent tick and fields as an artifact, no normalization.";
+                case "create_checkpoint"->"Create immutable flushed world checkpoint while frozen after established observed rest; incomplete door allowed, uncovered memory refused.";
+                case "list_checkpoints"->"List all immutable checkpoint UUIDs and verified provenance/file hashes.";
+                case "restore_checkpoint"->"Mutate attempt by requesting supervised restart to an immutable checkpoint; reconnect at same endpoint and inspect tick0 restoration comparison.";
                 default->"TEST ONLY: controlled fixture/fault injection. Never enabled in campaign servers.";});
             switch(name) {
                 case "start_attempt"->{properties.add("task_id",property("string"));JsonObject budget=integer(1,Integer.MAX_VALUE);JsonArray budgetTypes=new JsonArray();budgetTypes.add("integer");budgetTypes.add("null");budget.add("type",budgetTypes);properties.add("budget_tokens",budget);required.add("task_id");}
@@ -107,6 +114,8 @@ public final class McpHttp implements AutoCloseable {
                 case "read_region"->{JsonObject position=property("object"),coords=new JsonObject();JsonArray axes=new JsonArray();for(String axis:List.of("x","y","z")) {coords.add(axis,property("integer"));axes.add(axis);}position.add("properties",coords);position.add("required",axes);position.addProperty("additionalProperties",false);properties.add("min",position);properties.add("max",position.deepCopy());required.add("min");required.add("max");}
                 case "read_artifact"->{properties.add("artifact_id",property("string"));properties.add("offset",integer(0,Integer.MAX_VALUE));properties.add("limit",integer(1,256));for(String key:List.of("artifact_id","offset","limit")) required.add(key);}
                 case "compare_traces"->{properties.add("left",property("string"));properties.add("right",property("string"));required.add("left");required.add("right");}
+                case "restore_checkpoint"->{properties.add("checkpoint_id",property("string"));required.add("checkpoint_id");}
+                case "__test_checkpoint_compare"->{properties.add("checkpoint_id",property("string"));properties.add("count",integer(1,64));required.add("checkpoint_id");required.add("count");}
                 case "read_blocks"->{JsonObject positions=property("array"),position=property("object"),coords=new JsonObject();for(String axis:List.of("x","y","z")) coords.add(axis,property("integer"));position.add("properties",coords);JsonArray axes=new JsonArray();axes.add("x");axes.add("y");axes.add("z");position.add("required",axes);positions.add("items",position);positions.addProperty("minItems",1);positions.addProperty("maxItems",256);properties.add("positions",positions);required.add("positions");}
                 case "modify_blocks"->{JsonObject blocks=property("array");blocks.addProperty("minItems",1);blocks.addProperty("maxItems",256);blocks.add("items",placementSchema());properties.add("blocks",blocks);properties.add("notify_neighbors",property("boolean"));required.add("blocks");required.add("notify_neighbors");}
                 case "prepare_input"->{properties.add("mode",property("string"));required.add("mode");}

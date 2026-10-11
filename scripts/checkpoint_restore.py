@@ -108,6 +108,7 @@ def apply_restore(server_root):
             raise ValueError("Staged world SHA-256 mismatch")
         # Verify the source again after copying; never publish a concurrently altered source.
         validate(server, request)
+        write_json(transaction / "transaction.json", dict(request, status="prepared"))
         os.replace(world, backup)
         moved = True
         os.replace(stage, world)
@@ -116,6 +117,7 @@ def apply_restore(server_root):
         write_json(control / "resume.json", marker)
         write_json(transaction / "transaction.json", marker)
         os.replace(request_path, transaction / "request.json")
+        (control / "restore-response.json").unlink(missing_ok=True)
         return marker
     except Exception as error:
         if moved:
@@ -126,6 +128,41 @@ def apply_restore(server_root):
         (control / "resume.json").unlink(missing_ok=True)
         write_json(transaction / "failure.json", dict(request, status="failed", diagnostic=str(error), old_world_restored=moved))
         raise
+
+
+def recover_incomplete(server_root):
+    """Recover interrupted swaps before starting any Minecraft child."""
+    server = Path(server_root).resolve()
+    control = server / "stonebench"
+    history = control / "restore-history"
+    if not history.exists():
+        return
+    if history.is_symlink():
+        raise ValueError("Unsafe restore history")
+    for transaction in sorted(history.iterdir()):
+        canonical_id(transaction.name)
+        if transaction.is_symlink():
+            raise ValueError("Unsafe restore transaction")
+        record = transaction / "transaction.json"
+        if not record.exists() or (transaction / "resume-completed.json").exists() or (transaction / "failure.json").exists():
+            continue
+        saved = json.loads(record.read_text(encoding="utf-8"))
+        if saved["status"] == "awaiting_loaded_comparison" and (control / "resume.json").exists():
+            continue  # Installed world and durable marker; boot will compare it before useful ticks.
+        backup = transaction / "world-before"
+        world = server / "world"
+        if backup.exists():
+            if backup.is_symlink() or world.is_symlink():
+                raise ValueError("Unsafe interrupted world swap")
+            if world.exists():
+                os.replace(world, transaction / "world-interrupted")
+            os.replace(backup, world)
+        (control / "resume.json").unlink(missing_ok=True)
+        write_json(transaction / "failure.json", dict(saved, status="interrupted", old_world_restored=True))
+        for name in ("restore-request.json", "restore-response.json"):
+            candidate = control / name
+            if candidate.exists():
+                candidate.unlink()
 
 
 def rollback_boot(server_root, request_id, diagnostic):
@@ -148,5 +185,9 @@ def rollback_boot(server_root, request_id, diagnostic):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--server-root", required=True)
+    parser.add_argument("--recover", action="store_true")
     args = parser.parse_args()
-    print(json.dumps(apply_restore(args.server_root), ensure_ascii=False))
+    if args.recover:
+        recover_incomplete(args.server_root)
+    else:
+        print(json.dumps(apply_restore(args.server_root), ensure_ascii=False))

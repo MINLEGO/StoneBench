@@ -76,6 +76,8 @@ public final class CheckpointStorage {
         Path control=serverRoot.toAbsolutePath().normalize().resolve("stonebench");
         JsonObject request=new JsonObject();request.addProperty("request_id",UUID.randomUUID().toString());request.addProperty("checkpoint_id",id);
         request.addProperty("attempt_id",attemptId);request.addProperty("manifest_sha256",checkpoint.get("manifest_sha256").getAsString());
+        request.add("world_time",state(id).get("world_time"));
+        for(String key:List.of("simulation_ticks","preparation_ticks")) if(context.has(key)) request.add(key,context.get(key));
         request.addProperty("status","restart_required");request.addProperty("mutates_attempt",true);
         Path pending=control.resolve("restore-request.json");if(Files.exists(pending)) throw new IllegalStateException("A restore is already pending");
         writeAtomic(pending,request);

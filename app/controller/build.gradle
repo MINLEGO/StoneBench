@@ -74,3 +74,10 @@ tasks.register('restChecks', JavaExec) {
     mainClass = 'stonebench.RestChecks'
 }
 tasks.named('check') { dependsOn tasks.named('restChecks') }
+tasks.register('checkpointChecks', JavaExec) {
+    group = 'verification'
+    dependsOn tasks.named('testClasses')
+    classpath = sourceSets.test.output + sourceSets.main.output + configurations.testCompileClasspath
+    mainClass = 'stonebench.CheckpointChecks'
+}
+tasks.named('check') { dependsOn tasks.named('checkpointChecks') }

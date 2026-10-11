@@ -107,6 +107,23 @@ public final class Inputs {
     }
     private static void edge(ServerWorld world,String kind,BlockPos pos,int power) {JsonObject detail=new JsonObject();detail.addProperty("power",power);Observation.event(world,kind,pos,detail);}
     public static JsonObject declared() {return position==null?null:describe();}
+    static JsonObject checkpointContext() {
+        if(armed) throw new IllegalStateException("Pending input cannot be checkpointed");
+        JsonObject result=new JsonObject();result.add("declaration",declared());
+        result.addProperty("sampling",sampling);result.addProperty("source_power",sourcePower);result.addProperty("input_power",inputPower);return result;
+    }
+    static void restoreContext(JsonObject saved,ServerWorld world) {
+        ADAPTER.clear();armed=false;sampling=false;position=null;input=null;driver=null;
+        if(saved.get("declaration").isJsonNull()) return;
+        JsonObject declaration=saved.getAsJsonObject("declaration");
+        position=Observation.position(declaration.getAsJsonObject("position"),world);
+        input=Observation.position(declaration.getAsJsonObject("input_block"),world);
+        driver=Observation.position(declaration.getAsJsonObject("driver"),world);
+        outward=Direction.byId(Task.string(declaration,"orientation"));device=Task.string(declaration,"device");mode=Task.string(declaration,"mode");
+        if(outward==null || !outward.getAxis().isHorizontal() || !Set.of("direct","repeater").contains(mode)) throw new IllegalArgumentException("Invalid saved input declaration");
+        for(JsonElement item:declaration.getAsJsonArray("adapter_positions")) ADAPTER.add(Observation.position(item.getAsJsonObject(),world));
+        requireDeclared(world);sampling=saved.get("sampling").getAsBoolean();sourcePower=saved.get("source_power").getAsInt();inputPower=saved.get("input_power").getAsInt();
+    }
     public static boolean expectedExternalEvent(BlockPos pos) {return position!=null && ((device.endsWith("_button") && pos.equals(driver)) || (mode.equals("repeater") && pos.equals(position)));}
     static JsonObject describe() {JsonObject result=new JsonObject();result.addProperty("device",device);result.addProperty("mode",mode);result.add("position",Task.position(position.getX(),position.getY(),position.getZ()));result.add("driver",Task.position(driver.getX(),driver.getY(),driver.getZ()));result.add("input_block",Task.position(input.getX(),input.getY(),input.getZ()));result.addProperty("orientation",outward.asString());result.add("support",Task.position(input.getX(),input.getY(),input.getZ()));result.addProperty("face","wall");result.addProperty("validation","validated_lateral_exterior");JsonArray boundary=new JsonArray();for(BlockPos p:ADAPTER) boundary.add(Task.position(p.getX(),p.getY(),p.getZ()));result.add("adapter_positions",boundary);return result;}
     /** Partition, retaining exact records and absolute scheduled deadlines/order in each owner. */

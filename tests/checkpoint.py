@@ -17,6 +17,28 @@ from integration import TASK_ID, server_urls
 from transition_evidence import Evidence
 
 
+def first_difference(left, right, path="$"):
+    if type(left) is not type(right):
+        return {"field": path, "before": left, "after": right}
+    if isinstance(left, dict):
+        for key in sorted(set(left) | set(right)):
+            if key not in left or key not in right:
+                return {"field": path + "." + key, "before": left.get(key), "after": right.get(key)}
+            found = first_difference(left[key], right[key], path + "." + key)
+            if found:
+                return found
+    elif isinstance(left, list):
+        if len(left) != len(right):
+            return {"field": path + ".length", "before": len(left), "after": len(right)}
+        for index, (a, b) in enumerate(zip(left, right)):
+            found = first_difference(a, b, path + f"[{index}]")
+            if found:
+                return found
+    elif left != right:
+        return {"field": path, "before": left, "after": right}
+    return None
+
+
 class CheckpointRuntimeIntegration(InputRuntimeIntegration):
     async def expand(self, reader, value):
         if isinstance(value, dict):
@@ -31,17 +53,24 @@ class CheckpointRuntimeIntegration(InputRuntimeIntegration):
         deadline = time.monotonic() + 180
         last = None
         while time.monotonic() < deadline:
-            connection = AsyncExitStack()
-            await connection.__aenter__()
             try:
-                client = await connection.enter_async_context(httpx.AsyncClient(timeout=5))
-                streams = await connection.enter_async_context(streamable_http_client(url, http_client=client))
-                session = await connection.enter_async_context(ClientSession(streams[0], streams[1], read_timeout_seconds=timedelta(seconds=30)))
-                await session.initialize()
-                description = await self.call(session, "describe_task")
-                restored = description.get("restoration", {})
+                # Probe restart readiness before entering SDK task groups: an unavailable
+                # endpoint cancels their parent scope rather than supporting a retry in-place.
+                async with httpx.AsyncClient(timeout=5) as probe:
+                    response = await probe.post(url, json={"jsonrpc": "2.0", "id": 1, "method": "tools/call",
+                        "params": {"name": "describe_task", "arguments": {}}})
+                    description = response.json()["result"]["structuredContent"]
+                restored = description.get("restoration") or {}
                 if restored.get("request_id") == request_id:
+                    connection = AsyncExitStack()
+                    await connection.__aenter__()
+                    client = await connection.enter_async_context(httpx.AsyncClient(timeout=30))
+                    streams = await connection.enter_async_context(streamable_http_client(url, http_client=client))
+                    session = await connection.enter_async_context(ClientSession(streams[0], streams[1], read_timeout_seconds=timedelta(seconds=30)))
+                    await session.initialize()
                     self.reconnections.append(connection)
+                    description = await self.call(session, "describe_task")
+                    restored = description["restoration"]
                     self.assert_ok(description)
                     self.assertEqual(restored["comparison"]["status"], "equal", restored)
                     self.assertEqual(restored["comparison"]["useful_ticks_before_comparison"], 0)
@@ -49,9 +78,8 @@ class CheckpointRuntimeIntegration(InputRuntimeIntegration):
                     self.assertTrue(description["frozen"])
                     self.assertTrue(description["chunks_ready"])
                     return session, description
-            except Exception as error:
+            except (httpx.HTTPError, KeyError, ValueError) as error:
                 last = str(error)
-            await connection.aclose()
             await asyncio.sleep(.5)
         self.fail("Checkpoint restart did not finish: " + str(last))
 
@@ -72,6 +100,8 @@ class CheckpointRuntimeIntegration(InputRuntimeIntegration):
             self.assertEqual(advance["ticks_executed"], 40)
             self.assertTrue(advance["continuity"]["complete"])
             samples = await self.expand(reader, advance["trace"])
+            if not hasattr(self, "historical_trace"):
+                self.historical_trace = advance["trace"]
             self.assertEqual(len(samples), 40)
             rows.extend({"tick": offset + tick + 1, "event": "tick", "observation": sample}
                         for tick, sample in enumerate(samples))
@@ -123,11 +153,21 @@ class CheckpointRuntimeIntegration(InputRuntimeIntegration):
             self.evidence["reference_sha256"] = reference_hash
             for replay in range(3):
                 session, description = await self.restored(session, first["checkpoint_id"], server_urls()[0])
+                self.assertTrue((root / "world/session.lock").is_file())
+                self.assertFalse(any(Path(name).name == "session.lock" for name in first["files"]))
                 current = await self.original_sequence(session, reader)
-                self.assertEqual(current, reference, "Exact NBT/inventory/absolute-clock/event replay differs")
+                divergence = first_difference(reference, current)
+                if divergence:
+                    self.evidence["first_divergence"] = divergence
+                    self.fail("Exact replay divergence: " + json.dumps(divergence))
                 listed = await self.call(session, "list_checkpoints")
                 self.assert_ok(listed)
                 self.assertEqual({item["checkpoint_id"] for item in listed["checkpoints"]}, {first["checkpoint_id"], second_id["checkpoint_id"]})
+                self.assertEqual({item["checkpoint_id"]: item for item in listed["checkpoints"]},
+                                 {item["checkpoint_id"]: item for item in (first, second_id)})
+                historical = await self.call(session, "read_artifact", {"artifact_id": self.historical_trace["artifact_id"], "offset": 0, "limit": 256})
+                self.assert_ok(historical)
+                self.assertEqual(historical["entries"], reader.rows(self.historical_trace))
                 self.evidence["replays"].append({"index": replay + 1, "observations": len(current), "exact_equal": True,
                     "sha256": hashlib.sha256(json.dumps(current, sort_keys=True, separators=(",", ":")).encode()).hexdigest(),
                     "description": description, "checkpoint_manifest_sha256": first["manifest_sha256"]})
@@ -139,7 +179,7 @@ class CheckpointRuntimeIntegration(InputRuntimeIntegration):
             count = block["nbt"]["value"]["Items"]["value"][0]["value"]["count"]
             self.assertEqual(count["value"], "7")
             count["value"] = "8"
-            compared = await self.call(session, "__test_checkpoint_compare", {"expected": initial, "actual": negative})
+            compared = await self.call(session, "__test_checkpoint_compare", {"checkpoint_id": first["checkpoint_id"], "count": 8})
             self.assert_ok(compared)
             comparison = compared["comparison"]
             self.assertEqual(comparison["status"], "different")
@@ -165,6 +205,22 @@ class CheckpointRuntimeIntegration(InputRuntimeIntegration):
             self.assertEqual(production_reference, production_replay)
             self.evidence["production_input_replay"] = {"ticks": 80, "mode": "repeater", "device": "lever", "exact_equal": True,
                                                        "restoration": description["restoration"]}
+            # Genuine vanilla moving piston: frozen world still cannot be checkpointed.
+            self.assert_ok(await self.call(session, "__test_checkpoint_toggle"))
+            moving = await self.call(session, "advance", {"ticks": 5, "trace": True})
+            self.assert_ok(moving)
+            final_blocks = reader.rows(moving["final"]["state"]["blocks"])
+            self.assertTrue(any(block["block"] == "minecraft:moving_piston" for block in final_blocks))
+            refused = await self.call(session, "create_checkpoint")
+            self.assert_error(refused, "validation")
+            self.evidence["negative_controls"].append({"moving_checkpoint_refused": refused})
+            self.assert_ok(await self.call(second, "__test_transition_fixture", {"scenario": "hopper_empty"}))
+            hopper = await self.call(second, "transition")
+            self.assert_ok(hopper)
+            self.assertEqual(hopper["transition"]["status"], "indeterminate")
+            refused = await self.call(second, "create_checkpoint")
+            self.assert_error(refused, "validation")
+            self.evidence["negative_controls"].append({"indeterminate_hopper_checkpoint_refused": refused})
             self.evidence["artifact_hashes"] = reader.verified
             self.evidence["success"] = True
         finally:

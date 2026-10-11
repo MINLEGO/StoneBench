@@ -4,8 +4,10 @@ from pathlib import Path
 import tempfile
 import unittest
 import uuid
+import sys
 from unittest.mock import patch
-from checkpoint_supervisor import apply_restore, file_map, write_json, digest, rollback_boot
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
+from checkpoint_restore import apply_restore, file_map, write_json, digest, rollback_boot, recover_incomplete
 
 
 class RestoreTransactionChecks(unittest.TestCase):
@@ -64,7 +66,7 @@ class RestoreTransactionChecks(unittest.TestCase):
             if Path(source).name == "world-staged":
                 raise OSError("injected installation failure")
             return original(source, destination)
-        with patch("checkpoint_supervisor.os.replace", replace):
+        with patch("checkpoint_restore.os.replace", replace):
             with self.assertRaisesRegex(OSError, "installation failure"):
                 apply_restore(self.server)
         self.assertEqual((self.server / "world" / "level.dat").read_bytes(), b"old world")
@@ -82,6 +84,21 @@ class RestoreTransactionChecks(unittest.TestCase):
         write_json(self.control / "restore-request.json", self.request)
         with self.assertRaisesRegex(ValueError, "another attempt"):
             apply_restore(self.server)
+
+    def test_process_crash_between_world_moves_recovers_backup(self):
+        import os
+        original = os.replace
+        def replace(source, destination):
+            if Path(source).name == "world-staged":
+                raise SystemExit("injected abrupt supervisor death")
+            return original(source, destination)
+        with patch("checkpoint_restore.os.replace", replace):
+            with self.assertRaises(SystemExit):
+                apply_restore(self.server)
+        self.assertFalse((self.server / "world").exists())
+        recover_incomplete(self.server)
+        self.assertEqual((self.server / "world" / "level.dat").read_bytes(), b"old world")
+        self.assertFalse((self.control / "resume.json").exists())
 
 
 if __name__ == "__main__":

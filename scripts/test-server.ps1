@@ -2,6 +2,7 @@
 param(
     [switch]$AcceptEula,
     [switch]$SkipBuild,
+    [switch]$UseCheckpointSupervisor,
     [string]$Java = 'java',
     [string]$Python = 'python',
     [string]$Suite = 'tests\integration.py',
@@ -115,8 +116,10 @@ function Assert-PortAvailable([int]$Port) {
 }
 
 function Start-Server($Server) {
+    & $pythonExe @(Join-Path $repoRoot 'scripts\checkpoint_restore.py') --server-root $Server.Root --recover
+    if ($LASTEXITCODE -ne 0) { throw 'Interrupted checkpoint transaction recovery failed.' }
     $info = [Diagnostics.ProcessStartInfo]::new()
-    $info.FileName = $javaExe
+    $info.FileName = if ($UseCheckpointSupervisor) { $pythonExe } else { $javaExe }
     $info.WorkingDirectory = $Server.Root
     $info.UseShellExecute = $false
     $info.CreateNoWindow = $true
@@ -124,19 +127,26 @@ function Start-Server($Server) {
     $info.RedirectStandardInput = $true
     $info.RedirectStandardOutput = $true
     $info.RedirectStandardError = $true
-    foreach ($argument in @(
+    $serverArguments = if ($UseCheckpointSupervisor) {
+        @((Join-Path $repoRoot 'scripts\checkpoint_server.py'), '--server-root', $Server.Root, '--java', $javaExe, '--port', "$($Server.McpPort)", '--execution', $TickExecution, '--test')
+    } else { @(
         '-Xms256M',
         '-Xmx1G',
         "-Dstonebench.port=$($Server.McpPort)",
          '-Dstonebench.test=true',
+        '-Dstonebench.supervised=true',
         "-Dstonebench.tickExecution=$(if ($Server.Index -eq 2 -and $SecondTickExecution) { $SecondTickExecution } else { $TickExecution })",
         "-Dstonebench.initialPreparationTicks=$InitialPreparationTicks",
         '-jar',
         'fabric-server.jar',
         'nogui'
-    )) {
+    ) }
+    foreach ($argument in $serverArguments) {
         $info.ArgumentList.Add($argument)
     }
+    $readyMarker = Join-Path $Server.Root 'stonebench\ready'
+    if (Test-Path -LiteralPath $readyMarker) { Remove-Item -LiteralPath $readyMarker -Force }
+    $Server.Boot++
     $Server.Process = [Diagnostics.Process]::Start($info)
     $Server.ProcessId = $Server.Process.Id
     $Server.StdoutTask = $Server.Process.StandardOutput.ReadToEndAsync()
@@ -171,6 +181,8 @@ function Stop-Server($Server) {
     $stderr = $Server.StderrTask.GetAwaiter().GetResult()
     [IO.File]::WriteAllText((Join-Path $Server.Root 'logs\stdout.log'), $stdout, [Text.UTF8Encoding]::new($false))
     [IO.File]::WriteAllText((Join-Path $Server.Root 'logs\stderr.log'), $stderr, [Text.UTF8Encoding]::new($false))
+    [IO.File]::WriteAllText((Join-Path $Server.Root "logs\boot-$($Server.Boot)-stdout.log"), $stdout, [Text.UTF8Encoding]::new($false))
+    [IO.File]::WriteAllText((Join-Path $Server.Root "logs\boot-$($Server.Boot)-stderr.log"), $stderr, [Text.UTF8Encoding]::new($false))
     $process.Dispose()
     $Server.Process = $null
 }
@@ -179,8 +191,46 @@ function Invoke-TestSuite([string]$SuitePath) {
     $pythonInvocationArgs = @($pythonArgs + $SuitePath)
     Push-Location $repoRoot
     try {
-        & $pythonExe @pythonInvocationArgs
-        if ($LASTEXITCODE -ne 0) { throw "Integration suite '$SuitePath' failed with exit code $LASTEXITCODE." }
+        $suiteInfo = [Diagnostics.ProcessStartInfo]::new()
+        $suiteInfo.FileName = $pythonExe; $suiteInfo.WorkingDirectory = $repoRoot
+        $suiteInfo.UseShellExecute = $false; $suiteInfo.CreateNoWindow = $true
+        $suiteInfo.RedirectStandardOutput = $true; $suiteInfo.RedirectStandardError = $true
+        foreach ($argument in $pythonInvocationArgs) { $suiteInfo.ArgumentList.Add($argument) }
+        $suiteProcess = [Diagnostics.Process]::Start($suiteInfo)
+        $suiteStdout = $suiteProcess.StandardOutput.ReadToEndAsync()
+        $suiteStderr = $suiteProcess.StandardError.ReadToEndAsync()
+        try {
+            while (!$suiteProcess.HasExited) {
+                foreach ($ownedServer in $servers) {
+                    if ($UseCheckpointSupervisor) { continue }
+                    $requestPath = Join-Path $ownedServer.Root 'stonebench\restore-request.json'
+                    $responsePath = Join-Path $ownedServer.Root 'stonebench\restore-response.json'
+                    if ((Test-Path -LiteralPath $requestPath) -and (Test-Path -LiteralPath $responsePath)) {
+                        $request = Get-Content -LiteralPath $requestPath -Raw | ConvertFrom-Json
+                        $response = Get-Content -LiteralPath $responsePath -Raw | ConvertFrom-Json
+                        if ($request.request_id -ne $response.request_id) { continue }
+                        Stop-Server $ownedServer
+                        & $pythonExe @(Join-Path $repoRoot 'scripts\checkpoint_restore.py') --server-root $ownedServer.Root
+                        if ($LASTEXITCODE -ne 0) { throw 'Checkpoint restore transaction failed; old world preserved with diagnostics.' }
+                        Start-Server $ownedServer
+                        try { Wait-Ready $ownedServer } catch {
+                            Stop-Server $ownedServer
+                            & $pythonExe -c 'import sys; sys.path.insert(0, sys.argv[1]); from checkpoint_restore import rollback_boot; rollback_boot(sys.argv[2], sys.argv[3], "supervisor boot failed")' (Join-Path $repoRoot 'scripts') $ownedServer.Root $request.request_id
+                            throw
+                        }
+                    }
+                }
+                Start-Sleep -Milliseconds 100
+            }
+            if ($suiteProcess.ExitCode -ne 0) { throw "Integration suite '$SuitePath' failed with exit code $($suiteProcess.ExitCode)." }
+        } finally {
+            if (!$suiteProcess.HasExited) { $suiteProcess.Kill($true); $suiteProcess.WaitForExit() }
+            $suiteOutput = $suiteStdout.GetAwaiter().GetResult(); $suiteError = $suiteStderr.GetAwaiter().GetResult()
+            [IO.File]::WriteAllText((Join-Path $testRoot 'suite-stdout.log'), $suiteOutput)
+            [IO.File]::WriteAllText((Join-Path $testRoot 'suite-stderr.log'), $suiteError)
+            Write-Output $suiteOutput; Write-Output $suiteError
+            $suiteProcess.Dispose()
+        }
 
         $journalArguments = @($pythonArgs + (Join-Path $repoRoot 'tests\verify_journals.py'))
         foreach ($server in $servers) { $journalArguments += Join-Path $server.Root 'stonebench\operations.jsonl' }
@@ -208,8 +258,8 @@ if ($BaseMcpPort -le ($BaseGamePort + 1) -and $BaseGamePort -le ($BaseMcpPort + 
 
 $testRoot = Join-Path $runtime ('tests-' + [Guid]::NewGuid().ToString('N'))
 $servers = @(
-    [pscustomobject]@{ Index = 1; McpPort = $BaseMcpPort; GamePort = $BaseGamePort; Root = Join-Path $testRoot 'server-1'; Process = $null; ProcessId = $null; StdoutTask = $null; StderrTask = $null; Killed = $false },
-    [pscustomobject]@{ Index = 2; McpPort = ($BaseMcpPort + 1); GamePort = ($BaseGamePort + 1); Root = Join-Path $testRoot 'server-2'; Process = $null; ProcessId = $null; StdoutTask = $null; StderrTask = $null; Killed = $false }
+    [pscustomobject]@{ Index = 1; Boot = 0; McpPort = $BaseMcpPort; GamePort = $BaseGamePort; Root = Join-Path $testRoot 'server-1'; Process = $null; ProcessId = $null; StdoutTask = $null; StderrTask = $null; Killed = $false },
+    [pscustomobject]@{ Index = 2; Boot = 0; McpPort = ($BaseMcpPort + 1); GamePort = ($BaseGamePort + 1); Root = Join-Path $testRoot 'server-2'; Process = $null; ProcessId = $null; StdoutTask = $null; StderrTask = $null; Killed = $false }
 )
 foreach ($server in $servers) {
     Assert-PortAvailable $server.McpPort
