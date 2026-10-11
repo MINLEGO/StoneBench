@@ -1,0 +1,55 @@
+To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/9.2.1/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation.
+Daemon will be stopped at the end of the build 
+
+> Configure project :
+Fabric Loom: 1.14.10
+
+Note: C:\Users\minle\.codex\worktrees\issue-11\StoneBench\app\controller\src\main\java\stonebench\Observation.java uses unchecked or unsafe operations.
+Note: Recompile with -Xlint:unchecked for details.
+> Task :compileJava
+
+> Task :processResources
+> Task :classes
+> Task :jar
+> Task :processIncludeJars UP-TO-DATE
+> Task :compileTestJava
+> Task :processTestResources NO-SOURCE
+> Task :testClasses
+
+> Task :geometryChecks
+GeometryChecks: source interpretation and negative controls passed; Minecraft/MCP not exercised.
+
+> Task :inputChecks
+Input comparison checks passed
+
+> Task :remapJar
+
+> Task :observationChecks
+Observation checks passed
+
+> Task :remapSourcesJar SKIPPED
+> Task :assemble
+
+> Task :restChecks
+RestChecks passed: queues, piston, memory, exact inventories/NBT, external event, typed temporal fields and negative coverage
+
+> Task :streamingChecks
+Streaming checks passed
+
+> Task :cleanStreamingChecks
+> Task :test SKIPPED
+> Task :validateAccessWidener NO-SOURCE
+> Task :check
+> Task :build
+
+[Incubating] Problems report is available at: file:///C:/Users/minle/.codex/worktrees/issue-11/StoneBench/app/controller/build/reports/problems/problems-report.html
+
+Deprecated Gradle features were used in this build, making it incompatible with Gradle 10.
+
+You can use '--warning-mode all' to show the individual deprecation warnings and determine if they come from your own scripts or plugins.
+
+For more on this, please refer to https://docs.gradle.org/9.2.1/userguide/command_line_interface.html#sec:command_line_warnings in the Gradle documentation.
+
+BUILD SUCCESSFUL in 1m 28s
+12 actionable tasks: 11 executed, 1 up-to-date
+C:\Users\minle\.codex\worktrees\issue-11\StoneBench\app\controller\build\libs\stonebench-controller-0.1.0.jar

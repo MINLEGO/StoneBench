@@ -3,11 +3,12 @@ import json
 import os
 from pathlib import Path
 import unittest
-from integration import StoneBenchRuntimeIntegration, TASK_ID
+import integration
+TASK_ID = integration.TASK_ID
 from construction import point, placement
 
 
-class GeometryRuntimeIntegration(StoneBenchRuntimeIntegration):
+class GeometryRuntimeIntegration(integration.StoneBenchRuntimeIntegration):
     async def modify(self, session, rows):
         report = await self.call(session, "modify_blocks", {"blocks": rows, "notify_neighbors": True})
         self.assert_ok(report)
@@ -18,6 +19,7 @@ class GeometryRuntimeIntegration(StoneBenchRuntimeIntegration):
         self.assert_ok(report)
         self.assertTrue(report["frozen"])
         self.assertEqual(report["ticks_executed"], 0)
+        self.assertFalse(report["mutated"])
         self.evidence.append(report)
         return {row["id"]: row for row in report["criteria"]}
 
@@ -68,6 +70,11 @@ class GeometryRuntimeIntegration(StoneBenchRuntimeIntegration):
             opened = await self.geometry(a)
             self.assertEqual(opened["frame_state"]["status"], "satisfied")
 
+            occupied_frame = point(1024, 80, 1024)
+            await self.modify(a, [placement(occupied_frame, "minecraft:stone")])
+            obstructed_open = await self.geometry(a)
+            self.assertEqual(obstructed_open["frame_state"]["status"], "failed", "Rules 30358 actual open passage obstruction")
+            await self.modify(a, [placement(occupied_frame, "minecraft:air")])
             # Obstruction anywhere through observed circuit depth cannot be hidden by moving the frame.
             obstacle = point(1024, 80, 1030)
             await self.modify(a, [placement(obstacle, "minecraft:stone")])
@@ -105,6 +112,13 @@ class GeometryRuntimeIntegration(StoneBenchRuntimeIntegration):
             self.assertEqual(multi["frame_state"]["status"], "satisfied")
             self.assertEqual(multi["regular_arrangement"]["status"], "satisfied")
             self.assertEqual(multi["door_composition"]["status"], "satisfied")
+            material = point(1024, 80, 1024)
+            await self.modify(b, [placement(material, "minecraft:stone")])
+            unknown_material = await self.geometry(b, "closed", frame_min_z=1024, frame_max_z=1025)
+            self.assertEqual(unknown_material["door_composition"]["status"], "indeterminate", "Quartz substitution functionality is not inferred from a whitelist")
+            await self.modify(b, [placement(material, "minecraft:quartz_block")])
+            skydoor = await self.call(b, "check_geometry", {"expected_state": "closed", "normal": "+Y"})
+            self.assert_error(skydoor, "validation")
             for position, orientation, face in ((point(1023, 83, 1025), "up", "floor"), (point(1023, 78, 1025), "down", "ceiling")):
                 support = point(1023, 82 if orientation == "up" else 79, 1025)
                 await self.modify(b, [placement(position, "minecraft:lever", {"face": face, "facing": "north"})])
@@ -122,6 +136,18 @@ class GeometryRuntimeIntegration(StoneBenchRuntimeIntegration):
             self.assertEqual(support_role["volume_exclusion"], "retained_wiring", "Rules 30714 input block must not become arbitrary excluded frame")
             device_role = next(row for row in roles if all(row[key] == device[key] for key in ("x", "y", "z")))
             self.assertEqual(device_role["volume_exclusion"], "excluded_validated_input_adapter", "Rules 24437 input device exclusion")
+            adapted = await self.call(b, "prepare_input", {"mode": "repeater"})
+            self.assert_ok(adapted)
+            self.assertTrue(adapted["construction_preserved"])
+            repeater_geometry = await self.geometry(b, "closed", frame_min_z=1024, frame_max_z=1025)
+            self.assertEqual(repeater_geometry["input"]["status"], "satisfied", "Actual driver remains a device; original coordinate is now a repeater")
+            self.assertNotEqual(repeater_geometry["input"]["observed"]["driver"], device)
+            self.assert_ok(await self.call(b, "__test_outside_influence"))
+            incomplete = await self.geometry(b, "closed", frame_min_z=1024, frame_max_z=1025)
+            self.assertEqual(incomplete["continuable"]["status"], "indeterminate")
+            self.assertEqual(incomplete["influence_coverage"]["status"], "indeterminate")
+            self.assertEqual(self.evidence[-1]["coverage"]["status"], "insufficient")
+            self.assertFalse(self.evidence[-1]["conforms_to_alpha"])
         finally:
             out = Path(os.environ.get("STONEBENCH_GEOMETRY_EVIDENCE", ".runtime/geometry-summary.json"))
             out.parent.mkdir(parents=True, exist_ok=True)

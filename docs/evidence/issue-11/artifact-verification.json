@@ -1,0 +1,23 @@
+[
+  {
+    "archive": "docs/evidence/issue-11/geometry-artifacts.zip",
+    "sha256": "eec0d9600dd99b7148222221d99a24fce4c18deeffe39b10e6ca54ae72efd320",
+    "artifacts": 254,
+    "entries": 33861,
+    "traces": [
+      {
+        "artifact_id": "1951f4a2-00ab-4d14-8600-c7b1d298e8bb",
+        "expected_ticks": 8,
+        "observations": 8,
+        "complete": true
+      }
+    ]
+  },
+  {
+    "archive": "docs/evidence/issue-11/controller-regression-artifacts.zip",
+    "sha256": "9dba48867f914f261b418388514adb31734fe5a03b78e5278318ac273e76f33b",
+    "artifacts": 55,
+    "entries": 22,
+    "traces": []
+  }
+]

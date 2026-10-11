@@ -150,6 +150,8 @@ public final class Controller implements ModInitializer {
             case "start_attempt" -> Set.of("task_id","budget_tokens");
             case "advance", "act_input" -> Set.of("ticks","trace");
             case "transition" -> Set.of("max_ticks","trace");
+            case "check_geometry" -> Set.of("expected_state","frame_min_z","frame_max_z");
+            case "__test_geometry_entity" -> Set.of("present");
             case "__test_transition_fixture" -> Set.of("scenario");
             case "declare_input" -> Set.of("device","position","orientation","input_block");
             case "prepare_input" -> Set.of("mode");
@@ -177,6 +179,17 @@ public final class Controller implements ModInitializer {
             }
             case "describe_task" -> succeed(description());
             case "describe_blocks" -> succeed(BlockCatalog.describe());
+            case "describe_rules" -> succeed(Rules.describe());
+            case "check_geometry" -> {
+                Set<ChunkPos> chunks=new LinkedHashSet<>();for(BlockPos p:RegularDoorGeometry.requiredPositions(task,active.args)) chunks.add(new ChunkPos(p));
+                Runnable check=()->{active.phase="geometry_observation";succeed(RegularDoorGeometry.check(world(),task,active.args,Inputs.declared()));};
+                if(chunks.stream().allMatch(c->CHUNKS.contains(c.toLong()))&&ready())check.run();else prepareChunks(chunks,check);
+            }
+            case "__test_geometry_entity" -> {
+                requireTest();if(!ready())throw new IllegalStateException("Chunks unavailable");
+                if(!active.args.has("present")||!active.args.get("present").isJsonPrimitive()||!active.args.get("present").getAsJsonPrimitive().isBoolean())throw new IllegalArgumentException("present must be boolean");
+                active.mutated=true;succeed(RegularDoorGeometry.testEntity(world(),active.args.get("present").getAsBoolean()));
+            }
             case "declare_input" -> {if(!ready()) throw new IllegalStateException("Chunks unavailable");succeed(Inputs.declare(world(),active.args));}
             case "prepare_input" -> {
                 String mode=Task.string(active.args,"mode");Inputs.requireDeclared(world());
