@@ -65,4 +65,3 @@ class TransitionInputsIntegration(InputRuntimeIntegration):
 
 if __name__ == "__main__":
     unittest.main(defaultTest="TransitionInputsIntegration", verbosity=2)
-
