@@ -29,9 +29,15 @@ def check(root, java, port, output):
         return envelope["result"]["structuredContent"]
     def ready():
         deadline = time.monotonic() + 180
-        while not (control / "ready").exists():
+        while True:
             if process.poll() is not None:
                 raise AssertionError("Supervisor exited during relaunch")
+            if (control / "ready").exists() and not (control / "restore-request.json").exists():
+                try:
+                    call("describe_task")
+                    return
+                except (OSError, ValueError, KeyError):
+                    pass
             if time.monotonic() > deadline:
                 raise AssertionError("Relaunch readiness timeout")
             time.sleep(.1)

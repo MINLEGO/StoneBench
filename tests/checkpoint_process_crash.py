@@ -27,17 +27,26 @@ def run(root, java, port, output):
     child = None
     try:
         deadline = time.monotonic() + 180
-        while not (root / "stonebench/ready").exists():
+        while not (root / "stonebench/ready").exists() or (root / "stonebench/restore-request.json").exists():
             assert wrapper.poll() is None, "Initial supervisor failed"
             assert time.monotonic() < deadline, "Initial readiness timeout"
             time.sleep(.1)
         # This PID is the child just created by this test's supervisor, not a PID
         # discovered from another attempt. Production code never kills it.
         child = int((root / "server.pid").read_text())
-        before = world_files(root)
-        journal = (root / "stonebench/operations.jsonl").read_bytes()
         wrapper.kill()
         wrapper.wait(timeout=30)
+        # Allow already-submitted save I/O from boot to settle, with Java frozen.
+        before = world_files(root)
+        deadline = time.monotonic() + 30
+        while True:
+            time.sleep(1)
+            settled = world_files(root)
+            if settled == before:
+                break
+            assert time.monotonic() < deadline, "World files did not settle"
+            before = settled
+        journal = (root / "stonebench/operations.jsonl").read_bytes()
         with_child_alive = subprocess.run(command, input="stop\n", text=True, capture_output=True, timeout=30)
         assert with_child_alive.returncode != 0, with_child_alive
         assert "still alive" in with_child_alive.stderr, with_child_alive.stderr
