@@ -92,6 +92,9 @@ public final class Observation {
     static JsonObject sample(ServerWorld world,int tick,long index,String samplePhase,JsonObject raw) {
         JsonObject row=new JsonObject();row.addProperty("tick_index",tick);row.addProperty("simulation_index",index);row.addProperty("phase",samplePhase);row.addProperty("world_time",world.getTime());row.addProperty("time_of_day",world.getTimeOfDay());row.addProperty("complete",OUTSIDE.isEmpty() && Controller.observationReady());
         JsonObject state=raw.deepCopy();List<JsonElement> blocks=new ArrayList<>(state.remove("blocks").getAsJsonObject().asMap().values());state.add("blocks",Artifacts.write("snapshot_blocks",blocks));row.add("state",state);
+        JsonArray adapter=new JsonArray(),construction=new JsonArray();for(var item:raw.getAsJsonObject("blocks").entrySet()) {JsonObject b=item.getValue().getAsJsonObject();if(Inputs.adapter(new BlockPos(b.get("x").getAsInt(),b.get("y").getAsInt(),b.get("z").getAsInt()))) adapter.add(b.deepCopy());else construction.add(b.deepCopy());}
+        row.add("adapter_blocks",Artifacts.write("input_adapter_blocks",adapter.asList()));
+        row.add("construction_blocks",Artifacts.write("input_construction_blocks",construction.asList()));
         row.add("events",Artifacts.write("intratick_events",EVENTS));return row;
     }
     static JsonObject compareTraces(JsonObject args) {

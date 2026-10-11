@@ -1,0 +1,40 @@
+{
+  "status": "verified",
+  "code_commit": "fa06b25536d1b03858222f86a48d118fddffd7e4",
+  "archive": "input-evidence.zip",
+  "archive_sha256": "1c7a0df13c5c059eedeed1d6e11db7ce5339759409a44e4cdb0b062cee1496c4",
+  "archive_bytes": 58368101,
+  "artifact_storage": "Exact metadata by UUID; raw JSONL content by SHA-256, without repeated identical bytes",
+  "jar_sha256": "8e6e829af277e0bed7648c15d61fd5698957a1d6577afed2e1c6eafc4a696b8c",
+  "matrix_cycles": 72,
+  "additional_wood_cycles": 88,
+  "wood_buttons": [
+    "minecraft:oak_button",
+    "minecraft:spruce_button",
+    "minecraft:birch_button",
+    "minecraft:jungle_button",
+    "minecraft:acacia_button",
+    "minecraft:dark_oak_button",
+    "minecraft:mangrove_button",
+    "minecraft:cherry_button",
+    "minecraft:bamboo_button",
+    "minecraft:crimson_button",
+    "minecraft:warped_button",
+    "minecraft:pale_oak_button"
+  ],
+  "negative_controls": 8,
+  "lateral_faces": 4,
+  "limits": [
+    "Dedicated-server interaction, no player network path",
+    "Four fixed circuit fixtures, no complete regular DOOR certification",
+    "Observed typed state and events; no universal JVM memory claim"
+  ],
+  "artifacts": 38853,
+  "artifact_entries": 20263671,
+  "traces": 192,
+  "samples": 6796,
+  "cycle_phases_verified": 160,
+  "unique_artifact_contents": 3276,
+  "report_trace_links_verified": 192,
+  "deployed_jars_verified": 2
+}
