@@ -18,6 +18,11 @@ def world_files(root):
             for p in (root / "world").rglob("*") if p.is_file() and p.name != "session.lock"}
 
 
+def checkpoint_files(root):
+    return {p.relative_to(root).as_posix(): hashlib.sha256(p.read_bytes()).hexdigest()
+            for p in (root / "stonebench/checkpoints").rglob("*") if p.is_file()}
+
+
 def run(root, java, port, output):
     root = Path(root).resolve()
     command = [sys.executable, str(Path(__file__).resolve().parents[1] / "scripts/checkpoint_server.py"),
@@ -37,11 +42,13 @@ def run(root, java, port, output):
         # Lease remains held while the first Java runs, and across its restart gap.
         time.sleep(1)
         before = world_files(root)
+        saved_checkpoints = checkpoint_files(root)
         journal = (root / "stonebench/operations.jsonl").read_bytes()
         concurrent = subprocess.run(command, input="stop\n", text=True, capture_output=True, timeout=30)
         assert concurrent.returncode != 0 and "Supervisor lease held" in concurrent.stderr, concurrent.stderr
         assert wrapper.poll() is None, "Second supervisor disturbed first owner"
         assert world_files(root) == before and (root / "stonebench/operations.jsonl").read_bytes() == journal
+        assert checkpoint_files(root) == saved_checkpoints
         wrapper.kill()
         wrapper.wait(timeout=30)
         # Allow already-submitted save I/O from boot to settle, with Java frozen.
@@ -60,11 +67,13 @@ def run(root, java, port, output):
         assert "still alive" in with_child_alive.stderr, with_child_alive.stderr
         assert world_files(root) == before, "Refused relaunch changed world bytes"
         assert (root / "stonebench/operations.jsonl").read_bytes() == journal
+        assert checkpoint_files(root) == saved_checkpoints
         # Also cover the Popen-before-PID-publication window using the real held lock.
         (root / "server.pid").unlink()
         lock_refusal = subprocess.run(command, input="stop\n", text=True, capture_output=True, timeout=30)
         assert lock_refusal.returncode != 0 and "World lock is held" in lock_refusal.stderr, lock_refusal.stderr
         assert world_files(root) == before
+        assert checkpoint_files(root) == saved_checkpoints
         (root / "server.pid").write_text(str(child))
         os.kill(child, signal.SIGTERM)  # Explicitly stop only this test's owned child.
         deadline = time.monotonic() + 30
@@ -80,6 +89,7 @@ def run(root, java, port, output):
         check(root, java, port, reprise)
         result = {"success": True, "supervisor_killed_with_java_alive": True,
                   "second_supervisor_refused_first_owner_continues": True,
+                  "checkpoint_bytes_preserved_on_all_refusals": True,
                   "refused_without_world_or_journal_mutation": True, "missing_pid_held_lock_refused": True,
                   "diagnostic": with_child_alive.stderr.strip(), "after_owned_child_stop": json.loads(Path(reprise).read_text())}
         Path(output).write_text(json.dumps(result, indent=2) + "\n")
