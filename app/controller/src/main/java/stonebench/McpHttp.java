@@ -67,8 +67,8 @@ public final class McpHttp implements AutoCloseable {
         finally {exchange.close();}
     }
     private static Set<String> names() {
-        Set<String> names=new LinkedHashSet<>(List.of("start_attempt","describe_task","read_blocks","read_region","read_artifact","compare_traces","describe_blocks","modify_blocks","advance"));
-        if(Controller.TEST) names.addAll(List.of("__test_release_chunks","__test_restore_chunks","__test_place_block","__test_fail_next_lot","__test_default_wire","__test_outside_influence","__test_water_source"));return names;
+        Set<String> names=new LinkedHashSet<>(List.of("start_attempt","describe_task","read_blocks","read_region","read_artifact","compare_traces","describe_blocks","modify_blocks","advance","transition","declare_input","prepare_input","act_input"));
+        if(Controller.TEST) names.addAll(List.of("__test_release_chunks","__test_restore_chunks","__test_place_block","__test_fail_next_lot","__test_default_wire","__test_outside_influence","__test_water_source","__test_transition_fixture","__test_transition_toggle","__test_transition_external_tick"));return names;
     }
     private static JsonObject property(String type) {JsonObject p=new JsonObject();p.addProperty("type",type);return p;}
     private static JsonObject integer(int min,int max) {JsonObject p=property("integer");p.addProperty("minimum",min);p.addProperty("maximum",max);return p;}
@@ -90,19 +90,27 @@ public final class McpHttp implements AutoCloseable {
                 case "read_blocks"->"Read 1..256 actual block states in prepared chunks; larger reads must be split.";
                 case "describe_blocks"->"Discover explicit construction coverage, in-game configurable parameters, computed states and inventory slots.";
                 case "modify_blocks"->"Validate an entire ordered lot, place all geometry/inventories with deferred callbacks then optionally notify in submitted order; errors report actual effects.";
-                case "advance"->"Advance 1..6000 unit vanilla ticks; initial/final diff is an artifact, optional trace contains one complete observation per executed tick. Read artifacts with explicit pages.";
+                case "declare_input"->"Declare an existing inactive wall lever/button on a lateral exterior construction surface.";
+                case "prepare_input"->"Prepare a real external vanilla repeater adapter while frozen; verify exact construction state preservation.";
+                case "act_input"->"Interact with the declared vanilla device before world-time increment then execute 1..6000 ticks; buttons release naturally, lever toggles.";
+                case "advance"->"Advance 1..6000 individual vanilla game ticks; initial/final diff is an artifact, optional trace contains one complete observation per executed tick. Read artifacts with explicit pages.";
+                case "transition"->"Observe a transition until rest, indeterminate memory/coverage, or 1..36000 real ticks; process deadline is separate. Ordinary advance remains 6000 ticks.";
                 case "read_region"->"Read every coordinate in inclusive min/max bounds (at most 1000000); prepare chunks while frozen, return immutable typed block artifact.";
                 case "read_artifact"->"Retrieve immutable artifact entries at offset with limit 1..256; counts/hash and next_offset permit full reconstruction without silent truncation.";
                 case "compare_traces"->"Compare exact trace state/events/clocks with explicit continuity validation; report first divergent tick and fields as an artifact, no normalization.";
                 default->"TEST ONLY: controlled fixture/fault injection. Never enabled in campaign servers.";});
             switch(name) {
                 case "start_attempt"->{properties.add("task_id",property("string"));JsonObject budget=integer(1,Integer.MAX_VALUE);JsonArray budgetTypes=new JsonArray();budgetTypes.add("integer");budgetTypes.add("null");budget.add("type",budgetTypes);properties.add("budget_tokens",budget);required.add("task_id");}
-                case "advance"->{properties.add("ticks",integer(1,6000));properties.add("trace",property("boolean"));required.add("ticks");}
+                case "advance", "act_input"->{properties.add("ticks",integer(1,6000));properties.add("trace",property("boolean"));required.add("ticks");}
+                case "transition"->{properties.add("max_ticks",integer(1,Rest.MAX_TICKS));properties.add("trace",property("boolean"));}
+                case "__test_transition_fixture"->{properties.add("scenario",property("string"));required.add("scenario");}
                 case "read_region"->{JsonObject position=property("object"),coords=new JsonObject();JsonArray axes=new JsonArray();for(String axis:List.of("x","y","z")) {coords.add(axis,property("integer"));axes.add(axis);}position.add("properties",coords);position.add("required",axes);position.addProperty("additionalProperties",false);properties.add("min",position);properties.add("max",position.deepCopy());required.add("min");required.add("max");}
                 case "read_artifact"->{properties.add("artifact_id",property("string"));properties.add("offset",integer(0,Integer.MAX_VALUE));properties.add("limit",integer(1,256));for(String key:List.of("artifact_id","offset","limit")) required.add(key);}
                 case "compare_traces"->{properties.add("left",property("string"));properties.add("right",property("string"));required.add("left");required.add("right");}
                 case "read_blocks"->{JsonObject positions=property("array"),position=property("object"),coords=new JsonObject();for(String axis:List.of("x","y","z")) coords.add(axis,property("integer"));position.add("properties",coords);JsonArray axes=new JsonArray();axes.add("x");axes.add("y");axes.add("z");position.add("required",axes);positions.add("items",position);positions.addProperty("minItems",1);positions.addProperty("maxItems",256);properties.add("positions",positions);required.add("positions");}
                 case "modify_blocks"->{JsonObject blocks=property("array");blocks.addProperty("minItems",1);blocks.addProperty("maxItems",256);blocks.add("items",placementSchema());properties.add("blocks",blocks);properties.add("notify_neighbors",property("boolean"));required.add("blocks");required.add("notify_neighbors");}
+                case "prepare_input"->{properties.add("mode",property("string"));required.add("mode");}
+                case "declare_input"->{properties.add("device",property("string"));properties.add("orientation",property("string"));JsonObject position=property("object"),coords=new JsonObject();JsonArray axes=new JsonArray();for(String axis:List.of("x","y","z")) {coords.add(axis,property("integer"));axes.add(axis);}position.add("properties",coords);position.add("required",axes);position.addProperty("additionalProperties",false);properties.add("position",position);properties.add("input_block",position.deepCopy());for(String key:List.of("device","orientation","position","input_block")) required.add(key);}
                 case "__test_release_chunks"->properties.add("after_ticks",integer(0,6000));
             }
             schema.add("properties",properties);schema.add("required",required);schema.addProperty("additionalProperties",false);tool.add("inputSchema",schema);tools.add(tool);

@@ -1,0 +1,56 @@
+Disposable server data and logs: C:\Users\minle\.codex\worktrees\issue-9\StoneBench\app\controller\.runtime\tests-31f89bed89f74022a2e073ba6a1dd9cd
+Starting server 1: MCP 127.0.0.1:19167, Minecraft 127.0.0.1:25983
+Starting server 2: MCP 127.0.0.1:19168, Minecraft 127.0.0.1:25984
+test_real_mcp_server_contract (__main__.ObservationRuntimeIntegration.test_real_mcp_server_contract) ... Executing <Task pending name='Task-2' coro=<ObservationRuntimeIntegration.test_real_mcp_server_contract() running at C:\Users\minle\.codex\worktrees\issue-9\StoneBench\tests\observation.py:40> cb=[_run_until_complete_cb() at C:\Users\minle\AppData\Local\Programs\Python\Python312\Lib\asyncio\base_events.py:181] created at C:\Users\minle\AppData\Local\Programs\Python\Python312\Lib\asyncio\runners.py:100> took 0.250 seconds
+Executing <Task pending name='Task-2' coro=<ObservationRuntimeIntegration.test_real_mcp_server_contract() running at C:\Users\minle\.codex\worktrees\issue-9\StoneBench\tests\observation.py:40> cb=[_run_until_complete_cb() at C:\Users\minle\AppData\Local\Programs\Python\Python312\Lib\asyncio\base_events.py:181] created at C:\Users\minle\AppData\Local\Programs\Python\Python312\Lib\asyncio\runners.py:100> took 0.218 seconds
+Executing <Handle _ProactorReadPipeTransport._loop_reading(<_OverlappedF...events.py:506>) created at C:\Users\minle\AppData\Local\Programs\Python\Python312\Lib\asyncio\windows_events.py:93> took 0.109 seconds
+Executing <Task pending name='mcp.client.streamable_http.StreamableHTTPTransport.post_writer.<locals>.handle_request_async' coro=<TaskHandle._run_coro() running at C:\Users\minle\.codex\worktrees\issue-5\StoneBench\app\controller\.runtime\test-venv\Lib\site-packages\anyio\_core\_tasks.py:327> wait_for=<Future pending cb=[Task.task_wakeup()] created at C:\Users\minle\AppData\Local\Programs\Python\Python312\Lib\asyncio\base_events.py:448> cb=[TaskGroup._spawn.<locals>.task_done() at C:\Users\minle\.codex\worktrees\issue-5\StoneBench\app\controller\.runtime\test-venv\Lib\site-packages\anyio\_backends\_asyncio.py:870] created at C:\Users\minle\.codex\worktrees\issue-5\StoneBench\app\controller\.runtime\test-venv\Lib\site-packages\anyio\_backends\_asyncio.py:944> took 0.157 seconds
+Executing <Task pending name='mcp.client.streamable_http.StreamableHTTPTransport.post_writer' coro=<TaskHandle._run_coro() running at C:\Users\minle\.codex\worktrees\issue-5\StoneBench\app\controller\.runtime\test-venv\Lib\site-packages\anyio\_core\_tasks.py:327> cb=[TaskGroup._spawn.<locals>.task_done() at C:\Users\minle\.codex\worktrees\issue-5\StoneBench\app\controller\.runtime\test-venv\Lib\site-packages\anyio\_backends\_asyncio.py:870] created at C:\Users\minle\.codex\worktrees\issue-5\StoneBench\app\controller\.runtime\test-venv\Lib\site-packages\anyio\_backends\_asyncio.py:944> took 0.110 seconds
+Executing <Handle _ProactorReadPipeTransport._loop_reading(<_OverlappedF...events.py:506>) created at C:\Users\minle\AppData\Local\Programs\Python\Python312\Lib\asyncio\windows_events.py:93> took 0.140 seconds
+Executing <Handle _ProactorReadPipeTransport._loop_reading(<_OverlappedF...events.py:506>) created at C:\Users\minle\AppData\Local\Programs\Python\Python312\Lib\asyncio\windows_events.py:93> took 0.109 seconds
+ok
+
+----------------------------------------------------------------------
+Ran 1 test in 16.999s
+
+OK
+{
+  "status": "ok",
+  "journals": [
+    {
+      "attempt_id": "5dceccab-abb0-457a-a16f-a4b50a3dff34",
+      "operations": 78,
+      "simulation_ticks": 22,
+      "preparation_ticks": 11,
+      "world_time": 33,
+      "errors": [
+        {
+          "code": "invalid_arguments",
+          "ticks_executed": 0
+        },
+        {
+          "code": "invalid_arguments",
+          "ticks_executed": 0
+        },
+        {
+          "code": "invalid_arguments",
+          "ticks_executed": 0
+        }
+      ]
+    },
+    {
+      "attempt_id": "ce635ca3-fe1f-461c-bcbd-a4bde872da89",
+      "operations": 12,
+      "simulation_ticks": 3,
+      "preparation_ticks": 21,
+      "world_time": 24,
+      "errors": [
+        {
+          "code": "chunks_unavailable",
+          "ticks_executed": 2
+        }
+      ]
+    }
+  ]
+}
+Integration suite finished; server logs and worlds remain under C:\Users\minle\.codex\worktrees\issue-9\StoneBench\app\controller\.runtime\tests-31f89bed89f74022a2e073ba6a1dd9cd

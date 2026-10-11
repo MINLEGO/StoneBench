@@ -29,19 +29,22 @@ public final class Controller implements ModInitializer {
     private static long simulationTicks, preparationTicks;
     private static boolean artifactRecovery;
     private static int releaseAt;
+    // Native sprint is the default after real fixture equivalence; unit stepping stays an explicit reference.
+    private static final String TICK_EXECUTION=System.getProperty("stonebench.tickExecution","sprint");
+    private static final int TEST_INITIAL_PREPARATION_TICKS=Boolean.getBoolean("stonebench.test")?Integer.getInteger("stonebench.initialPreparationTicks",0):0;
     public static final boolean TEST = Boolean.getBoolean("stonebench.test");
 
     private static final class Operation {
         final String id=UUID.randomUUID().toString(), tool;
         final JsonObject args;
         final CompletableFuture<JsonObject> result=new CompletableFuture<>();
-        long deadline;
+        long deadline, simulationStartedNanos;
         String phase="validation";
         long beforeTime;
         int executed, requested;
         boolean mutated, preparationInitialLoaded, preparationInitialReady;
         Runnable continuation; List<Construction.Placement> placements;
-        boolean trace;
+        boolean trace; Transition transition;
         JsonObject initial;
         long startWorldTime,startTimeOfDay,startSimulationIndex;
         final List<JsonObject> observations=new ArrayList<>();
@@ -50,6 +53,7 @@ public final class Controller implements ModInitializer {
     @Override public void onInitialize() {}
     public static void boot(MinecraftServer value) {
         server=value;
+        if(!Set.of("unit","sprint").contains(TICK_EXECUTION)) throw new IllegalArgumentException("tickExecution must be unit or sprint");
         world().getGameRules().setValue(GameRules.RANDOM_TICK_SPEED,0,server);
         world().getGameRules().setValue(GameRules.DO_MOB_SPAWNING,false,server);
         world().getGameRules().setValue(GameRules.ADVANCE_WEATHER,false,server);
@@ -113,7 +117,7 @@ public final class Controller implements ModInitializer {
             if (delta<0 || delta>1) throw new IllegalStateException("Unexpected world-time delta: "+delta);
             if (active.phase.equals("preparation")) {
                 preparationTicks+=delta;
-                if (ready()) {
+                if (ready() && (!active.tool.equals("start_attempt") || preparationTicks>=TEST_INITIAL_PREPARATION_TICKS)) {
                     if (active.tool.equals("start_attempt")) {
                         // The whole generator is air. Preparation cannot tick a prior construction.
                         for (BlockPos pos:BlockPos.iterate(1024,64,1024,1039,111,1039))
@@ -125,18 +129,30 @@ public final class Controller implements ModInitializer {
                 } else if(active.continuation==null) step();
             } else if (active.phase.equals("simulation")) {
                 active.executed+=delta; simulationTicks+=delta;
-                if(delta==1 && active.trace) active.observations.add(Observation.sample(world(),active.executed,simulationTicks,"end_tick",Observation.raw(world())));
+                JsonObject raw=delta==1 && (active.trace || active.transition!=null)?Observation.raw(world()):null;
+                JsonObject sample=delta==1 && active.trace?Observation.sample(world(),active.executed,simulationTicks,"end_tick",raw):null;
+                if(sample!=null) active.observations.add(sample);
                 if (releaseAt>0 && active.executed>=releaseAt) { force(false); releaseAt=0; }
                 if (!ready()) fail("infrastructure","chunks_unavailable","Relevant chunks lost block/entity ticking readiness");
+                else if(delta==1 && active.transition!=null && active.transition.tick(raw,Observation.currentEvents(),active.executed)) {
+                    if(sample!=null) sample.add("rest",active.transition.report());
+                    active.requested=active.executed;JsonObject result=observedResult();result.add("transition",active.transition.report());succeed(result);
+                }
                 else if (active.executed==active.requested) succeed(observedResult());
-                else {Observation.begin(simulationTicks+1,active.executed+1,"before_world_time");step();}
+                else {if(sample!=null && active.transition!=null) sample.add("rest",active.transition.report());if(delta==1) Observation.begin(simulationTicks+1,active.executed+1,"before_world_time");if(TICK_EXECUTION.equals("unit")) step();}
             }
-        } catch (Exception e) { fail("infrastructure","server_error",e.toString()); }
+        } catch (UnsupportedOperationException e) {fail("unsupported","unsupported_component",e.getMessage());}
+        catch (IllegalArgumentException e) {fail("validation","invalid_arguments",e.getMessage());}
+        catch (Exception e) { fail("infrastructure","server_error",e.toString()); }
     }
     private static void dispatch() {
         Set<String> allowed=switch(active.tool) {
             case "start_attempt" -> Set.of("task_id","budget_tokens");
-            case "advance" -> Set.of("ticks","trace");
+            case "advance", "act_input" -> Set.of("ticks","trace");
+            case "transition" -> Set.of("max_ticks","trace");
+            case "__test_transition_fixture" -> Set.of("scenario");
+            case "declare_input" -> Set.of("device","position","orientation","input_block");
+            case "prepare_input" -> Set.of("mode");
             case "read_blocks" -> Set.of("positions");
             case "read_region" -> Set.of("min","max");
             case "read_artifact" -> Set.of("artifact_id","offset","limit");
@@ -161,12 +177,18 @@ public final class Controller implements ModInitializer {
             }
             case "describe_task" -> succeed(description());
             case "describe_blocks" -> succeed(BlockCatalog.describe());
+            case "declare_input" -> {if(!ready()) throw new IllegalStateException("Chunks unavailable");succeed(Inputs.declare(world(),active.args));}
+            case "prepare_input" -> {
+                String mode=Task.string(active.args,"mode");Inputs.requireDeclared(world());
+                Runnable prepare=()->{active.phase="adapter_preparation";active.initial=Observation.raw(world());active.startWorldTime=world().getTime();active.startTimeOfDay=world().getTimeOfDay();active.startSimulationIndex=simulationTicks;Observation.begin(simulationTicks,0,"adapter_preparation_between_ticks");JsonObject result=Inputs.prepare(world(),mode);for(var e:observedResult().entrySet()) result.add(e.getKey(),e.getValue());succeed(result);};
+                prepareChunks(Inputs.chunks(),prepare);
+            }
             case "modify_blocks" -> {
                 active.placements=Construction.validate(world(),active.args);
                 for(var p:active.placements) {Observation.track(p.pos());for(var direction:net.minecraft.util.math.Direction.values()) Observation.track(p.pos().offset(direction));}
                 Set<ChunkPos> chunks=new LinkedHashSet<>();
                 for(var p:active.placements) for(int dx=-1;dx<=1;dx++) for(int dz=-1;dz<=1;dz++) chunks.add(new ChunkPos(p.pos().add(dx,0,dz)));
-                Runnable placement=()->{active.phase="mutation";active.initial=Observation.raw(world());active.startWorldTime=world().getTime();active.startTimeOfDay=world().getTimeOfDay();active.startSimulationIndex=simulationTicks;Observation.begin(simulationTicks,0,"mutation_between_ticks");active.mutated=true;JsonObject result=Construction.apply(world(),active.placements,active.args.get("notify_neighbors").getAsBoolean());for(var e:observedResult().entrySet()) result.add(e.getKey(),e.getValue());succeed(result);};
+                Runnable placement=()->{active.phase="mutation";active.initial=Observation.raw(world());active.startWorldTime=world().getTime();active.startTimeOfDay=world().getTimeOfDay();active.startSimulationIndex=simulationTicks;Observation.begin(simulationTicks,0,"mutation_between_ticks");active.mutated=true;Inputs.modified(active.placements);JsonObject result=Construction.apply(world(),active.placements,active.args.get("notify_neighbors").getAsBoolean());for(var e:observedResult().entrySet()) result.add(e.getKey(),e.getValue());succeed(result);};
                 if(chunks.stream().allMatch(c->CHUNKS.contains(c.toLong())) && ready()) placement.run();
                 else prepareChunks(chunks,placement);
             }
@@ -190,14 +212,24 @@ public final class Controller implements ModInitializer {
                 }
                 JsonObject result=new JsonObject();result.add("blocks",blocks);succeed(result);
             }
-            case "advance" -> {
-                active.requested=Task.integer(active.args,"ticks",1,6000);
+            case "advance", "act_input", "transition" -> {
+                active.requested=active.tool.equals("transition")?(active.args.has("max_ticks")?Task.integer(active.args,"max_ticks",1,Rest.MAX_TICKS):Rest.MAX_TICKS):Task.integer(active.args,"ticks",1,6000);
                 if(active.args.has("trace") && (!active.args.get("trace").isJsonPrimitive() || !active.args.get("trace").getAsJsonPrimitive().isBoolean())) throw new IllegalArgumentException("trace must be a boolean");
                 active.trace=active.args.has("trace") && active.args.get("trace").getAsBoolean();
                 if (!ready()) {fail("infrastructure","chunks_unavailable","Simulation requires block and block-entity ticking readiness");return;}
                 if(server.getPlayerManager().getCurrentPlayerCount()!=0) {fail("infrastructure","players_present","Dedicated attempts cannot contain players");return;}
                 active.initial=Observation.raw(world());active.startWorldTime=world().getTime();active.startTimeOfDay=world().getTimeOfDay();active.startSimulationIndex=simulationTicks;
-                active.phase="simulation";Observation.begin(simulationTicks+1,1,"before_world_time");active.mutated=true;step();
+                if(active.tool.equals("act_input")) Inputs.arm(world());
+                if(active.tool.equals("transition")) {active.transition=new Transition(active.initial,active.requested,RestInputs.positions(),RestInputs::expected);active.deadline=System.nanoTime()+Transition.PROCESS_TIMEOUT_SECONDS*1_000_000_000L;}
+                active.phase="simulation";Observation.begin(simulationTicks+1,1,"before_world_time");active.mutated=true;
+                active.simulationStartedNanos=System.nanoTime();
+                if(TICK_EXECUTION.equals("sprint")) {
+                    var manager=server.getTickManager();
+                    if(!manager.isFrozen() || manager.isSprinting() || manager.isStepping()) throw new IllegalStateException("Simulation must start from frozen idle tick manager");
+                    // startSprint's return reports a previous sprint, not success. The cached permission
+                    // stays false this dispatch turn; the next real world tick begins the measured run.
+                    manager.startSprint(active.requested);
+                } else step();
             }
             case "read_region" -> {
                 List<BlockPos> positions=Observation.region(active.args,world());Set<ChunkPos> chunks=new LinkedHashSet<>();for(var p:positions) chunks.add(new ChunkPos(p));
@@ -206,6 +238,25 @@ public final class Controller implements ModInitializer {
             }
             case "read_artifact" -> succeed(Artifacts.read(active.args));
             case "compare_traces" -> succeed(Observation.compareTraces(active.args));
+            case "__test_transition_fixture", "__test_transition_toggle" -> {
+                requireTest();
+                Runnable fixture=()->{
+                    active.initial=Observation.raw(world());active.startWorldTime=world().getTime();active.startTimeOfDay=world().getTimeOfDay();active.startSimulationIndex=simulationTicks;
+                    Observation.begin(simulationTicks,0,"test_fixture_between_ticks");active.mutated=true;
+                    if(active.tool.equals("__test_transition_fixture")) TransitionFixtures.prepare(world(),Task.string(active.args,"scenario"));else TransitionFixtures.toggle(world());
+                    succeed(observedResult());
+                };
+                if(active.tool.equals("__test_transition_fixture")) {
+                    Set<ChunkPos> chunks=new LinkedHashSet<>();for(int x=63;x<=64;x++) for(int z=63;z<=64;z++) chunks.add(new ChunkPos(x,z));prepareChunks(chunks,fixture);
+                } else if(!ready()) fail("infrastructure","chunks_unavailable","Fixture requires ticking-ready chunks");else fixture.run();
+            }
+            case "__test_transition_external_tick" -> {
+                requireTest();JsonObject declared=Inputs.declared();if(declared==null) throw new IllegalArgumentException("Declared input required");
+                JsonObject p=declared.getAsJsonObject("driver");BlockPos pos=new BlockPos(p.get("x").getAsInt(),p.get("y").getAsInt(),p.get("z").getAsInt());
+                if(!ready()) {fail("infrastructure","chunks_unavailable","Fixture requires ticking-ready chunks");return;}
+                active.initial=Observation.raw(world());active.startWorldTime=world().getTime();active.startTimeOfDay=world().getTimeOfDay();active.startSimulationIndex=simulationTicks;
+                Observation.begin(simulationTicks,0,"test_fixture_between_ticks");active.mutated=true;world().scheduleBlockTick(pos,Blocks.STONE,5);succeed(observedResult());
+            }
             case "__test_water_source" -> {
                 requireTest();if(!ready()) throw new IllegalStateException("Chunks unavailable");
                 active.initial=Observation.raw(world());active.startWorldTime=world().getTime();active.startTimeOfDay=world().getTimeOfDay();active.startSimulationIndex=simulationTicks;
@@ -236,6 +287,7 @@ public final class Controller implements ModInitializer {
     }
     private static void requireTest() {if(!TEST) throw new IllegalArgumentException("Unknown tool");}
     public static ServerWorld world() {return server==null?null:server.getOverworld();}
+    static void inputMutation() {active.mutated=true;}
     public static boolean prepared(BlockPos pos) {return CHUNKS.contains(new ChunkPos(pos).toLong());}
     public static boolean observationReady() {return ready();}
     public static void observationPhase(String value) {Observation.phase(value);}
@@ -257,7 +309,7 @@ public final class Controller implements ModInitializer {
         result.getAsJsonObject("initial").addProperty("time_of_day",active.startTimeOfDay);
         result.getAsJsonObject("initial").add("events",Artifacts.write("intratick_events",List.of()));
         result.add("final",Observation.sample(world(),active.executed,simulationTicks,"final",end));
-        result.add("intratick_events",Artifacts.write("intratick_events",Observation.operationEvents()));return result;
+        result.add("intratick_events",Observation.operationEvents());return result;
     }
     private static void force(boolean value) {
         for(long key:CHUNKS) {ChunkPos c=new ChunkPos(key);world().setChunkForced(c.x,c.z,value);if(value) world().getChunk(c.x,c.z);}
@@ -273,7 +325,7 @@ public final class Controller implements ModInitializer {
         return true;
     }
         private static void freeze() {
-        server.getTickManager().stopStepping();server.getTickManager().setFrozen(true);
+        server.getTickManager().stopSprinting();server.getTickManager().stopStepping();server.getTickManager().setFrozen(true);
         ((TickManagerAccess)server.getTickManager()).stonebench$shouldTick(false);
     }
     /** Extension seam for placement/observation: call on server thread before any mutation. */
@@ -287,11 +339,12 @@ public final class Controller implements ModInitializer {
     }
     private static void step() {if(!server.getTickManager().step(1)) throw new IllegalStateException("Vanilla tick manager refused step");}
     private static JsonObject description() {
-        JsonObject result=new JsonObject();result.addProperty("attempt_id",attempt);result.add("task",task==null?JsonNull.INSTANCE:task.deepCopy());result.addProperty("chunks_ready",ready());
+        JsonObject result=new JsonObject();result.addProperty("attempt_id",attempt);result.add("task",task==null?JsonNull.INSTANCE:task.deepCopy());result.addProperty("chunks_ready",ready());result.add("input",Inputs.declared());
         result.addProperty("preparation_ticks",preparationTicks);
         JsonObject environment=new JsonObject();environment.addProperty("minecraft","1.21.11");environment.addProperty("yarn","1.21.11+build.3");
         environment.addProperty("fabric_loader",FabricLoader.getInstance().getModContainer("fabricloader").orElseThrow().getMetadata().getVersion().getFriendlyString());
         environment.addProperty("controller","0.1.0");environment.addProperty("java",System.getProperty("java.version"));environment.addProperty("tick_rate",server.getTickManager().getTickRate());
+        environment.addProperty("tick_execution",TICK_EXECUTION);environment.addProperty("test_initial_preparation_ticks",TEST_INITIAL_PREPARATION_TICKS);
         environment.addProperty("seed",world().getSeed());environment.addProperty("generator","flat_air");environment.addProperty("random_tick_speed",world().getGameRules().getValue(GameRules.RANDOM_TICK_SPEED));
         environment.addProperty("mob_spawning",world().getGameRules().getValue(GameRules.DO_MOB_SPAWNING));
         environment.addProperty("advance_weather",world().getGameRules().getValue(GameRules.ADVANCE_WEATHER));
@@ -299,7 +352,13 @@ public final class Controller implements ModInitializer {
         result.add("environment",environment);return result;
     }
     private static JsonObject envelope(String status) {
-        JsonObject result=new JsonObject();result.addProperty("operation_id",active.id);result.addProperty("operation",active.tool);result.addProperty("attempt_id",attempt);
+        JsonObject result=new JsonObject();
+        if(active.simulationStartedNanos!=0) {
+            double seconds=(System.nanoTime()-active.simulationStartedNanos)/1_000_000_000.0;
+            JsonObject execution=new JsonObject();execution.addProperty("mode",TICK_EXECUTION);execution.addProperty("game_ticks",active.executed);execution.addProperty("wall_seconds",seconds);execution.addProperty("measured_tps",active.executed/seconds);execution.addProperty("nominal_tick_rate",server.getTickManager().getTickRate());execution.addProperty("backend",TICK_EXECUTION.equals("sprint")?"vanilla_ServerTickManager.startSprint":"vanilla_TickManager.step(1)");
+            result.add("execution",execution);
+        }
+        result.addProperty("operation_id",active.id);result.addProperty("operation",active.tool);result.addProperty("attempt_id",attempt);
         result.addProperty("phase",active.phase);result.addProperty("status",status);result.addProperty("ticks_executed",active.executed);
         result.addProperty("simulation_ticks",simulationTicks);result.addProperty("preparation_ticks",preparationTicks);result.addProperty("world_time",world().getTime());
         result.addProperty("preparation_initial_loaded",active.preparationInitialLoaded);result.addProperty("preparation_initial_ready",active.preparationInitialReady);
@@ -309,7 +368,7 @@ public final class Controller implements ModInitializer {
     }
     private static void finish(JsonObject result) {
         freeze();
-        Observation.end();
+        Inputs.stop();Observation.end();
         try { Files.writeString(Path.of("stonebench/operations.jsonl"),JSON.toJson(result)+"\n",StandardOpenOption.CREATE,StandardOpenOption.APPEND); }
         catch(IOException e) {
             result.addProperty("status","error");JsonObject error=new JsonObject();error.addProperty("kind","infrastructure");error.addProperty("code","journal_write_failed");error.addProperty("message",e.toString());result.add("error",error);
@@ -326,6 +385,7 @@ public final class Controller implements ModInitializer {
         JsonObject result=envelope("error"),error=new JsonObject();error.addProperty("kind",kind);error.addProperty("code",code);error.addProperty("message",message);
         error.addProperty("effects",active.mutated?"World may have changed; inspect reported effective state before retry":"No mutation performed");result.add("error",error);
         try {for(var e:observedResult().entrySet()) result.add(e.getKey(),e.getValue());} catch(Exception observationError) {result.addProperty("observation_incomplete",true);result.addProperty("observation_error",observationError.toString());}
+        if(active.transition!=null) result.add("transition_diagnostics",active.transition.report());
         if(active.placements!=null && active.mutated) {result.add("blocks",Construction.read(world(),active.placements));result.addProperty("recovery","Inspect actual blocks; retry a validated repair lot or restore a checkpoint when checkpoint support is available");}finish(result);
     }
     public static void shutdown() {

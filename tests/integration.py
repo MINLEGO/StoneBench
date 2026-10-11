@@ -1,4 +1,5 @@
 from contextlib import AsyncExitStack
+from datetime import timedelta
 from importlib.metadata import version
 import asyncio
 import os
@@ -44,12 +45,12 @@ class StoneBenchRuntimeIntegration(unittest.IsolatedAsyncioTestCase):
         self.sessions = []
         for url in server_urls():
             http_client = await self.stack.enter_async_context(
-                httpx.AsyncClient(timeout=httpx.Timeout(30.0, read=420.0))
+                httpx.AsyncClient(timeout=httpx.Timeout(30.0, read=2450.0))
             )
             read_stream, write_stream, _ = await self.stack.enter_async_context(
                 streamable_http_client(url, http_client=http_client)
             )
-            session = await self.stack.enter_async_context(ClientSession(read_stream, write_stream))
+            session = await self.stack.enter_async_context(ClientSession(read_stream, write_stream, read_timeout_seconds=timedelta(seconds=2450)))
             await session.initialize()
             self.sessions.append(session)
 

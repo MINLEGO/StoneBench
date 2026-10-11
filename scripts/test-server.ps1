@@ -8,6 +8,9 @@ param(
     [string]$RestartSuite,
     [string]$CacheSource,
     [string]$ServerCacheSource,
+    [ValidateSet('unit','sprint')][string]$TickExecution = 'sprint',
+    [ValidateSet('','unit','sprint')][string]$SecondTickExecution = '',
+    [ValidateRange(0,120)][int]$InitialPreparationTicks = 0,
     [ValidateRange(1, 65534)][int]$BaseMcpPort = 18765,
     [ValidateRange(1, 65534)][int]$BaseGamePort = 25581
 )
@@ -125,7 +128,9 @@ function Start-Server($Server) {
         '-Xms256M',
         '-Xmx1G',
         "-Dstonebench.port=$($Server.McpPort)",
-        '-Dstonebench.test=true',
+         '-Dstonebench.test=true',
+        "-Dstonebench.tickExecution=$(if ($Server.Index -eq 2 -and $SecondTickExecution) { $SecondTickExecution } else { $TickExecution })",
+        "-Dstonebench.initialPreparationTicks=$InitialPreparationTicks",
         '-jar',
         'fabric-server.jar',
         'nogui'

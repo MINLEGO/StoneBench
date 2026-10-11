@@ -1,0 +1,35 @@
+{
+  "format": "ordinary zip with original immutable artifacts, metadata, journals and server logs",
+  "archives": {
+    "unit": {
+      "file": "unit-artifacts.zip",
+      "sha256": "44f9e5dfdbb681bce95db9b516d687321024efc475bd203906ca769c9e4e4d46",
+      "bytes": 6362954,
+      "members": 1704
+    },
+    "equivalence": {
+      "file": "equivalence-artifacts.zip",
+      "sha256": "b37158695a2ea86dfd7ae57f5de6d20f07f098cbe9b498bffc598d75e7c2a723",
+      "bytes": 22079725,
+      "members": 12850
+    },
+    "accelerated": {
+      "file": "accelerated-artifacts.zip",
+      "sha256": "792ddc65640afee46d844ac654b959b27d5b9549f449bc53404135c8b88b196e",
+      "bytes": 9199767,
+      "members": 2748
+    },
+    "controller": {
+      "file": "controller-artifacts.zip",
+      "sha256": "6c4685b4f9252707e480ef5122a4ff60bfe5d76929cdef5bfacfa89b52ddd7fd",
+      "bytes": 46196,
+      "members": 116
+    },
+    "observation": {
+      "file": "observation-artifacts.zip",
+      "sha256": "956f0dde53dbd4e528af580ccf066f942f5c757a3cce47265a0649e0a8e7031d",
+      "bytes": 246961,
+      "members": 374
+    }
+  }
+}
