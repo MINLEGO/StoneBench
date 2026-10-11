@@ -55,3 +55,13 @@ tasks.named('check') {
     dependsOn tasks.named('streamingChecks')
 }
 tasks.named('test') { enabled = false } // No JUnit engine; observationChecks is the executable verification suite.
+def inputChecksDir = layout.buildDirectory.dir('tmp/inputChecks').get().asFile
+tasks.register('inputChecks', JavaExec) {
+    dependsOn tasks.named('testClasses')
+    classpath = sourceSets.test.output + sourceSets.main.output + configurations.testCompileClasspath
+    mainClass = 'stonebench.InputComparisonChecks'
+    workingDir = inputChecksDir
+    doFirst { inputChecksDir.mkdirs() }
+    doLast { project.delete(inputChecksDir) }
+}
+tasks.named('check') { dependsOn tasks.named('inputChecks') }
