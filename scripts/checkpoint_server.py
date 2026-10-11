@@ -10,6 +10,65 @@ import threading
 from checkpoint_restore import apply_restore, recover_incomplete, rollback_boot
 
 
+def ensure_previous_child_absent(root):
+    """Fail closed before recovery; never terminate a process discovered on disk."""
+    import ctypes
+    root = Path(root)
+    recorded = root / "server.pid"
+    if recorded.exists():
+        try:
+            pid = int(recorded.read_text(encoding="ascii"))
+            if pid <= 0:
+                raise ValueError("Invalid previous child PID")
+            if os.name == "nt":
+                kernel = ctypes.WinDLL("kernel32", use_last_error=True)
+                kernel.OpenProcess.restype = ctypes.c_void_p
+                handle = kernel.OpenProcess(0x1000, False, pid)
+                if not handle:
+                    if ctypes.get_last_error() != 87:  # No such PID.
+                        raise RuntimeError("Previous child ownership/liveness is uncertain")
+                else:
+                    try:
+                        code = ctypes.c_ulong()
+                        if not kernel.GetExitCodeProcess(ctypes.c_void_p(handle), ctypes.byref(code)):
+                            raise RuntimeError("Previous child liveness is uncertain")
+                        if code.value == 259:
+                            raise RuntimeError("Previous Minecraft child is still alive; no world recovery performed")
+                    finally:
+                        kernel.CloseHandle(ctypes.c_void_p(handle))
+            else:
+                try:
+                    os.kill(pid, 0)
+                except ProcessLookupError:
+                    pass
+                else:
+                    raise RuntimeError("Previous child is alive or uncertain; no world recovery performed")
+        except (OSError, ValueError) as error:
+            raise RuntimeError("Previous child ownership/liveness is uncertain") from error
+    # Covers a supervisor dying between Popen and PID publication. An exclusive
+    # open refuses active Java file handles, including worlds moved into history.
+    locks = list((root / "world").glob("session.lock"))
+    locks += list((root / "stonebench/restore-history").glob("*/world-*/session.lock"))
+    for lock in locks:
+        if os.name == "nt":
+            from ctypes import wintypes
+            kernel = ctypes.WinDLL("kernel32", use_last_error=True)
+            kernel.CreateFileW.restype = ctypes.c_void_p
+            kernel.CreateFileW.argtypes = (wintypes.LPCWSTR, wintypes.DWORD, wintypes.DWORD, ctypes.c_void_p,
+                                          wintypes.DWORD, wintypes.DWORD, ctypes.c_void_p)
+            handle = kernel.CreateFileW(str(lock), 0xC0000000, 0, None, 3, 0x80, None)
+            if handle == ctypes.c_void_p(-1).value:
+                raise RuntimeError("World lock is held or uncertain; no world recovery performed")
+            kernel.CloseHandle(ctypes.c_void_p(handle))
+        else:
+            import fcntl
+            with lock.open("rb+") as stream:
+                try:
+                    fcntl.lockf(stream, fcntl.LOCK_EX | fcntl.LOCK_NB)
+                except OSError as error:
+                    raise RuntimeError("World lock is held or uncertain; no world recovery performed") from error
+
+
 def serve(root, java, port, execution, test=False):
     root = Path(root).resolve()
     for required in ("fabric-server.jar", "server.properties", "mods/stonebench-controller.jar"):
@@ -19,6 +78,7 @@ def serve(root, java, port, execution, test=False):
                       if "=" in line and not line.lstrip().startswith("#"))
     if properties.get("level-name") != "world":
         raise ValueError("Checkpoint supervisor requires level-name=world under its owned root")
+    ensure_previous_child_absent(root)
     control = root / "stonebench"
     control.mkdir(exist_ok=True)
     logs = root / "logs"
@@ -54,6 +114,7 @@ def serve(root, java, port, execution, test=False):
 
     def start():
         nonlocal process, boot
+        ensure_previous_child_absent(root)
         recover_incomplete(root)
         boot += 1
         (control / "ready").unlink(missing_ok=True)

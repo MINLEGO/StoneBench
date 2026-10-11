@@ -51,7 +51,7 @@ def check(root, java, port, output):
                 raise AssertionError("Supervisor exited during restore after relaunch")
             try:
                 description = call("describe_task")
-                restoration = description.get("restoration", {})
+                restoration = description.get("restoration") or {}
                 if restoration.get("request_id") == request_id:
                     break
             except (OSError, ValueError, KeyError):
