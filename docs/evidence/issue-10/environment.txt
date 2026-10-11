@@ -1,0 +1,6 @@
+java version "21.0.12" 2026-07-21 LTS
+Java(TM) SE Runtime Environment (build 21.0.12+7-LTS-205)
+Java HotSpot(TM) 64-Bit Server VM (build 21.0.12+7-LTS-205, mixed mode, sharing)
+Windows-11-10.0.26300-SP0
+3.12.9
+MCP SDK 1.26.0

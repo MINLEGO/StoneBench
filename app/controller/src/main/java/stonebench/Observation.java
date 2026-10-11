@@ -25,6 +25,17 @@ public final class Observation {
     private static int tickIndex;
     private static String phase="between_ticks";
     public static void track(BlockPos pos) {POSITIONS.add(pos.toImmutable());}
+    static JsonObject checkpointContext() {
+        JsonObject result=new JsonObject();JsonArray positions=new JsonArray(),outside=new JsonArray();
+        for(BlockPos p:POSITIONS) positions.add(Task.position(p.getX(),p.getY(),p.getZ()));
+        for(BlockPos p:OUTSIDE) outside.add(Task.position(p.getX(),p.getY(),p.getZ()));
+        result.add("positions",positions);result.add("outside",outside);return result;
+    }
+    static void restoreContext(JsonObject saved,ServerWorld world) {
+        POSITIONS.clear();OUTSIDE.clear();
+        for(JsonElement item:saved.getAsJsonArray("positions")) POSITIONS.add(position(item.getAsJsonObject(),world));
+        for(JsonElement item:saved.getAsJsonArray("outside")) OUTSIDE.add(position(item.getAsJsonObject(),world));
+    }
     static void begin(long index,int tick,String value) {recording=true;simulationIndex=index;tickIndex=tick;phase=value;EVENTS.clear();}
     static void end() {recording=false;if(operationWriter!=null) operationWriter.close();}
     static void start() {EVENTS.clear();if(operationWriter!=null) operationWriter.close();operationWriter=null;operationArtifact=null;operationOrder=0;}

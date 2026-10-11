@@ -28,6 +28,10 @@ public final class Controller implements ModInitializer {
     private static String attempt;
     private static long simulationTicks, preparationTicks;
     private static boolean artifactRecovery;
+    private static boolean resumeLoading,restorePending,restoreFailed;
+    private static JsonObject resume,restoration;
+    private static JsonObject resumePreparationBefore;
+    private static long resumeInitialWorldTime;
     private static int releaseAt;
     // Native sprint is the default after real fixture equivalence; unit stepping stays an explicit reference.
     private static final String TICK_EXECUTION=System.getProperty("stonebench.tickExecution","sprint");
@@ -61,9 +65,48 @@ public final class Controller implements ModInitializer {
             Files.createDirectories(Path.of("stonebench"));
             recoverArtifactIdentity();
             freeze();
-            transport=new McpHttp(Integer.getInteger("stonebench.port",18765));
-            Files.writeString(Path.of("stonebench/ready"), "Minecraft 1.21.11; MCP listening\n");
+            Path marker=Path.of("stonebench/resume.json");
+            if(Files.exists(marker)) {
+                resume=CheckpointStorage.read(marker);
+                JsonObject context=Checkpoints.context(Task.string(resume,"checkpoint_id"));
+                if(!attempt.equals(Task.string(context,"attempt_id")) || !attempt.equals(Task.string(resume,"attempt_id"))) throw new IOException("Restored attempt identity mismatch");
+                if(context.get("format").getAsInt()!=1) throw new IOException("Unsupported checkpoint context format");
+                simulationTicks=context.get("simulation_ticks").getAsLong();preparationTicks=context.get("preparation_ticks").getAsLong();
+                task=context.getAsJsonObject("task").deepCopy();
+                for(JsonElement item:context.getAsJsonArray("chunks")) {JsonObject chunk=item.getAsJsonObject();CHUNKS.add(ChunkPos.toLong(Task.integer(chunk,"x",-1875000,1875000),Task.integer(chunk,"z",-1875000,1875000)));}
+                Observation.restoreContext(context.getAsJsonObject("observation"),world());
+                resumeLoading=true;force(true);
+                resumeInitialWorldTime=world().getTime();resumePreparationBefore=checkpointSnapshot();
+            } else openTransport();
         } catch (IOException e) { throw new UncheckedIOException(e); }
+    }
+    private static void openTransport() throws IOException {
+        transport=new McpHttp(Integer.getInteger("stonebench.port",18765));
+        Files.writeString(Path.of("stonebench/ready"),"Minecraft 1.21.11; MCP listening\n");
+    }
+    private static void finishResume() throws IOException {
+        JsonObject context=Checkpoints.context(Task.string(resume,"checkpoint_id"));
+        Inputs.restoreContext(context.getAsJsonObject("input"),world());
+        JsonObject actual=checkpointSnapshot();
+        JsonObject comparison=Checkpoints.compareRestored(Task.string(resume,"checkpoint_id"),actual);
+        restoration=resume.deepCopy();restoration.add("comparison",comparison);restoration.addProperty("chunks_ready",ready());
+        long preparationGameTicks=world().getTime()-resumeInitialWorldTime;
+        JsonArray preparationChanges=ObservationComparison.fields(resumePreparationBefore,actual);boolean preserved=true;
+        for(JsonElement item:preparationChanges) if(!item.getAsJsonObject().get("field").getAsString().startsWith("$.state.coverage.")) preserved=false;
+        restoration.add("preparation_changes",Artifacts.write("checkpoint_preparation_diff",preparationChanges.asList()));
+        restoration.addProperty("preparation_initial_chunks_ready",resumePreparationBefore.getAsJsonObject("state").getAsJsonObject("coverage").get("chunks_ready").getAsBoolean());
+        restoration.addProperty("preparation_construction_preserved",preserved);restoration.addProperty("preparation_game_ticks",preparationGameTicks);restoration.addProperty("status",comparison.get("status").getAsString());
+        if(preparationGameTicks!=0 || !preserved) {comparison.addProperty("status","different");restoration.addProperty("status","different");Checkpoints.invalidateRest();}
+        restoreFailed=!comparison.get("status").getAsString().equals("equal");artifactRecovery=false;resumeLoading=false;
+        Files.writeString(Path.of("stonebench/restoration.json"),JSON.toJson(restoration));
+        // An explicit journal segment preserves prior clock history instead of rewriting it.
+        JsonObject row=new JsonObject();row.addProperty("operation_id",UUID.randomUUID().toString());row.addProperty("operation","restore_boot");row.addProperty("attempt_id",attempt);
+        row.addProperty("phase","before_first_useful_tick");row.addProperty("status",restoreFailed?"error":"ok");row.addProperty("ticks_executed",0);
+        row.addProperty("simulation_ticks",simulationTicks);row.addProperty("preparation_ticks",preparationTicks);row.addProperty("world_time",world().getTime());row.addProperty("frozen",true);row.addProperty("mutated",true);row.add("restoration",restoration.deepCopy());
+        if(restoreFailed) {JsonObject error=new JsonObject();error.addProperty("kind","infrastructure");error.addProperty("code","checkpoint_divergence");row.add("error",error);}
+        Files.writeString(Path.of("stonebench/operations.jsonl"),JSON.toJson(row)+"\n",StandardOpenOption.CREATE,StandardOpenOption.APPEND);
+        Files.move(Path.of("stonebench/resume.json"),Path.of("stonebench/restore-history",Task.string(resume,"request_id"),"resume-completed.json"));
+        openTransport();
     }
     /** Recover immutable evidence and reporting counters only; no task/chunks/simulation resume. */
     private static void recoverArtifactIdentity() throws IOException {
@@ -93,6 +136,11 @@ public final class Controller implements ModInitializer {
     }
     public static void beforeTick() {
         if (server==null) return;
+        if(resumeLoading) {
+            freeze();
+            try {if(ready()) finishResume();} catch(Exception e) {throw new IllegalStateException("Checkpoint boot comparison failed",e);}
+            return;
+        }
         // Prevent ordinary console tick commands from changing the benchmark clock.
         if (active==null) freeze();
         if (active!=null && active.phase.equals("simulation") && !ready()) {
@@ -136,7 +184,8 @@ public final class Controller implements ModInitializer {
                 if (!ready()) fail("infrastructure","chunks_unavailable","Relevant chunks lost block/entity ticking readiness");
                 else if(delta==1 && active.transition!=null && active.transition.tick(raw,Observation.currentEvents(),active.executed)) {
                     if(sample!=null) sample.add("rest",active.transition.report());
-                    active.requested=active.executed;JsonObject result=observedResult();result.add("transition",active.transition.report());succeed(result);
+                    active.requested=active.executed;JsonObject result=observedResult();result.add("transition",active.transition.report());
+                    Checkpoints.recordRest(checkpointSnapshot(),active.transition.report());succeed(result);
                 }
                 else if (active.executed==active.requested) succeed(observedResult());
                 else {if(sample!=null && active.transition!=null) sample.add("rest",active.transition.report());if(delta==1) Observation.begin(simulationTicks+1,active.executed+1,"before_world_time");if(TICK_EXECUTION.equals("unit")) step();}
@@ -145,7 +194,7 @@ public final class Controller implements ModInitializer {
         catch (IllegalArgumentException e) {fail("validation","invalid_arguments",e.getMessage());}
         catch (Exception e) { fail("infrastructure","server_error",e.toString()); }
     }
-    private static void dispatch() {
+    private static void dispatch() throws IOException {
         Set<String> allowed=switch(active.tool) {
             case "start_attempt" -> Set.of("task_id","budget_tokens");
             case "advance", "act_input" -> Set.of("ticks","trace");
@@ -159,16 +208,51 @@ public final class Controller implements ModInitializer {
             case "read_region" -> Set.of("min","max");
             case "read_artifact" -> Set.of("artifact_id","offset","limit");
             case "compare_traces" -> Set.of("left","right");
+            case "restore_checkpoint" -> Set.of("checkpoint_id");
+            case "__test_checkpoint_compare" -> Set.of("checkpoint_id","count");
             case "modify_blocks" -> Set.of("blocks","notify_neighbors");
             case "__test_release_chunks" -> Set.of("after_ticks");
             default -> Set.of();
         };
         if(!allowed.containsAll(active.args.keySet())) throw new IllegalArgumentException("Unexpected argument");
         if (!server.isOnThread()) throw new IllegalStateException("Operation outside server thread");
-        boolean evidenceRead=active.tool.equals("read_artifact") || active.tool.equals("compare_traces");
+        if((restorePending || restoreFailed) && !Set.of("describe_task","list_checkpoints","restore_checkpoint","read_artifact","compare_traces").contains(active.tool)) throw new IllegalArgumentException("Restore pending or divergent: reconnect/inspect restoration or restore a valid checkpoint before simulation");
+        boolean evidenceRead=Set.of("read_artifact","compare_traces","list_checkpoints","restore_checkpoint","describe_task").contains(active.tool);
         if (!active.tool.equals("start_attempt") && task==null && !(artifactRecovery && evidenceRead)) throw new IllegalArgumentException("start_attempt is required; recovered attempts permit immutable evidence reads only");
         if(artifactRecovery) active.phase="artifact_recovery";
         switch(active.tool) {
+            case "create_checkpoint" -> {
+                if(server.getPlayerManager().getCurrentPlayerCount()!=0) throw new IllegalArgumentException("Checkpoint requires no players");
+                if(!ready()) throw new IllegalStateException("Chunks unavailable");
+                active.phase="checkpoint_between_ticks";
+                JsonObject result=Checkpoints.create(server.getSavePath(net.minecraft.util.WorldSavePath.ROOT),checkpointSnapshot(),checkpointContext(),description().getAsJsonObject("environment"),server.getTickManager().isFrozen() && !server.getTickManager().isSprinting() && !server.getTickManager().isStepping(),()->server.save(false,true,true));
+                succeed(result);
+            }
+            case "list_checkpoints" -> succeed(Checkpoints.list());
+            case "restore_checkpoint" -> {
+                if(!Boolean.getBoolean("stonebench.supervised")) throw new IllegalArgumentException("restore_checkpoint requires the owning restart supervisor");
+                String id=Task.string(active.args,"checkpoint_id");JsonObject request;
+                if(restorePending) {
+                    request=CheckpointStorage.read(Path.of("stonebench/restore-request.json"));
+                    if(!id.equals(Task.string(request,"checkpoint_id"))) throw new IllegalArgumentException("Different restore already pending");
+                } else request=Checkpoints.requestRestore(id,Path.of(""),attempt);
+                restorePending=true;active.mutated=true;JsonObject result=new JsonObject();result.add("restore",request);succeed(result);
+            }
+            case "__test_checkpoint_fixture", "__test_checkpoint_toggle" -> {
+                requireTest();Runnable fixture=()->{
+                    active.initial=Observation.raw(world());active.startWorldTime=world().getTime();active.startTimeOfDay=world().getTimeOfDay();active.startSimulationIndex=simulationTicks;
+                    Observation.begin(simulationTicks,0,"test_checkpoint_between_ticks");active.mutated=true;Checkpoints.invalidateRest();
+                    if(active.tool.equals("__test_checkpoint_fixture")) CheckpointFixtures.prepare(world());else CheckpointFixtures.toggle(world());succeed(observedResult());
+                };
+                Set<ChunkPos> chunks=new LinkedHashSet<>();for(int x=-1;x<=1;x++) for(int z=-1;z<=1;z++) chunks.add(new ChunkPos(x,z));prepareChunks(chunks,fixture);
+            }
+            case "__test_checkpoint_snapshot" -> {requireTest();JsonObject result=new JsonObject();result.add("checkpoint_state",checkpointSnapshot());succeed(result);}
+            case "__test_checkpoint_compare" -> {
+                requireTest();JsonObject expected=Checkpoints.expectedState(Task.string(active.args,"checkpoint_id")),actual=expected.deepCopy();
+                JsonObject blocks=actual.getAsJsonObject("state").getAsJsonObject("blocks");JsonObject chest=blocks.getAsJsonObject("7,80,3");
+                chest.getAsJsonObject("nbt").getAsJsonObject("value").getAsJsonObject("Items").getAsJsonArray("value").get(0).getAsJsonObject().getAsJsonObject("value").getAsJsonObject("count").addProperty("value",Integer.toString(Task.integer(active.args,"count",1,64)));
+                JsonObject result=new JsonObject();result.add("comparison",CheckpointComparison.compare(expected,actual));succeed(result);
+            }
             case "start_attempt" -> {
                 if (task!=null || Files.exists(Path.of("stonebench/attempt.json"))) throw new IllegalArgumentException("already_started: each attempt needs a fresh server directory");
                 JsonObject selected=Task.describe(Task.string(active.args,"task_id"),active.args.has("budget_tokens") && !active.args.get("budget_tokens").isJsonNull() ? Task.integer(active.args,"budget_tokens",1,Integer.MAX_VALUE) : null);
@@ -299,6 +383,18 @@ public final class Controller implements ModInitializer {
         }
     }
     private static void requireTest() {if(!TEST) throw new IllegalArgumentException("Unknown tool");}
+    private static JsonObject checkpointSnapshot() {return Checkpoints.snapshot(Observation.raw(world()),world().getTime(),world().getTimeOfDay());}
+    private static JsonObject checkpointContext() {
+        JsonObject result=new JsonObject();result.addProperty("format",1);result.addProperty("attempt_id",attempt);result.add("task",task.deepCopy());
+        result.addProperty("simulation_ticks",simulationTicks);result.addProperty("preparation_ticks",preparationTicks);
+        JsonArray chunks=new JsonArray();for(long key:CHUNKS) {ChunkPos chunk=new ChunkPos(key);JsonObject row=new JsonObject();row.addProperty("x",chunk.x);row.addProperty("z",chunk.z);chunks.add(row);}
+        result.add("chunks",chunks);result.add("observation",Observation.checkpointContext());result.add("input",Inputs.checkpointContext());result.addProperty("tick_execution",TICK_EXECUTION);return result;
+    }
+    /** HTTP acknowledgement contains no world access; supervisor waits for this matching response marker. */
+    public static void restoreResponseSent(String requestId) throws IOException {
+        JsonObject marker=new JsonObject();marker.addProperty("request_id",requestId);
+        CheckpointStorage.writeAtomic(Path.of("stonebench/restore-response.json"),marker);
+    }
     public static ServerWorld world() {return server==null?null:server.getOverworld();}
     static void inputMutation() {active.mutated=true;}
     public static boolean prepared(BlockPos pos) {return CHUNKS.contains(new ChunkPos(pos).toLong());}
@@ -354,6 +450,8 @@ public final class Controller implements ModInitializer {
     private static JsonObject description() {
         JsonObject result=new JsonObject();result.addProperty("attempt_id",attempt);result.add("task",task==null?JsonNull.INSTANCE:task.deepCopy());result.addProperty("chunks_ready",ready());result.add("input",Inputs.declared());
         result.addProperty("preparation_ticks",preparationTicks);
+        result.add("restoration",restoration==null?JsonNull.INSTANCE:restoration.deepCopy());
+        result.addProperty("restore_pending",restorePending);
         JsonObject environment=new JsonObject();environment.addProperty("minecraft","1.21.11");environment.addProperty("yarn","1.21.11+build.3");
         environment.addProperty("fabric_loader",FabricLoader.getInstance().getModContainer("fabricloader").orElseThrow().getMetadata().getVersion().getFriendlyString());
         environment.addProperty("controller","0.1.0");environment.addProperty("java",System.getProperty("java.version"));environment.addProperty("tick_rate",server.getTickManager().getTickRate());
@@ -381,6 +479,7 @@ public final class Controller implements ModInitializer {
     }
     private static void finish(JsonObject result) {
         freeze();
+        if(active.mutated && (active.transition==null || !active.transition.report().get("status").getAsString().equals("terminated"))) Checkpoints.invalidateRest();
         Inputs.stop();Observation.end();
         try { Files.writeString(Path.of("stonebench/operations.jsonl"),JSON.toJson(result)+"\n",StandardOpenOption.CREATE,StandardOpenOption.APPEND); }
         catch(IOException e) {

@@ -1,0 +1,51 @@
+{
+  "success": true,
+  "supervisor_killed_with_java_alive": true,
+  "second_supervisor_refused_first_owner_continues": true,
+  "checkpoint_bytes_preserved_on_all_refusals": true,
+  "refused_without_world_or_journal_mutation": true,
+  "missing_pid_held_lock_refused": true,
+  "diagnostic": "Traceback (most recent call last):\n  File \"C:\\Users\\minle\\.codex\\worktrees\\issue-10\\StoneBench\\scripts\\checkpoint_server.py\", line 227, in <module>\n    serve(args.server_root, args.java, args.port, args.execution, args.test)\n  File \"C:\\Users\\minle\\.codex\\worktrees\\issue-10\\StoneBench\\scripts\\checkpoint_server.py\", line 106, in serve\n    _serve_owned(root, java, port, execution, test)\n  File \"C:\\Users\\minle\\.codex\\worktrees\\issue-10\\StoneBench\\scripts\\checkpoint_server.py\", line 118, in _serve_owned\n    ensure_previous_child_absent(root)\n  File \"C:\\Users\\minle\\.codex\\worktrees\\issue-10\\StoneBench\\scripts\\checkpoint_server.py\", line 67, in ensure_previous_child_absent\n    raise RuntimeError(\"Previous Minecraft child is still alive; no world recovery performed\")\nRuntimeError: Previous Minecraft child is still alive; no world recovery performed",
+  "after_owned_child_stop": {
+    "success": true,
+    "existing_boot_logs_preserved": 12,
+    "historical_journal_prefix_preserved": true,
+    "checkpoints_preserved": 2,
+    "test_flag": false,
+    "restoration": {
+      "request_id": "16e3dbb5-78ae-4ac6-8f61-4b34eb75023b",
+      "checkpoint_id": "00bc8699-2daa-4cd5-ae7f-b84163441e61",
+      "attempt_id": "ad9cc2fc-c9f5-4e36-b28c-ec8dfadd9e14",
+      "manifest_sha256": "4adc92cb27dc7f5984273af01444fdc950e46839f9cfe42791b2120c70d825b9",
+      "world_time": 33,
+      "simulation_ticks": 20,
+      "preparation_ticks": 13,
+      "status": "equal",
+      "mutates_attempt": true,
+      "previous_world": "stonebench\\restore-history\\16e3dbb5-78ae-4ac6-8f61-4b34eb75023b\\world-before",
+      "preparation_game_ticks": 0,
+      "comparison": {
+        "status": "equal",
+        "first_tick": 0,
+        "phase": "before_first_useful_tick",
+        "complete": true,
+        "first_fields": [],
+        "scope": "Exact observed clocks, queues, typed NBT, inventories and runtime; not all JVM memory",
+        "checkpoint_id": "00bc8699-2daa-4cd5-ae7f-b84163441e61",
+        "useful_ticks_before_comparison": 0
+      },
+      "chunks_ready": true,
+      "preparation_changes": {
+        "artifact_id": "480a5262-ab3b-4836-9a24-acd3945517a1",
+        "kind": "checkpoint_preparation_diff",
+        "count": 2,
+        "sha256": "d2ef59ec45bd50653481f873d5f4f29dcdd4bca7a22082a5646fadd597b409cf",
+        "bytes": 235,
+        "complete": true
+      },
+      "preparation_initial_chunks_ready": false,
+      "preparation_construction_preserved": true
+    },
+    "wall_seconds": 48.094000000011874
+  }
+}
