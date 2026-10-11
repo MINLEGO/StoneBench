@@ -1,0 +1,13 @@
+{
+  "tested_jar_sha256": "d7e87d04ba3ea5aff65fc99ea197e7d0a13e1cc3faa5a6ed09b81b1c9a7918aa",
+  "tick_execution": "sprint",
+  "minecraft": "1.21.11",
+  "worlds": "app\\controller\\.runtime\\tests-2a7082b6db2645dba4859996da543352",
+  "files": [
+    {
+      "file": "review-geometry-artifacts.zip",
+      "bytes": 493052,
+      "sha256": "e1d0ef9d347202a141986a9f58fd812d6a714a29f48398c25131efebedbfafec"
+    }
+  ]
+}

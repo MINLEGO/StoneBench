@@ -1,0 +1,54 @@
+Disposable server data and logs: C:\Users\minle\.codex\worktrees\issue-11\StoneBench\app\controller\.runtime\tests-2a7082b6db2645dba4859996da543352
+Starting server 1: MCP 127.0.0.1:19265, Minecraft 127.0.0.1:26081
+Starting server 2: MCP 127.0.0.1:19266, Minecraft 127.0.0.1:26082
+Executing <Task pending name='Task-2' coro=<GeometryRuntimeIntegration.test_real_mcp_server_contract() running at C:\Users\minle\.codex\worktrees\issue-11\StoneBench\tests\geometry.py:27> cb=[_run_until_complete_cb() at C:\Users\minle\AppData\Local\Programs\Python\Python312\Lib\asyncio\base_events.py:181] created at C:\Users\minle\AppData\Local\Programs\Python\Python312\Lib\asyncio\runners.py:100> took 0.235 seconds
+Executing <Task pending name='Task-2' coro=<GeometryRuntimeIntegration.test_real_mcp_server_contract() running at C:\Users\minle\.codex\worktrees\issue-11\StoneBench\tests\geometry.py:27> cb=[_run_until_complete_cb() at C:\Users\minle\AppData\Local\Programs\Python\Python312\Lib\asyncio\base_events.py:181] created at C:\Users\minle\AppData\Local\Programs\Python\Python312\Lib\asyncio\runners.py:100> took 0.172 seconds
+.
+----------------------------------------------------------------------
+Ran 1 test in 5.121s
+
+OK
+{
+  "status": "ok",
+  "journals": [
+    {
+      "attempt_id": "8e7d6ac6-8c88-46e6-b25f-5de0d5beabef",
+      "operations": 25,
+      "simulation_ticks": 16,
+      "preparation_ticks": 5,
+      "world_time": 21,
+      "errors": [
+        {
+          "code": "invalid_arguments",
+          "ticks_executed": 0
+        },
+        {
+          "code": "invalid_arguments",
+          "ticks_executed": 0
+        }
+      ]
+    },
+    {
+      "attempt_id": "474efce7-d672-41ce-b112-7f407d42de55",
+      "operations": 20,
+      "simulation_ticks": 0,
+      "preparation_ticks": 6,
+      "world_time": 6,
+      "errors": [
+        {
+          "code": "invalid_arguments",
+          "ticks_executed": 0
+        },
+        {
+          "code": "invalid_arguments",
+          "ticks_executed": 0
+        },
+        {
+          "code": "invalid_arguments",
+          "ticks_executed": 0
+        }
+      ]
+    }
+  ]
+}
+Integration suite finished; server logs and worlds remain under C:\Users\minle\.codex\worktrees\issue-11\StoneBench\app\controller\.runtime\tests-2a7082b6db2645dba4859996da543352

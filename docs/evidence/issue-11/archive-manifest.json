@@ -1,0 +1,20 @@
+{
+  "minecraft": "1.21.11",
+  "java": "21.0.12",
+  "mcp_sdk": "1.26.0",
+  "tick_execution": "sprint",
+  "source_protocol": "regular-door-alpha-2026-10-11",
+  "tested_jar_sha256": "89409aa89a6126b7fcf60a889bcb8dabc9791adb53c71e0aaa1610aee3351460",
+  "files": [
+    {
+      "sha256": "9dba48867f914f261b418388514adb31734fe5a03b78e5278318ac273e76f33b",
+      "file": "controller-regression-artifacts.zip",
+      "bytes": 48892
+    },
+    {
+      "sha256": "eec0d9600dd99b7148222221d99a24fce4c18deeffe39b10e6ca54ae72efd320",
+      "file": "geometry-artifacts.zip",
+      "bytes": 459657
+    }
+  ]
+}

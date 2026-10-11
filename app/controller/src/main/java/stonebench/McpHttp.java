@@ -71,8 +71,8 @@ public final class McpHttp implements AutoCloseable {
         finally {exchange.close();if(responseWritten && restoreResponseId!=null) Controller.restoreResponseSent(restoreResponseId);}
     }
     private static Set<String> names() {
-        Set<String> names=new LinkedHashSet<>(List.of("start_attempt","describe_task","read_blocks","read_region","read_artifact","compare_traces","describe_blocks","modify_blocks","advance","transition","declare_input","prepare_input","act_input","create_checkpoint","list_checkpoints","restore_checkpoint"));
-        if(Controller.TEST) names.addAll(List.of("__test_release_chunks","__test_restore_chunks","__test_place_block","__test_fail_next_lot","__test_default_wire","__test_outside_influence","__test_water_source","__test_transition_fixture","__test_transition_toggle","__test_transition_external_tick","__test_checkpoint_fixture","__test_checkpoint_toggle","__test_checkpoint_snapshot","__test_checkpoint_compare"));return names;
+        Set<String> names=new LinkedHashSet<>(List.of("start_attempt","describe_task","read_blocks","read_region","read_artifact","compare_traces","describe_blocks","modify_blocks","advance","transition","declare_input","prepare_input","act_input","describe_rules","check_geometry","create_checkpoint","list_checkpoints","restore_checkpoint"));
+        if(Controller.TEST) names.addAll(List.of("__test_release_chunks","__test_restore_chunks","__test_place_block","__test_fail_next_lot","__test_default_wire","__test_outside_influence","__test_water_source","__test_transition_fixture","__test_transition_toggle","__test_transition_external_tick","__test_geometry_entity","__test_checkpoint_fixture","__test_checkpoint_toggle","__test_checkpoint_snapshot","__test_checkpoint_compare"));return names;
     }
     private static JsonObject property(String type) {JsonObject p=new JsonObject();p.addProperty("type",type);return p;}
     private static JsonObject integer(int min,int max) {JsonObject p=property("integer");p.addProperty("minimum",min);p.addProperty("maximum",max);return p;}
@@ -92,6 +92,8 @@ public final class McpHttp implements AutoCloseable {
                 case "start_attempt"->"Initialize one fresh isolated regular DOOR attempt; budget in tokens is supplied by the caller.";
                 case "describe_task"->"Describe immutable task, effective clock, environment and chunk readiness.";
                 case "read_blocks"->"Read 1..256 actual block states in prepared chunks; larger reads must be split.";
+                case "describe_rules"->"Read the frozen sourced regular DOOR criteria and measurement event/exclusion contract.";
+                case "check_geometry"->"Observe fixed regular DOOR frame/passage, physical enclosure, continuation, material, input and entities without advancing time; unresolved functional/coverage criteria remain indeterminate.";
                 case "describe_blocks"->"Discover explicit construction coverage, in-game configurable parameters, computed states and inventory slots.";
                 case "modify_blocks"->"Validate an entire ordered lot, place all geometry/inventories with deferred callbacks then optionally notify in submitted order; errors report actual effects.";
                 case "declare_input"->"Declare an existing inactive wall lever/button on a lateral exterior construction surface.";
@@ -110,6 +112,8 @@ public final class McpHttp implements AutoCloseable {
                 case "start_attempt"->{properties.add("task_id",property("string"));JsonObject budget=integer(1,Integer.MAX_VALUE);JsonArray budgetTypes=new JsonArray();budgetTypes.add("integer");budgetTypes.add("null");budget.add("type",budgetTypes);properties.add("budget_tokens",budget);required.add("task_id");}
                 case "advance", "act_input"->{properties.add("ticks",integer(1,6000));properties.add("trace",property("boolean"));required.add("ticks");}
                 case "transition"->{properties.add("max_ticks",integer(1,Rest.MAX_TICKS));properties.add("trace",property("boolean"));}
+                case "check_geometry"->{JsonObject state=property("string");JsonArray choices=new JsonArray();choices.add("open");choices.add("closed");state.add("enum",choices);properties.add("expected_state",state);properties.add("frame_min_z",integer(-30000000,30000000));properties.add("frame_max_z",integer(-30000000,30000000));required.add("expected_state");}
+                case "__test_geometry_entity"->{properties.add("present",property("boolean"));required.add("present");}
                 case "__test_transition_fixture"->{properties.add("scenario",property("string"));required.add("scenario");}
                 case "read_region"->{JsonObject position=property("object"),coords=new JsonObject();JsonArray axes=new JsonArray();for(String axis:List.of("x","y","z")) {coords.add(axis,property("integer"));axes.add(axis);}position.add("properties",coords);position.add("required",axes);position.addProperty("additionalProperties",false);properties.add("min",position);properties.add("max",position.deepCopy());required.add("min");required.add("max");}
                 case "read_artifact"->{properties.add("artifact_id",property("string"));properties.add("offset",integer(0,Integer.MAX_VALUE));properties.add("limit",integer(1,256));for(String key:List.of("artifact_id","offset","limit")) required.add(key);}

@@ -1,0 +1,16 @@
+[
+  {
+    "archive": "docs/evidence/issue-11/review-geometry-artifacts.zip",
+    "sha256": "e1d0ef9d347202a141986a9f58fd812d6a714a29f48398c25131efebedbfafec",
+    "artifacts": 254,
+    "entries": 33861,
+    "traces": [
+      {
+        "artifact_id": "59738077-c2c9-4842-a8fa-e2c9ae6904e5",
+        "expected_ticks": 8,
+        "observations": 8,
+        "complete": true
+      }
+    ]
+  }
+]
