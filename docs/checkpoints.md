@@ -26,13 +26,15 @@ The real replay proof covers the ordinary chest, lever/repeater and piston-at-re
 
 ## Running the owning supervisor
 
-`scripts/checkpoint_server.py` runs one prepared pinned server directory, with `level-name=world` under that directory. Java launcher, mod, server properties and accepted EULA must already be present. It starts a hidden owned Java process, keeps console logs per boot, accepts `stop` on stdin (or Ctrl+C), and applies only acknowledged restore requests after waiting for child exit. A failed staging/swap retains the old world; a child startup failure restores its old-world backup. Interrupted directory swaps are recovered before any new Java process starts. This is process-crash recovery with durable transaction files and rollback paths; power-loss durability of all filesystem metadata is not claimed.
+`scripts/checkpoint_server.py` runs one prepared pinned server directory, with `level-name=world` under that directory. Java launcher, mod, server properties and accepted EULA must already be present. Before recovery or launch it verifies the previously recorded child has exited and opens every live/backup process lock exclusively. A live PID, uncertain ownership/liveness or held lock causes a diagnostic refusal without world replacement; production never kills a discovered PID. This also covers an orphan Java child after abrupt supervisor death. The owner must stop that child before retrying. The supervisor starts a hidden owned Java process, keeps console logs per boot, accepts `stop` on stdin (or Ctrl+C), and applies only acknowledged restore requests after waiting for child exit. A failed staging/swap retains the old world; a child startup failure restores its old-world backup. Interrupted directory swaps are recovered before any new Java process starts. This is process-crash recovery with durable transaction files and rollback paths; power-loss durability of all filesystem metadata is not claimed.
 
 ```powershell
 & <python312> scripts/checkpoint_server.py --server-root <owned-prepared-server> --java <java21> --port 18765 --execution sprint
 ```
 
 `--execution unit` selects the retained reference. `--test` enables disposable fixture/fault tools only. `scripts/test-server.ps1 -UseCheckpointSupervisor` exercises this same delivered launcher for two isolated servers. Its default remains sprint. Without a supervisor, create/list still work and restore is explicitly rejected. After an ordinary process restart or rollback without a resume marker, evidence recovery permits listing/restoring existing checkpoints and reading artifacts; useful simulation still remains unavailable until a valid checkpoint reprise.
+
+The server root has one owning supervisor. Simultaneous supervisor launches on the same root are outside this isolation contract; the liveness/lock checks are an orphan-child refusal mechanism, not an atomic interprocess ownership lease. Separate attempts use separate roots and ports.
 
 ## Acceptance
 
