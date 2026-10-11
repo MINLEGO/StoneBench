@@ -8,7 +8,7 @@ import sys
 from unittest.mock import patch
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
 from checkpoint_restore import apply_restore, file_map, write_json, digest, rollback_boot, recover_incomplete
-from checkpoint_server import ensure_previous_child_absent
+from checkpoint_server import ensure_previous_child_absent, serve
 
 
 class RestoreTransactionChecks(unittest.TestCase):
@@ -126,6 +126,30 @@ class RestoreTransactionChecks(unittest.TestCase):
         with self.assertRaisesRegex(RuntimeError, "ownership uncertain"):
             ensure_previous_child_absent(self.server)
         self.assertEqual(file_map(self.server / "world"), before)
+
+    def test_pid_publication_failure_stops_owned_child_and_clears_marker(self):
+        import io
+        (self.server / "fabric-server.jar").write_bytes(b"fixture")
+        (self.server / "server.properties").write_text("level-name=world\n")
+        (self.server / "mods").mkdir()
+        (self.server / "mods/stonebench-controller.jar").write_bytes(b"fixture")
+        class Child:
+            pid = 123
+            stdin = io.StringIO()
+            exited = False
+            def poll(self): return 0 if self.exited else None
+            def wait(self, timeout): self.exited = True
+        child = Child()
+        original = Path.write_text
+        def write(path, *args, **kwargs):
+            if path.name == "server.pid":
+                raise OSError("injected PID publication failure")
+            return original(path, *args, **kwargs)
+        with patch("checkpoint_server.subprocess.Popen", return_value=child), patch.object(Path, "write_text", write), patch("checkpoint_server.sys.stdin", io.StringIO("")):
+            with self.assertRaisesRegex(OSError, "PID publication failure"):
+                serve(self.server, "fixture-java", 19365, "sprint")
+        self.assertTrue(child.exited)
+        self.assertFalse((self.control / "child-starting.json").exists())
 
 
 if __name__ == "__main__":

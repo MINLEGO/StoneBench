@@ -145,6 +145,11 @@ def _serve_owned(root, java, port, execution, test=False):
                     raise RuntimeError("Owned child required termination after stop timeout")
             process.stdin.close()
             process = None
+            starting = control / "child-starting.json"
+            if starting.exists():
+                owner = json.loads(starting.read_text(encoding="utf-8"))
+                if owner.get("supervisor_pid") == os.getpid() and owner.get("boot") == boot:
+                    starting.unlink()  # This owned child is now confirmed stopped.
         for handle in handles:
             handle.close()
         handles.clear()

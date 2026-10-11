@@ -34,7 +34,7 @@ The real replay proof covers the ordinary chest, lever/repeater and piston-at-re
 
 `--execution unit` selects the retained reference. `--test` enables disposable fixture/fault tools only. `scripts/test-server.ps1 -UseCheckpointSupervisor` exercises this same delivered launcher for two isolated servers. Its default remains sprint. Without a supervisor, create/list still work and restore is explicitly rejected. After an ordinary process restart or rollback without a resume marker, evidence recovery permits listing/restoring existing checkpoints and reading artifacts; useful simulation still remains unavailable until a valid checkpoint reprise.
 
-The server root has one owning supervisor. Simultaneous supervisor launches on the same root are outside this isolation contract; the liveness/lock checks are an orphan-child refusal mechanism, not an atomic interprocess ownership lease. Separate attempts use separate roots and ports.
+The server root has one owning supervisor. An atomic exclusive `supervisor.lock` OS handle is acquired before recovery/launch and retained through child stops, swaps, boot and rollback. A second supervisor refuses without changing the first owner's world; Java does not inherit the lease. Abrupt supervisor death releases the lease, but orphan-child liveness/lock checks still apply. A durable `stonebench/child-starting.json` covers death before PID publication: ownership remains uncertain and retry is refused until the owner establishes child exit and explicitly removes that marker. Separate attempts use separate roots and ports.
 
 ## Acceptance
 
