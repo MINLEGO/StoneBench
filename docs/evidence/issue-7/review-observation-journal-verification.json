@@ -1,0 +1,39 @@
+{
+  "status": "ok",
+  "journals": [
+    {
+      "attempt_id": "380c310c-010b-465d-84f7-adb845c5ad49",
+      "operations": 76,
+      "simulation_ticks": 22,
+      "preparation_ticks": 7,
+      "world_time": 29,
+      "errors": [
+        {
+          "code": "invalid_arguments",
+          "ticks_executed": 0
+        },
+        {
+          "code": "invalid_arguments",
+          "ticks_executed": 0
+        },
+        {
+          "code": "invalid_arguments",
+          "ticks_executed": 0
+        }
+      ]
+    },
+    {
+      "attempt_id": "7e1e0094-689b-4b6f-8124-1d3eacdb5784",
+      "operations": 12,
+      "simulation_ticks": 3,
+      "preparation_ticks": 15,
+      "world_time": 18,
+      "errors": [
+        {
+          "code": "chunks_unavailable",
+          "ticks_executed": 2
+        }
+      ]
+    }
+  ]
+}

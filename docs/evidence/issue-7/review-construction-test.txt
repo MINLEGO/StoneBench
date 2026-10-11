@@ -1,0 +1,123 @@
+test_real_mcp_server_contract (__main__.ConstructionRuntimeIntegration.test_real_mcp_server_contract) ... Executing <Task pending name='Task-2' coro=<ConstructionRuntimeIntegration.test_real_mcp_server_contract() running at C:\Users\minle\.codex\worktrees\issue-7\StoneBench\tests\construction.py:29> cb=[_run_until_complete_cb() at C:\Users\minle\AppData\Local\Programs\Python\Python312\Lib\asyncio\base_events.py:181] created at C:\Users\minle\AppData\Local\Programs\Python\Python312\Lib\asyncio\runners.py:100> took 0.218 seconds
+Executing <Task pending name='Task-2' coro=<ConstructionRuntimeIntegration.test_real_mcp_server_contract() running at C:\Users\minle\.codex\worktrees\issue-7\StoneBench\tests\construction.py:29> cb=[_run_until_complete_cb() at C:\Users\minle\AppData\Local\Programs\Python\Python312\Lib\asyncio\base_events.py:181] created at C:\Users\minle\AppData\Local\Programs\Python\Python312\Lib\asyncio\runners.py:100> took 0.188 seconds
+ok
+
+----------------------------------------------------------------------
+Ran 1 test in 13.215s
+
+OK
+{
+  "status": "ok",
+  "journals": [
+    {
+      "attempt_id": "6dccb431-7a66-4a94-84f4-898219914e28",
+      "operations": 93,
+      "simulation_ticks": 27,
+      "preparation_ticks": 9,
+      "world_time": 36,
+      "errors": [
+        {
+          "code": "invalid_arguments",
+          "ticks_executed": 0
+        },
+        {
+          "code": "invalid_arguments",
+          "ticks_executed": 0
+        },
+        {
+          "code": "invalid_arguments",
+          "ticks_executed": 0
+        },
+        {
+          "code": "invalid_arguments",
+          "ticks_executed": 0
+        },
+        {
+          "code": "invalid_arguments",
+          "ticks_executed": 0
+        },
+        {
+          "code": "invalid_arguments",
+          "ticks_executed": 0
+        },
+        {
+          "code": "invalid_arguments",
+          "ticks_executed": 0
+        },
+        {
+          "code": "invalid_arguments",
+          "ticks_executed": 0
+        },
+        {
+          "code": "invalid_arguments",
+          "ticks_executed": 0
+        },
+        {
+          "code": "invalid_arguments",
+          "ticks_executed": 0
+        },
+        {
+          "code": "unsupported_component",
+          "ticks_executed": 0
+        },
+        {
+          "code": "invalid_arguments",
+          "ticks_executed": 0
+        },
+        {
+          "code": "invalid_arguments",
+          "ticks_executed": 0
+        },
+        {
+          "code": "invalid_arguments",
+          "ticks_executed": 0
+        },
+        {
+          "code": "invalid_arguments",
+          "ticks_executed": 0
+        },
+        {
+          "code": "invalid_arguments",
+          "ticks_executed": 0
+        },
+        {
+          "code": "invalid_arguments",
+          "ticks_executed": 0
+        },
+        {
+          "code": "invalid_arguments",
+          "ticks_executed": 0
+        },
+        {
+          "code": "invalid_arguments",
+          "ticks_executed": 0
+        },
+        {
+          "code": "invalid_arguments",
+          "ticks_executed": 0
+        },
+        {
+          "code": "chunks_unavailable",
+          "ticks_executed": 1
+        }
+      ]
+    },
+    {
+      "attempt_id": "168f24c4-ed87-41f2-bd59-21f61073db8c",
+      "operations": 36,
+      "simulation_ticks": 16,
+      "preparation_ticks": 11,
+      "world_time": 27,
+      "errors": [
+        {
+          "code": "server_error",
+          "ticks_executed": 0
+        },
+        {
+          "code": "invalid_arguments",
+          "ticks_executed": 0
+        }
+      ]
+    }
+  ]
+}

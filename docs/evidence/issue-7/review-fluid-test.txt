@@ -1,0 +1,29 @@
+test_real_mcp_server_contract (__main__.FluidObservationIntegration.test_real_mcp_server_contract) ... Executing <Task pending name='Task-2' coro=<FluidObservationIntegration.test_real_mcp_server_contract() running at C:\Users\minle\.codex\worktrees\issue-7\StoneBench\tests\fluid_observation.py:9> cb=[_run_until_complete_cb() at C:\Users\minle\AppData\Local\Programs\Python\Python312\Lib\asyncio\base_events.py:181] created at C:\Users\minle\AppData\Local\Programs\Python\Python312\Lib\asyncio\runners.py:100> took 0.234 seconds
+Executing <Task pending name='Task-2' coro=<FluidObservationIntegration.test_real_mcp_server_contract() running at C:\Users\minle\.codex\worktrees\issue-7\StoneBench\tests\fluid_observation.py:9> cb=[_run_until_complete_cb() at C:\Users\minle\AppData\Local\Programs\Python\Python312\Lib\asyncio\base_events.py:181] created at C:\Users\minle\AppData\Local\Programs\Python\Python312\Lib\asyncio\runners.py:100> took 0.187 seconds
+ok
+
+----------------------------------------------------------------------
+Ran 1 test in 3.355s
+
+OK
+{
+  "status": "ok",
+  "journals": [
+    {
+      "attempt_id": "a55f1b33-2834-4937-bd73-56e3edb99a27",
+      "operations": 5,
+      "simulation_ticks": 6,
+      "preparation_ticks": 6,
+      "world_time": 12,
+      "errors": []
+    },
+    {
+      "attempt_id": "d8f85087-3f41-44f1-88da-7822b17e7fde",
+      "operations": 5,
+      "simulation_ticks": 6,
+      "preparation_ticks": 6,
+      "world_time": 12,
+      "errors": []
+    }
+  ]
+}

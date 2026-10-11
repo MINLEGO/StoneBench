@@ -95,19 +95,7 @@ public final class Observation {
         row.add("events",Artifacts.write("intratick_events",EVENTS));return row;
     }
     static JsonObject compareTraces(JsonObject args) {
-        String left=Task.string(args,"left"),right=Task.string(args,"right");JsonObject ref=Artifacts.reference(left),other=Artifacts.reference(right);
-        if(!ref.get("kind").getAsString().equals("trace") || !other.get("kind").getAsString().equals("trace")) throw new IllegalArgumentException("compare_traces requires trace artifacts");
-        List<JsonObject> a=resolved(left),b=resolved(right);
-        JsonObject result=ObservationComparison.firstDivergence(a,b,ref.get("expected_ticks").getAsInt(),ref.get("start_world_time").getAsLong(),ref.get("start_simulation_index").getAsLong());
-        result.add("right_continuity",ObservationComparison.continuity(b,other.get("expected_ticks").getAsInt(),other.get("start_world_time").getAsLong(),other.get("start_simulation_index").getAsLong()));
-        if(!result.has("first_fields")) result.addProperty("status",result.getAsJsonObject("left_continuity").get("complete").getAsBoolean() && result.getAsJsonObject("right_continuity").get("complete").getAsBoolean()?"equal":"incomplete");
-        if(result.has("first_fields")) {List<JsonElement> fields=new ArrayList<>();result.remove("first_fields").getAsJsonArray().forEach(fields::add);result.add("first_fields",Artifacts.write("divergent_fields",fields));}
-        JsonObject payload=new JsonObject();payload.add("comparison",result);return payload;
-    }
-    private static List<JsonObject> resolved(String id) {
-        List<JsonObject> rows=Artifacts.all(id);for(var row:rows) {
-            JsonObject state=row.getAsJsonObject("state");JsonArray blocks=new JsonArray();for(var block:Artifacts.all(state.getAsJsonObject("blocks").get("artifact_id").getAsString())) blocks.add(block);state.add("blocks",blocks);
-            JsonArray events=new JsonArray();for(var event:Artifacts.all(row.getAsJsonObject("events").get("artifact_id").getAsString())) events.add(event);row.add("events",events);
-        }return rows;
+        String left=Task.string(args,"left"),right=Task.string(args,"right");
+        JsonObject payload=new JsonObject();payload.add("comparison",TraceComparison.compare(left,right));return payload;
     }
 }

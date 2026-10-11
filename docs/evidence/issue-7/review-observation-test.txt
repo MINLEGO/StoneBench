@@ -1,0 +1,47 @@
+test_real_mcp_server_contract (__main__.ObservationRuntimeIntegration.test_real_mcp_server_contract) ... Executing <Task pending name='Task-2' coro=<ObservationRuntimeIntegration.test_real_mcp_server_contract() running at C:\Users\minle\.codex\worktrees\issue-7\StoneBench\tests\observation.py:40> cb=[_run_until_complete_cb() at C:\Users\minle\AppData\Local\Programs\Python\Python312\Lib\asyncio\base_events.py:181] created at C:\Users\minle\AppData\Local\Programs\Python\Python312\Lib\asyncio\runners.py:100> took 0.234 seconds
+Executing <Task pending name='Task-2' coro=<ObservationRuntimeIntegration.test_real_mcp_server_contract() running at C:\Users\minle\.codex\worktrees\issue-7\StoneBench\tests\observation.py:40> cb=[_run_until_complete_cb() at C:\Users\minle\AppData\Local\Programs\Python\Python312\Lib\asyncio\base_events.py:181] created at C:\Users\minle\AppData\Local\Programs\Python\Python312\Lib\asyncio\runners.py:100> took 0.188 seconds
+ok
+
+----------------------------------------------------------------------
+Ran 1 test in 8.965s
+
+OK
+{
+  "status": "ok",
+  "journals": [
+    {
+      "attempt_id": "380c310c-010b-465d-84f7-adb845c5ad49",
+      "operations": 76,
+      "simulation_ticks": 22,
+      "preparation_ticks": 7,
+      "world_time": 29,
+      "errors": [
+        {
+          "code": "invalid_arguments",
+          "ticks_executed": 0
+        },
+        {
+          "code": "invalid_arguments",
+          "ticks_executed": 0
+        },
+        {
+          "code": "invalid_arguments",
+          "ticks_executed": 0
+        }
+      ]
+    },
+    {
+      "attempt_id": "7e1e0094-689b-4b6f-8124-1d3eacdb5784",
+      "operations": 12,
+      "simulation_ticks": 3,
+      "preparation_ticks": 15,
+      "world_time": 18,
+      "errors": [
+        {
+          "code": "chunks_unavailable",
+          "ticks_executed": 2
+        }
+      ]
+    }
+  ]
+}

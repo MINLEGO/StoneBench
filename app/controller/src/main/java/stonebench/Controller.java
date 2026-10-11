@@ -27,6 +27,7 @@ public final class Controller implements ModInitializer {
     private static JsonObject task;
     private static String attempt;
     private static long simulationTicks, preparationTicks;
+    private static boolean artifactRecovery;
     private static int releaseAt;
     public static final boolean TEST = Boolean.getBoolean("stonebench.test");
 
@@ -53,10 +54,35 @@ public final class Controller implements ModInitializer {
         world().getGameRules().setValue(GameRules.DO_MOB_SPAWNING,false,server);
         world().getGameRules().setValue(GameRules.ADVANCE_WEATHER,false,server);
         try {
-            transport=new McpHttp(Integer.getInteger("stonebench.port",18765));
             Files.createDirectories(Path.of("stonebench"));
+            recoverArtifactIdentity();
+            freeze();
+            transport=new McpHttp(Integer.getInteger("stonebench.port",18765));
             Files.writeString(Path.of("stonebench/ready"), "Minecraft 1.21.11; MCP listening\n");
         } catch (IOException e) { throw new UncheckedIOException(e); }
+    }
+    /** Recover immutable evidence and reporting counters only; no task/chunks/simulation resume. */
+    private static void recoverArtifactIdentity() throws IOException {
+        Path metadata=Path.of("stonebench/attempt.json");
+        if(!Files.exists(metadata)) return;
+        JsonObject saved=JsonParser.parseString(Files.readString(metadata)).getAsJsonObject();
+        attempt=UUID.fromString(saved.get("attempt_id").getAsString()).toString();
+        Path journal=Path.of("stonebench/operations.jsonl");
+        JsonObject last=null;
+        if(Files.exists(journal)) try(var reader=Files.newBufferedReader(journal)) {
+            String line;while((line=reader.readLine())!=null) {
+                JsonObject entry=JsonParser.parseString(line).getAsJsonObject();
+                if(entry.get("attempt_id").isJsonNull() && last==null) continue; // Validation failures before the attempt was created.
+                if(!attempt.equals(entry.get("attempt_id").getAsString())) throw new IOException("Journal attempt identity mismatch");
+                last=entry;
+            }
+        }
+        if(last!=null) {
+            simulationTicks=new java.math.BigDecimal(last.get("simulation_ticks").getAsString()).longValueExact();
+            preparationTicks=new java.math.BigDecimal(last.get("preparation_ticks").getAsString()).longValueExact();
+            if(simulationTicks<0 || preparationTicks<0) throw new IOException("Invalid historical counters");
+        }
+        artifactRecovery=true;
     }
     public static CompletableFuture<JsonObject> submit(String tool,JsonObject args) {
         Operation operation=new Operation(tool,args); QUEUE.add(operation); return operation.result;
@@ -121,7 +147,9 @@ public final class Controller implements ModInitializer {
         };
         if(!allowed.containsAll(active.args.keySet())) throw new IllegalArgumentException("Unexpected argument");
         if (!server.isOnThread()) throw new IllegalStateException("Operation outside server thread");
-        if (!active.tool.equals("start_attempt") && task==null) throw new IllegalArgumentException("start_attempt is required");
+        boolean evidenceRead=active.tool.equals("read_artifact") || active.tool.equals("compare_traces");
+        if (!active.tool.equals("start_attempt") && task==null && !(artifactRecovery && evidenceRead)) throw new IllegalArgumentException("start_attempt is required; recovered attempts permit immutable evidence reads only");
+        if(artifactRecovery) active.phase="artifact_recovery";
         switch(active.tool) {
             case "start_attempt" -> {
                 if (task!=null || Files.exists(Path.of("stonebench/attempt.json"))) throw new IllegalArgumentException("already_started: each attempt needs a fresh server directory");
@@ -178,6 +206,13 @@ public final class Controller implements ModInitializer {
             }
             case "read_artifact" -> succeed(Artifacts.read(active.args));
             case "compare_traces" -> succeed(Observation.compareTraces(active.args));
+            case "__test_water_source" -> {
+                requireTest();if(!ready()) throw new IllegalStateException("Chunks unavailable");
+                active.initial=Observation.raw(world());active.startWorldTime=world().getTime();active.startTimeOfDay=world().getTimeOfDay();active.startSimulationIndex=simulationTicks;
+                BlockPos pos=new BlockPos(1037,80,1037);Observation.track(pos);
+                Observation.begin(simulationTicks,0,"test_fixture_between_ticks");active.mutated=true;
+                world().setBlockState(pos,Blocks.WATER.getDefaultState(),3);succeed(observedResult());
+            }
             case "__test_outside_influence" -> {
                 requireTest();BlockPos outside=new BlockPos(1120,80,1120);world().getChunk(new ChunkPos(outside).x,new ChunkPos(outside).z);
                 active.initial=Observation.raw(world());active.startWorldTime=world().getTime();active.startTimeOfDay=world().getTimeOfDay();active.startSimulationIndex=simulationTicks;
@@ -268,7 +303,9 @@ public final class Controller implements ModInitializer {
         result.addProperty("phase",active.phase);result.addProperty("status",status);result.addProperty("ticks_executed",active.executed);
         result.addProperty("simulation_ticks",simulationTicks);result.addProperty("preparation_ticks",preparationTicks);result.addProperty("world_time",world().getTime());
         result.addProperty("preparation_initial_loaded",active.preparationInitialLoaded);result.addProperty("preparation_initial_ready",active.preparationInitialReady);
-        result.addProperty("frozen",server.getTickManager().isFrozen());result.addProperty("mutated",active.mutated);return result;
+        result.addProperty("frozen",server.getTickManager().isFrozen());result.addProperty("mutated",active.mutated);
+        if(artifactRecovery) {result.addProperty("artifact_recovery",true);result.addProperty("simulation_resumable",false);result.addProperty("counters_source","last_persisted_operation");}
+        return result;
     }
     private static void finish(JsonObject result) {
         freeze();

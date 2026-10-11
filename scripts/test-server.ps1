@@ -5,6 +5,7 @@ param(
     [string]$Java = 'java',
     [string]$Python = 'python',
     [string]$Suite = 'tests\integration.py',
+    [string]$RestartSuite,
     [string]$CacheSource,
     [string]$ServerCacheSource,
     [ValidateRange(1, 65534)][int]$BaseMcpPort = 18765,
@@ -20,7 +21,11 @@ $repoRoot = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
 $controllerRoot = Join-Path $repoRoot 'app\controller'
 $runtime = Join-Path $controllerRoot '.runtime'
 $artifact = Join-Path $controllerRoot 'build\libs\stonebench-controller-0.1.0.jar'
-$integration = Join-Path $repoRoot $Suite
+$integration = if ([IO.Path]::IsPathRooted($Suite)) { [IO.Path]::GetFullPath($Suite) } else { [IO.Path]::GetFullPath((Join-Path $repoRoot $Suite)) }
+$restartIntegration = $null
+if ($RestartSuite) {
+    $restartIntegration = if ([IO.Path]::IsPathRooted($RestartSuite)) { [IO.Path]::GetFullPath($RestartSuite) } else { [IO.Path]::GetFullPath((Join-Path $repoRoot $RestartSuite)) }
+}
 $buildScript = Join-Path $PSScriptRoot 'build.ps1'
 
 if (!$SkipBuild) {
@@ -31,6 +36,7 @@ if (!$SkipBuild) {
 }
 if (!(Test-Path -LiteralPath $artifact)) { throw "Controller jar not found: $artifact" }
 if (!(Test-Path -LiteralPath $integration)) { throw "Integration suite not found: $integration" }
+if ($restartIntegration -and !(Test-Path -LiteralPath $restartIntegration)) { throw "Restart integration suite not found: $restartIntegration" }
 
 $javaCommand = Get-Command $Java -ErrorAction Stop
 $javaExe = $javaCommand.Source
@@ -164,6 +170,35 @@ function Stop-Server($Server) {
     $Server.Process = $null
 }
 
+function Invoke-TestSuite([string]$SuitePath) {
+    $pythonInvocationArgs = @($pythonArgs + $SuitePath)
+    Push-Location $repoRoot
+    try {
+        & $pythonExe @pythonInvocationArgs
+        if ($LASTEXITCODE -ne 0) { throw "Integration suite '$SuitePath' failed with exit code $LASTEXITCODE." }
+
+        $journalArguments = @($pythonArgs + (Join-Path $repoRoot 'tests\verify_journals.py'))
+        foreach ($server in $servers) { $journalArguments += Join-Path $server.Root 'stonebench\operations.jsonl' }
+        & $pythonExe @journalArguments
+        if ($LASTEXITCODE -ne 0) { throw "Journal clock verification failed after '$SuitePath'." }
+    } finally {
+        Pop-Location
+    }
+}
+
+function Archive-ServerLogs($Server) {
+    $logRoot = Join-Path $Server.Root 'logs'
+    if (!(Test-Path -LiteralPath $logRoot)) { return }
+    $archiveRoot = Join-Path $testRoot "pre-restart\server-$($Server.Index)"
+    New-Item -ItemType Directory -Force -Path $archiveRoot | Out-Null
+    foreach ($log in Get-ChildItem -LiteralPath $logRoot -File -Recurse) {
+        $relativePath = $log.FullName.Substring($logRoot.Length).TrimStart([IO.Path]::DirectorySeparatorChar, [IO.Path]::AltDirectorySeparatorChar)
+        $destination = Join-Path $archiveRoot $relativePath
+        New-Item -ItemType Directory -Force -Path (Split-Path -Parent $destination) | Out-Null
+        Copy-Item -LiteralPath $log.FullName -Destination $destination -Force
+    }
+}
+
 if ($BaseMcpPort -le ($BaseGamePort + 1) -and $BaseGamePort -le ($BaseMcpPort + 1)) { throw 'MCP and Minecraft port ranges must be distinct.' }
 
 $testRoot = Join-Path $runtime ('tests-' + [Guid]::NewGuid().ToString('N'))
@@ -213,29 +248,45 @@ foreach ($server in $servers) {
 }
 
 $oldPorts = $env:STONEBENCH_MCP_PORTS
+$oldTestPhase = $env:STONEBENCH_TEST_PHASE
+$oldRecoveryFile = $env:STONEBENCH_RECOVERY_FILE
 try {
     Write-Host "Disposable server data and logs: $testRoot"
+    $env:STONEBENCH_MCP_PORTS = ($servers.McpPort -join ',')
+    if ($restartIntegration) {
+        $env:STONEBENCH_TEST_PHASE = 'seed'
+        $env:STONEBENCH_RECOVERY_FILE = Join-Path $testRoot 'artifact-recovery.json'
+    }
     foreach ($server in $servers) {
         Write-Host "Starting server $($server.Index): MCP 127.0.0.1:$($server.McpPort), Minecraft 127.0.0.1:$($server.GamePort)"
         Start-Server $server
     }
     foreach ($server in $servers) { Wait-Ready $server }
 
-    $env:STONEBENCH_MCP_PORTS = ($servers.McpPort -join ',')
-    $pythonInvocationArgs = @($pythonArgs + $integration)
-    Push-Location $repoRoot
-    try {
-        & $pythonExe @pythonInvocationArgs
-        if ($LASTEXITCODE -ne 0) { throw "Integration suite failed with exit code $LASTEXITCODE." }
-    $journalArguments = @($pythonArgs + (Join-Path $repoRoot 'tests\verify_journals.py'))
-    foreach ($server in $servers) { $journalArguments += Join-Path $server.Root 'stonebench\operations.jsonl' }
-    & $pythonExe @journalArguments
-    if ($LASTEXITCODE -ne 0) { throw 'Journal clock verification failed.' }
-    } finally {
-        Pop-Location
+    Invoke-TestSuite $integration
+
+    if ($restartIntegration) {
+        foreach ($server in $servers) { Stop-Server $server }
+        foreach ($server in $servers) { Archive-ServerLogs $server }
+        foreach ($server in $servers) {
+            $readyMarker = [IO.Path]::GetFullPath((Join-Path $server.Root 'stonebench\ready'))
+            $markerDirectory = [IO.Path]::GetFullPath((Join-Path $server.Root 'stonebench'))
+            if ([IO.Path]::GetDirectoryName($readyMarker) -ne $markerDirectory) { throw "Ready marker escaped server root: $readyMarker" }
+            if (Test-Path -LiteralPath $readyMarker) { Remove-Item -LiteralPath $readyMarker -Force }
+        }
+
+        $env:STONEBENCH_TEST_PHASE = 'recovered'
+        foreach ($server in $servers) {
+            Write-Host "Restarting server $($server.Index) in the same root: MCP 127.0.0.1:$($server.McpPort), Minecraft 127.0.0.1:$($server.GamePort)"
+            Start-Server $server
+        }
+        foreach ($server in $servers) { Wait-Ready $server }
+        Invoke-TestSuite $restartIntegration
     }
 } finally {
     $env:STONEBENCH_MCP_PORTS = $oldPorts
+    $env:STONEBENCH_TEST_PHASE = $oldTestPhase
+    $env:STONEBENCH_RECOVERY_FILE = $oldRecoveryFile
     $stopErrors = @()
     foreach ($server in $servers) {
         try {

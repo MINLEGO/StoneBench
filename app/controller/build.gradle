@@ -31,4 +31,27 @@ tasks.register('observationChecks', JavaExec) {
 tasks.named('check') {
     dependsOn tasks.named('observationChecks')
 }
+def streamingChecksWorkingDir = layout.buildDirectory.dir('tmp/streamingChecks').get().asFile
+def streamingChecksCleanup = tasks.register('cleanStreamingChecks', Delete) {
+    delete streamingChecksWorkingDir
+}
+tasks.register('streamingChecks', JavaExec) {
+    group = 'verification'
+    description = 'Runs bounded-heap checks for streaming observation artifacts and trace comparison.'
+    dependsOn tasks.named('testClasses')
+    classpath = sourceSets.test.output + sourceSets.main.output + configurations.testCompileClasspath
+    mainClass = 'stonebench.StreamingChecks'
+    maxHeapSize = '96m'
+    workingDir = streamingChecksWorkingDir
+    finalizedBy streamingChecksCleanup
+    doFirst {
+        project.delete(streamingChecksWorkingDir)
+        if (!streamingChecksWorkingDir.mkdirs() && !streamingChecksWorkingDir.isDirectory()) {
+            throw new GradleException('Could not create isolated streaming-check working directory')
+        }
+    }
+}
+tasks.named('check') {
+    dependsOn tasks.named('streamingChecks')
+}
 tasks.named('test') { enabled = false } // No JUnit engine; observationChecks is the executable verification suite.

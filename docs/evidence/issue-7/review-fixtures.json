@@ -1,0 +1,142 @@
+{
+  "recovery": [
+    {
+      "server": 1,
+      "attempt_id": "fc5258f8-8627-4b6f-b931-c24d88d046aa",
+      "operations_before_restart": 9,
+      "recovered_operations": 11,
+      "world_times": [
+        9
+      ],
+      "simulation_ticks": 3,
+      "all_recovered_frozen_without_mutation": true,
+      "refused_operations": [
+        "read_region",
+        "describe_task",
+        "advance",
+        "modify_blocks",
+        "start_attempt"
+      ]
+    },
+    {
+      "server": 2,
+      "attempt_id": "666833dd-4e33-4251-a936-682b9471baad",
+      "operations_before_restart": 9,
+      "recovered_operations": 11,
+      "world_times": [
+        9
+      ],
+      "simulation_ticks": 3,
+      "all_recovered_frozen_without_mutation": true,
+      "refused_operations": [
+        "read_region",
+        "describe_task",
+        "advance",
+        "modify_blocks",
+        "start_attempt"
+      ]
+    }
+  ],
+  "fluid": [
+    {
+      "server": 1,
+      "continuity": {
+        "complete": true,
+        "expected": 6,
+        "observed": 6,
+        "problems": []
+      },
+      "callbacks": [
+        {
+          "order": 0,
+          "kind": "scheduled_fluid_tick",
+          "phase": "scheduled_fluid_ticks",
+          "tick_index": 5,
+          "simulation_index": 5,
+          "world_time": 11,
+          "time_of_day": 11,
+          "operation_order": 0,
+          "position": {
+            "x": 1037,
+            "y": 80,
+            "z": 1037
+          },
+          "detail": {
+            "fluid": "minecraft:water"
+          }
+        }
+      ],
+      "schedule_requests": 3,
+      "end_fluid_queue": [
+        {
+          "x": 1037,
+          "y": 79,
+          "z": 1037,
+          "type": "minecraft:flowing_water",
+          "trigger_tick": 16,
+          "priority": 0,
+          "sub_tick_order": 1
+        },
+        {
+          "x": 1037,
+          "y": 80,
+          "z": 1037,
+          "type": "minecraft:water",
+          "trigger_tick": 16,
+          "priority": 0,
+          "sub_tick_order": 2
+        }
+      ]
+    },
+    {
+      "server": 2,
+      "continuity": {
+        "complete": true,
+        "expected": 6,
+        "observed": 6,
+        "problems": []
+      },
+      "callbacks": [
+        {
+          "order": 0,
+          "kind": "scheduled_fluid_tick",
+          "phase": "scheduled_fluid_ticks",
+          "tick_index": 5,
+          "simulation_index": 5,
+          "world_time": 11,
+          "time_of_day": 11,
+          "operation_order": 0,
+          "position": {
+            "x": 1037,
+            "y": 80,
+            "z": 1037
+          },
+          "detail": {
+            "fluid": "minecraft:water"
+          }
+        }
+      ],
+      "schedule_requests": 3,
+      "end_fluid_queue": [
+        {
+          "x": 1037,
+          "y": 79,
+          "z": 1037,
+          "type": "minecraft:flowing_water",
+          "trigger_tick": 16,
+          "priority": 0,
+          "sub_tick_order": 1
+        },
+        {
+          "x": 1037,
+          "y": 80,
+          "z": 1037,
+          "type": "minecraft:water",
+          "trigger_tick": 16,
+          "priority": 0,
+          "sub_tick_order": 2
+        }
+      ]
+    }
+  ]
+}

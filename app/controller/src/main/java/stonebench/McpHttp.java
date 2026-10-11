@@ -68,7 +68,7 @@ public final class McpHttp implements AutoCloseable {
     }
     private static Set<String> names() {
         Set<String> names=new LinkedHashSet<>(List.of("start_attempt","describe_task","read_blocks","read_region","read_artifact","compare_traces","describe_blocks","modify_blocks","advance"));
-        if(Controller.TEST) names.addAll(List.of("__test_release_chunks","__test_restore_chunks","__test_place_block","__test_fail_next_lot","__test_default_wire","__test_outside_influence"));return names;
+        if(Controller.TEST) names.addAll(List.of("__test_release_chunks","__test_restore_chunks","__test_place_block","__test_fail_next_lot","__test_default_wire","__test_outside_influence","__test_water_source"));return names;
     }
     private static JsonObject property(String type) {JsonObject p=new JsonObject();p.addProperty("type",type);return p;}
     private static JsonObject integer(int min,int max) {JsonObject p=property("integer");p.addProperty("minimum",min);p.addProperty("maximum",max);return p;}
