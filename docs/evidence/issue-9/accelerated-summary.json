@@ -1,0 +1,4127 @@
+{
+  "piston": {
+    "execution": {
+      "mode": "sprint",
+      "game_ticks": 7,
+      "wall_seconds": 0.3523741,
+      "measured_tps": 19.865251163465192,
+      "nominal_tick_rate": 20.0,
+      "backend": "vanilla_ServerTickManager.startSprint"
+    },
+    "operation_id": "240fc0dd-b3e5-49ec-88b2-70111eccab43",
+    "operation": "transition",
+    "attempt_id": "bebc22ee-edf0-42cf-93c3-b567b86a86da",
+    "phase": "simulation",
+    "status": "ok",
+    "ticks_executed": 7,
+    "simulation_ticks": 31,
+    "preparation_ticks": 20,
+    "world_time": 51,
+    "preparation_initial_loaded": false,
+    "preparation_initial_ready": false,
+    "frozen": true,
+    "mutated": true,
+    "diff": {
+      "artifact_id": "f14dfc1b-d477-4b7c-8712-501af9a26fb6",
+      "kind": "initial_final_diff",
+      "count": 12,
+      "sha256": "95cf9dd97373956c453cd4d0fae1785a96f39a5397c10d02f33e68fe0ab48331",
+      "bytes": 1922,
+      "complete": true
+    },
+    "coverage": {
+      "status": "observed",
+      "chunks_ready": true,
+      "tracked_positions": 332,
+      "outside_prepared_chunks": [],
+      "certification": false,
+      "limits": "Vanilla writes, neighbor updates, scheduled/block events and tracked positions are observed. Entity constructions and uninstrumented runtime memory are not certified; no proof of universal influence completeness."
+    },
+    "trace": {
+      "artifact_id": "a07b1078-5cc6-4c06-bd04-f2b66b5a1074",
+      "kind": "trace",
+      "count": 7,
+      "sha256": "6807337cb0f072b0d6018c030e4d14bc8346a8fdd249f964153cfb8ba92c48b9",
+      "bytes": 13605,
+      "complete": true,
+      "expected_ticks": 7,
+      "start_world_time": 44,
+      "start_simulation_index": 24
+    },
+    "continuity": {
+      "complete": true,
+      "expected": 7,
+      "observed": 7,
+      "problems": []
+    },
+    "initial": {
+      "tick_index": 0,
+      "simulation_index": 24,
+      "phase": "initial",
+      "world_time": 44,
+      "time_of_day": 44,
+      "complete": true,
+      "state": {
+        "block_ticks": [
+          {
+            "x": 1026,
+            "y": 80,
+            "z": 1025,
+            "type": "minecraft:repeater",
+            "trigger_tick": 48,
+            "priority": -1,
+            "sub_tick_order": 0
+          }
+        ],
+        "fluid_ticks": [],
+        "block_events": [],
+        "coverage": {
+          "status": "observed",
+          "chunks_ready": true,
+          "tracked_positions": 332,
+          "outside_prepared_chunks": [],
+          "certification": false,
+          "limits": "Vanilla writes, neighbor updates, scheduled/block events and tracked positions are observed. Entity constructions and uninstrumented runtime memory are not certified; no proof of universal influence completeness."
+        },
+        "blocks": {
+          "artifact_id": "7c873a8f-da54-42ce-a797-54d88542792f",
+          "kind": "snapshot_blocks",
+          "count": 332,
+          "sha256": "dc76370a2a92e7f5243f507e1906fc1e95a4b00e1422678ac92350c6c6def4de",
+          "bytes": 38050,
+          "complete": true
+        }
+      },
+      "adapter_blocks": {
+        "artifact_id": "7096d5d5-a4bc-425a-b4db-c0418c52c470",
+        "kind": "input_adapter_blocks",
+        "count": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "bytes": 0,
+        "complete": true
+      },
+      "construction_blocks": {
+        "artifact_id": "77fecc8f-66c9-4994-a702-efffc82324ee",
+        "kind": "input_construction_blocks",
+        "count": 332,
+        "sha256": "dc76370a2a92e7f5243f507e1906fc1e95a4b00e1422678ac92350c6c6def4de",
+        "bytes": 38050,
+        "complete": true
+      },
+      "events": {
+        "artifact_id": "e888f9f3-4f69-4a48-b296-6b9d0d138e02",
+        "kind": "intratick_events",
+        "count": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "bytes": 0,
+        "complete": true
+      }
+    },
+    "final": {
+      "tick_index": 7,
+      "simulation_index": 31,
+      "phase": "final",
+      "world_time": 51,
+      "time_of_day": 51,
+      "complete": true,
+      "state": {
+        "block_ticks": [],
+        "fluid_ticks": [],
+        "block_events": [],
+        "coverage": {
+          "status": "observed",
+          "chunks_ready": true,
+          "tracked_positions": 332,
+          "outside_prepared_chunks": [],
+          "certification": false,
+          "limits": "Vanilla writes, neighbor updates, scheduled/block events and tracked positions are observed. Entity constructions and uninstrumented runtime memory are not certified; no proof of universal influence completeness."
+        },
+        "blocks": {
+          "artifact_id": "5a1de427-bcdf-4056-b921-b144aa40005b",
+          "kind": "snapshot_blocks",
+          "count": 332,
+          "sha256": "bb46356ff8cb5886ae67f1d2421999d490abc2a50468f08eac53a378b247a3c6",
+          "bytes": 38146,
+          "complete": true
+        }
+      },
+      "adapter_blocks": {
+        "artifact_id": "ccee9228-45d5-4477-b44a-3ecad6415506",
+        "kind": "input_adapter_blocks",
+        "count": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "bytes": 0,
+        "complete": true
+      },
+      "construction_blocks": {
+        "artifact_id": "e5a82255-1eb8-49b7-b21c-33476f17c23e",
+        "kind": "input_construction_blocks",
+        "count": 332,
+        "sha256": "bb46356ff8cb5886ae67f1d2421999d490abc2a50468f08eac53a378b247a3c6",
+        "bytes": 38146,
+        "complete": true
+      },
+      "events": {
+        "artifact_id": "a9339787-b8b8-41dd-91c2-ad35f978840c",
+        "kind": "intratick_events",
+        "count": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "bytes": 0,
+        "complete": true
+      }
+    },
+    "intratick_events": {
+      "artifact_id": "ba61091f-e5c9-4307-bfdc-ea3b97b2f976",
+      "kind": "intratick_events",
+      "count": 215,
+      "sha256": "f886d56e54265a874b0a2c67c473c41b6bcaeef4972ade0dbf006a63cb0aab18",
+      "bytes": 54511,
+      "complete": true
+    },
+    "transition": {
+      "status": "terminated",
+      "cause": "quiescent_two_consecutive_states",
+      "tick": 7,
+      "last_movement_tick": 6,
+      "recognition_tick": 7,
+      "states_equal": true,
+      "internal_events": 13,
+      "external_input_events": 0,
+      "causes": [
+        "quiescent_two_consecutive_states"
+      ],
+      "rest_scope": "Observed influence and covered prototype components only; not universal memory, restoration or door conformity",
+      "observed_ticks": 7,
+      "pending_ticks": 3,
+      "moving_ticks": 2,
+      "quiet_with_pending_ticks": 3,
+      "maximum_ticks": 36000,
+      "process_timeout_seconds": 2400,
+      "tick_limit_kind": "simulation"
+    }
+  },
+  "piston_close": {
+    "execution": {
+      "mode": "sprint",
+      "game_ticks": 7,
+      "wall_seconds": 0.3110803,
+      "measured_tps": 22.502228524274923,
+      "nominal_tick_rate": 20.0,
+      "backend": "vanilla_ServerTickManager.startSprint"
+    },
+    "operation_id": "7012769d-396c-4e21-b483-8a52e288506b",
+    "operation": "transition",
+    "attempt_id": "bebc22ee-edf0-42cf-93c3-b567b86a86da",
+    "phase": "simulation",
+    "status": "ok",
+    "ticks_executed": 7,
+    "simulation_ticks": 38,
+    "preparation_ticks": 20,
+    "world_time": 58,
+    "preparation_initial_loaded": false,
+    "preparation_initial_ready": false,
+    "frozen": true,
+    "mutated": true,
+    "diff": {
+      "artifact_id": "5dae2472-96ce-4e33-84ca-4eb487070a0a",
+      "kind": "initial_final_diff",
+      "count": 12,
+      "sha256": "0d652f549b471957a7ba2138986aa4b8df8c84fbea4c8e0139fe622d05f19183",
+      "bytes": 1922,
+      "complete": true
+    },
+    "coverage": {
+      "status": "observed",
+      "chunks_ready": true,
+      "tracked_positions": 332,
+      "outside_prepared_chunks": [],
+      "certification": false,
+      "limits": "Vanilla writes, neighbor updates, scheduled/block events and tracked positions are observed. Entity constructions and uninstrumented runtime memory are not certified; no proof of universal influence completeness."
+    },
+    "trace": {
+      "artifact_id": "5809e866-655c-4f09-8d83-c85066a0fa21",
+      "kind": "trace",
+      "count": 7,
+      "sha256": "a875f958731fda04fd9c8c8c93acf195b196877562b595789c98d596ceef4719",
+      "bytes": 13608,
+      "complete": true,
+      "expected_ticks": 7,
+      "start_world_time": 51,
+      "start_simulation_index": 31
+    },
+    "continuity": {
+      "complete": true,
+      "expected": 7,
+      "observed": 7,
+      "problems": []
+    },
+    "initial": {
+      "tick_index": 0,
+      "simulation_index": 31,
+      "phase": "initial",
+      "world_time": 51,
+      "time_of_day": 51,
+      "complete": true,
+      "state": {
+        "block_ticks": [
+          {
+            "x": 1026,
+            "y": 80,
+            "z": 1025,
+            "type": "minecraft:repeater",
+            "trigger_tick": 55,
+            "priority": -2,
+            "sub_tick_order": 2
+          }
+        ],
+        "fluid_ticks": [],
+        "block_events": [],
+        "coverage": {
+          "status": "observed",
+          "chunks_ready": true,
+          "tracked_positions": 332,
+          "outside_prepared_chunks": [],
+          "certification": false,
+          "limits": "Vanilla writes, neighbor updates, scheduled/block events and tracked positions are observed. Entity constructions and uninstrumented runtime memory are not certified; no proof of universal influence completeness."
+        },
+        "blocks": {
+          "artifact_id": "2d4bc90e-231f-4485-a357-5f544141f1bf",
+          "kind": "snapshot_blocks",
+          "count": 332,
+          "sha256": "e1369e0af2aa2b50cf418139204b7390798bef12cd68cce5a48ac777e0cb8d29",
+          "bytes": 38148,
+          "complete": true
+        }
+      },
+      "adapter_blocks": {
+        "artifact_id": "2ae2a801-31df-4a7e-a770-dc893335f62a",
+        "kind": "input_adapter_blocks",
+        "count": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "bytes": 0,
+        "complete": true
+      },
+      "construction_blocks": {
+        "artifact_id": "41a3a9d0-69b6-45e4-818b-ec93c32523c6",
+        "kind": "input_construction_blocks",
+        "count": 332,
+        "sha256": "e1369e0af2aa2b50cf418139204b7390798bef12cd68cce5a48ac777e0cb8d29",
+        "bytes": 38148,
+        "complete": true
+      },
+      "events": {
+        "artifact_id": "389a23d6-5089-4de5-b18a-fb094d600fc4",
+        "kind": "intratick_events",
+        "count": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "bytes": 0,
+        "complete": true
+      }
+    },
+    "final": {
+      "tick_index": 7,
+      "simulation_index": 38,
+      "phase": "final",
+      "world_time": 58,
+      "time_of_day": 58,
+      "complete": true,
+      "state": {
+        "block_ticks": [],
+        "fluid_ticks": [],
+        "block_events": [],
+        "coverage": {
+          "status": "observed",
+          "chunks_ready": true,
+          "tracked_positions": 332,
+          "outside_prepared_chunks": [],
+          "certification": false,
+          "limits": "Vanilla writes, neighbor updates, scheduled/block events and tracked positions are observed. Entity constructions and uninstrumented runtime memory are not certified; no proof of universal influence completeness."
+        },
+        "blocks": {
+          "artifact_id": "3bcc258e-aade-4d1e-8363-1a5d8780995a",
+          "kind": "snapshot_blocks",
+          "count": 332,
+          "sha256": "c70818d8cdd7aafecc51edb1ecadbe413ae6a733d3707aae3dec6cfd7653b7c4",
+          "bytes": 38052,
+          "complete": true
+        }
+      },
+      "adapter_blocks": {
+        "artifact_id": "fb83cc97-352e-4147-9a78-f8bf8f8f2ffc",
+        "kind": "input_adapter_blocks",
+        "count": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "bytes": 0,
+        "complete": true
+      },
+      "construction_blocks": {
+        "artifact_id": "f3a957d0-d880-4818-97de-a6f7008cc6e0",
+        "kind": "input_construction_blocks",
+        "count": 332,
+        "sha256": "c70818d8cdd7aafecc51edb1ecadbe413ae6a733d3707aae3dec6cfd7653b7c4",
+        "bytes": 38052,
+        "complete": true
+      },
+      "events": {
+        "artifact_id": "c598b0f0-bfb1-4b7d-8054-815146b23461",
+        "kind": "intratick_events",
+        "count": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "bytes": 0,
+        "complete": true
+      }
+    },
+    "intratick_events": {
+      "artifact_id": "74b64cc9-76a4-48aa-803e-1affa7a2f796",
+      "kind": "intratick_events",
+      "count": 259,
+      "sha256": "b3acf2cfdd6643ce10bd8a9b33e8e8183025847d43095fc34bff0af69aa089bd",
+      "bytes": 65772,
+      "complete": true
+    },
+    "transition": {
+      "status": "terminated",
+      "cause": "quiescent_two_consecutive_states",
+      "tick": 7,
+      "last_movement_tick": 6,
+      "recognition_tick": 7,
+      "states_equal": true,
+      "internal_events": 16,
+      "external_input_events": 0,
+      "causes": [
+        "quiescent_two_consecutive_states"
+      ],
+      "rest_scope": "Observed influence and covered prototype components only; not universal memory, restoration or door conformity",
+      "observed_ticks": 7,
+      "pending_ticks": 3,
+      "moving_ticks": 2,
+      "quiet_with_pending_ticks": 3,
+      "maximum_ticks": 36000,
+      "process_timeout_seconds": 2400,
+      "tick_limit_kind": "simulation"
+    }
+  },
+  "chain": {
+    "execution": {
+      "mode": "sprint",
+      "game_ticks": 27,
+      "wall_seconds": 1.0142507,
+      "measured_tps": 26.62063728425329,
+      "nominal_tick_rate": 20.0,
+      "backend": "vanilla_ServerTickManager.startSprint"
+    },
+    "operation_id": "5a62c778-303b-4f25-be2c-64bff6014081",
+    "operation": "transition",
+    "attempt_id": "bebc22ee-edf0-42cf-93c3-b567b86a86da",
+    "phase": "simulation",
+    "status": "ok",
+    "ticks_executed": 27,
+    "simulation_ticks": 89,
+    "preparation_ticks": 20,
+    "world_time": 109,
+    "preparation_initial_loaded": false,
+    "preparation_initial_ready": false,
+    "frozen": true,
+    "mutated": true,
+    "diff": {
+      "artifact_id": "8232696c-e3b3-458c-942f-a852480b505e",
+      "kind": "initial_final_diff",
+      "count": 16,
+      "sha256": "6232493f406f1592c48a840e01f78ad6aa8908f2fb49ae94ef15f7a7e596bd06",
+      "bytes": 2680,
+      "complete": true
+    },
+    "coverage": {
+      "status": "observed",
+      "chunks_ready": true,
+      "tracked_positions": 332,
+      "outside_prepared_chunks": [],
+      "certification": false,
+      "limits": "Vanilla writes, neighbor updates, scheduled/block events and tracked positions are observed. Entity constructions and uninstrumented runtime memory are not certified; no proof of universal influence completeness."
+    },
+    "trace": {
+      "artifact_id": "451420af-6896-469f-ac71-8c7124baef03",
+      "kind": "trace",
+      "count": 27,
+      "sha256": "f0fe79e9e4632c13b64bb95866e118f2c3d9b7b6dc7111dc20e6398409c21268",
+      "bytes": 53554,
+      "complete": true,
+      "expected_ticks": 27,
+      "start_world_time": 82,
+      "start_simulation_index": 62
+    },
+    "continuity": {
+      "complete": true,
+      "expected": 27,
+      "observed": 27,
+      "problems": []
+    },
+    "initial": {
+      "tick_index": 0,
+      "simulation_index": 62,
+      "phase": "initial",
+      "world_time": 82,
+      "time_of_day": 82,
+      "complete": true,
+      "state": {
+        "block_ticks": [
+          {
+            "x": 1026,
+            "y": 80,
+            "z": 1025,
+            "type": "minecraft:repeater",
+            "trigger_tick": 90,
+            "priority": -3,
+            "sub_tick_order": 4
+          }
+        ],
+        "fluid_ticks": [],
+        "block_events": [],
+        "coverage": {
+          "status": "observed",
+          "chunks_ready": true,
+          "tracked_positions": 332,
+          "outside_prepared_chunks": [],
+          "certification": false,
+          "limits": "Vanilla writes, neighbor updates, scheduled/block events and tracked positions are observed. Entity constructions and uninstrumented runtime memory are not certified; no proof of universal influence completeness."
+        },
+        "blocks": {
+          "artifact_id": "55fe11ef-b348-4ba7-a0fd-cf2a7d0eaeab",
+          "kind": "snapshot_blocks",
+          "count": 332,
+          "sha256": "b9d97bbad3e414e5dc89757422a84b4752461bba316d6bf35d73991574ba4ce9",
+          "bytes": 38290,
+          "complete": true
+        }
+      },
+      "adapter_blocks": {
+        "artifact_id": "259c4a12-04d2-4ad3-ba21-c670cd052e47",
+        "kind": "input_adapter_blocks",
+        "count": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "bytes": 0,
+        "complete": true
+      },
+      "construction_blocks": {
+        "artifact_id": "09824da4-48c5-4e21-a9b0-932176c24ac6",
+        "kind": "input_construction_blocks",
+        "count": 332,
+        "sha256": "b9d97bbad3e414e5dc89757422a84b4752461bba316d6bf35d73991574ba4ce9",
+        "bytes": 38290,
+        "complete": true
+      },
+      "events": {
+        "artifact_id": "44d024d7-2d2d-40f6-8a11-0c2ec6d490dd",
+        "kind": "intratick_events",
+        "count": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "bytes": 0,
+        "complete": true
+      }
+    },
+    "final": {
+      "tick_index": 27,
+      "simulation_index": 89,
+      "phase": "final",
+      "world_time": 109,
+      "time_of_day": 109,
+      "complete": true,
+      "state": {
+        "block_ticks": [],
+        "fluid_ticks": [],
+        "block_events": [],
+        "coverage": {
+          "status": "observed",
+          "chunks_ready": true,
+          "tracked_positions": 332,
+          "outside_prepared_chunks": [],
+          "certification": false,
+          "limits": "Vanilla writes, neighbor updates, scheduled/block events and tracked positions are observed. Entity constructions and uninstrumented runtime memory are not certified; no proof of universal influence completeness."
+        },
+        "blocks": {
+          "artifact_id": "cfa96066-1e77-4e94-a76c-21c310cabfad",
+          "kind": "snapshot_blocks",
+          "count": 332,
+          "sha256": "64e2937622b8bbb6bb89f20f5c1846d94e22762f8d02a5b8eab79b5a0ac8356e",
+          "bytes": 38382,
+          "complete": true
+        }
+      },
+      "adapter_blocks": {
+        "artifact_id": "7ecb0636-c270-45f7-a304-2d7188fbc1c9",
+        "kind": "input_adapter_blocks",
+        "count": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "bytes": 0,
+        "complete": true
+      },
+      "construction_blocks": {
+        "artifact_id": "d3c256d8-4efc-4d92-aba8-8f1d89e5c2b8",
+        "kind": "input_construction_blocks",
+        "count": 332,
+        "sha256": "64e2937622b8bbb6bb89f20f5c1846d94e22762f8d02a5b8eab79b5a0ac8356e",
+        "bytes": 38382,
+        "complete": true
+      },
+      "events": {
+        "artifact_id": "c77817be-a60b-49c4-b088-368fb2e114a4",
+        "kind": "intratick_events",
+        "count": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "bytes": 0,
+        "complete": true
+      }
+    },
+    "intratick_events": {
+      "artifact_id": "12c019cf-3aab-4950-aae3-06cb69c904a0",
+      "kind": "intratick_events",
+      "count": 295,
+      "sha256": "1181820b38386b5b0c0071b516af7da3b0c236e2e87efa8d7cf75a8d7bae0fd1",
+      "bytes": 76625,
+      "complete": true
+    },
+    "transition": {
+      "status": "terminated",
+      "cause": "quiescent_two_consecutive_states",
+      "tick": 27,
+      "last_movement_tick": 26,
+      "recognition_tick": 27,
+      "states_equal": true,
+      "internal_events": 21,
+      "external_input_events": 0,
+      "causes": [
+        "quiescent_two_consecutive_states"
+      ],
+      "rest_scope": "Observed influence and covered prototype components only; not universal memory, restoration or door conformity",
+      "observed_ticks": 27,
+      "pending_ticks": 23,
+      "moving_ticks": 2,
+      "quiet_with_pending_ticks": 21,
+      "maximum_ticks": 36000,
+      "process_timeout_seconds": 2400,
+      "tick_limit_kind": "simulation"
+    }
+  },
+  "hopper_cooldown": {
+    "report": {
+      "execution": {
+        "mode": "sprint",
+        "game_ticks": 32,
+        "wall_seconds": 0.9635351,
+        "measured_tps": 33.21103714851696,
+        "nominal_tick_rate": 20.0,
+        "backend": "vanilla_ServerTickManager.startSprint"
+      },
+      "operation_id": "c0f6a7ea-7233-4901-b792-21af74aeeedf",
+      "operation": "transition",
+      "attempt_id": "bebc22ee-edf0-42cf-93c3-b567b86a86da",
+      "phase": "simulation",
+      "status": "ok",
+      "ticks_executed": 32,
+      "simulation_ticks": 133,
+      "preparation_ticks": 20,
+      "world_time": 153,
+      "preparation_initial_loaded": false,
+      "preparation_initial_ready": false,
+      "frozen": true,
+      "mutated": true,
+      "diff": {
+        "artifact_id": "f49e840a-0112-413d-aad0-90f83271ab95",
+        "kind": "initial_final_diff",
+        "count": 7,
+        "sha256": "c0de2a0826b104c909c2e811d93b64b458398e7deaefa325659bb1f6e525de9a",
+        "bytes": 1222,
+        "complete": true
+      },
+      "coverage": {
+        "status": "observed",
+        "chunks_ready": true,
+        "tracked_positions": 332,
+        "outside_prepared_chunks": [],
+        "certification": false,
+        "limits": "Vanilla writes, neighbor updates, scheduled/block events and tracked positions are observed. Entity constructions and uninstrumented runtime memory are not certified; no proof of universal influence completeness."
+      },
+      "trace": {
+        "artifact_id": "d4a56eee-4254-425a-a0a6-a73a2e1f9b47",
+        "kind": "trace",
+        "count": 32,
+        "sha256": "9c1cc31e16f0848b71c59b66ff5b50442eea78584121d77e241d1a9f8d4dc547",
+        "bytes": 63377,
+        "complete": true,
+        "expected_ticks": 32,
+        "start_world_time": 121,
+        "start_simulation_index": 101
+      },
+      "continuity": {
+        "complete": true,
+        "expected": 32,
+        "observed": 32,
+        "problems": []
+      },
+      "initial": {
+        "tick_index": 0,
+        "simulation_index": 101,
+        "phase": "initial",
+        "world_time": 121,
+        "time_of_day": 121,
+        "complete": true,
+        "state": {
+          "block_ticks": [],
+          "fluid_ticks": [],
+          "block_events": [],
+          "coverage": {
+            "status": "observed",
+            "chunks_ready": true,
+            "tracked_positions": 332,
+            "outside_prepared_chunks": [],
+            "certification": false,
+            "limits": "Vanilla writes, neighbor updates, scheduled/block events and tracked positions are observed. Entity constructions and uninstrumented runtime memory are not certified; no proof of universal influence completeness."
+          },
+          "blocks": {
+            "artifact_id": "f986d25e-20aa-4bbf-8021-3648a258e3d9",
+            "kind": "snapshot_blocks",
+            "count": 332,
+            "sha256": "a05c1109087017a5a68e8ed1a1275b446a8fc02e9afc8a473f3457674f22aa39",
+            "bytes": 38996,
+            "complete": true
+          }
+        },
+        "adapter_blocks": {
+          "artifact_id": "003aae37-5ed7-434c-b1c9-df2b6ada71c7",
+          "kind": "input_adapter_blocks",
+          "count": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytes": 0,
+          "complete": true
+        },
+        "construction_blocks": {
+          "artifact_id": "b4b42f21-0104-443d-9ff0-8383836a8617",
+          "kind": "input_construction_blocks",
+          "count": 332,
+          "sha256": "a05c1109087017a5a68e8ed1a1275b446a8fc02e9afc8a473f3457674f22aa39",
+          "bytes": 38996,
+          "complete": true
+        },
+        "events": {
+          "artifact_id": "e469caca-ab98-49c5-b8c7-8c59a8c98dd9",
+          "kind": "intratick_events",
+          "count": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytes": 0,
+          "complete": true
+        }
+      },
+      "final": {
+        "tick_index": 32,
+        "simulation_index": 133,
+        "phase": "final",
+        "world_time": 153,
+        "time_of_day": 153,
+        "complete": true,
+        "state": {
+          "block_ticks": [],
+          "fluid_ticks": [],
+          "block_events": [],
+          "coverage": {
+            "status": "observed",
+            "chunks_ready": true,
+            "tracked_positions": 332,
+            "outside_prepared_chunks": [],
+            "certification": false,
+            "limits": "Vanilla writes, neighbor updates, scheduled/block events and tracked positions are observed. Entity constructions and uninstrumented runtime memory are not certified; no proof of universal influence completeness."
+          },
+          "blocks": {
+            "artifact_id": "26b487b3-f70e-40d5-8629-e79859ff121a",
+            "kind": "snapshot_blocks",
+            "count": 332,
+            "sha256": "31c361be94e52eaf13f995be0506ae49ef711cb405455fdbd53729dab3ac8aa1",
+            "bytes": 38998,
+            "complete": true
+          }
+        },
+        "adapter_blocks": {
+          "artifact_id": "1f36bdca-508d-42fe-8be9-4de7ceb8b312",
+          "kind": "input_adapter_blocks",
+          "count": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytes": 0,
+          "complete": true
+        },
+        "construction_blocks": {
+          "artifact_id": "aeadb9e9-cf62-4eb2-b4b0-bde7d527a4e8",
+          "kind": "input_construction_blocks",
+          "count": 332,
+          "sha256": "31c361be94e52eaf13f995be0506ae49ef711cb405455fdbd53729dab3ac8aa1",
+          "bytes": 38998,
+          "complete": true
+        },
+        "events": {
+          "artifact_id": "b035d950-e4b0-4b0c-828e-a3ef17499b96",
+          "kind": "intratick_events",
+          "count": 1,
+          "sha256": "40ec9e8402aa9ca44fa522aa1ac529816befe6e0f333849cd7f04c3a53860f65",
+          "bytes": 241,
+          "complete": true
+        }
+      },
+      "intratick_events": {
+        "artifact_id": "440b9734-8e76-4e5e-b6c0-41380b2d191c",
+        "kind": "intratick_events",
+        "count": 47,
+        "sha256": "38bd953d393a25d13c9a56d3c9c510e04b4982da24b1361fa5d761f73cd4b1aa",
+        "bytes": 11794,
+        "complete": true
+      },
+      "transition": {
+        "status": "indeterminate",
+        "cause": "hopper_last_tick_time_effect_and_resume_unestablished",
+        "tick": 32,
+        "last_movement_tick": 32,
+        "recognition_tick": null,
+        "states_equal": false,
+        "internal_events": 0,
+        "external_input_events": 0,
+        "causes": [
+          "hopper_last_tick_time_effect_and_resume_unestablished",
+          "relevant_state_changed"
+        ],
+        "rest_scope": "Observed influence and covered prototype components only; not universal memory, restoration or door conformity",
+        "observed_ticks": 32,
+        "pending_ticks": 0,
+        "moving_ticks": 0,
+        "quiet_with_pending_ticks": 0,
+        "maximum_ticks": 36000,
+        "process_timeout_seconds": 2400,
+        "tick_limit_kind": "simulation"
+      }
+    },
+    "transfer_ticks": [
+      8,
+      16,
+      24
+    ],
+    "cooldowns": [
+      7,
+      6,
+      5,
+      4,
+      3,
+      2,
+      1,
+      8,
+      7,
+      6,
+      5,
+      4,
+      3,
+      2,
+      1,
+      8,
+      7,
+      6,
+      5,
+      4,
+      3,
+      2,
+      1,
+      8,
+      7,
+      6,
+      5,
+      4,
+      3,
+      2,
+      1,
+      0
+    ]
+  },
+  "hopper_empty": {
+    "execution": {
+      "mode": "sprint",
+      "game_ticks": 1,
+      "wall_seconds": 0.1254054,
+      "measured_tps": 7.9741382747473395,
+      "nominal_tick_rate": 20.0,
+      "backend": "vanilla_ServerTickManager.startSprint"
+    },
+    "operation_id": "108f374b-417f-49d1-b533-5c5612540335",
+    "operation": "transition",
+    "attempt_id": "bebc22ee-edf0-42cf-93c3-b567b86a86da",
+    "phase": "simulation",
+    "status": "ok",
+    "ticks_executed": 1,
+    "simulation_ticks": 146,
+    "preparation_ticks": 20,
+    "world_time": 166,
+    "preparation_initial_loaded": false,
+    "preparation_initial_ready": false,
+    "frozen": true,
+    "mutated": true,
+    "diff": {
+      "artifact_id": "e9395ed6-b39a-4566-9b4e-2ffd038b08e7",
+      "kind": "initial_final_diff",
+      "count": 3,
+      "sha256": "7b88946188901800ed0706c8c5f83e76e4f5767093218da588958b14fc687f38",
+      "bytes": 388,
+      "complete": true
+    },
+    "coverage": {
+      "status": "observed",
+      "chunks_ready": true,
+      "tracked_positions": 332,
+      "outside_prepared_chunks": [],
+      "certification": false,
+      "limits": "Vanilla writes, neighbor updates, scheduled/block events and tracked positions are observed. Entity constructions and uninstrumented runtime memory are not certified; no proof of universal influence completeness."
+    },
+    "trace": {
+      "artifact_id": "166e23b0-0ae4-4800-b015-c8dc47017fb8",
+      "kind": "trace",
+      "count": 1,
+      "sha256": "12a57081d4cf16c57cdefcfa6dcef6cac712917d2ddbc66fe195787007dcd390",
+      "bytes": 1985,
+      "complete": true,
+      "expected_ticks": 1,
+      "start_world_time": 165,
+      "start_simulation_index": 145
+    },
+    "continuity": {
+      "complete": true,
+      "expected": 1,
+      "observed": 1,
+      "problems": []
+    },
+    "initial": {
+      "tick_index": 0,
+      "simulation_index": 145,
+      "phase": "initial",
+      "world_time": 165,
+      "time_of_day": 165,
+      "complete": true,
+      "state": {
+        "block_ticks": [],
+        "fluid_ticks": [],
+        "block_events": [],
+        "coverage": {
+          "status": "observed",
+          "chunks_ready": true,
+          "tracked_positions": 332,
+          "outside_prepared_chunks": [],
+          "certification": false,
+          "limits": "Vanilla writes, neighbor updates, scheduled/block events and tracked positions are observed. Entity constructions and uninstrumented runtime memory are not certified; no proof of universal influence completeness."
+        },
+        "blocks": {
+          "artifact_id": "386b0aa9-0cb8-41cf-86b9-6b297b5e37ea",
+          "kind": "snapshot_blocks",
+          "count": 332,
+          "sha256": "29aee2beb72e96e7d2a008198f3a92065abbb393115cb89bb3df66c24293ec0e",
+          "bytes": 38820,
+          "complete": true
+        }
+      },
+      "adapter_blocks": {
+        "artifact_id": "45810a67-a096-40a2-88b2-dedcdccf7ba9",
+        "kind": "input_adapter_blocks",
+        "count": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "bytes": 0,
+        "complete": true
+      },
+      "construction_blocks": {
+        "artifact_id": "15fda152-b4a6-4e23-bc9a-cdaee90d7a32",
+        "kind": "input_construction_blocks",
+        "count": 332,
+        "sha256": "29aee2beb72e96e7d2a008198f3a92065abbb393115cb89bb3df66c24293ec0e",
+        "bytes": 38820,
+        "complete": true
+      },
+      "events": {
+        "artifact_id": "efa81487-924d-4526-a38a-e3f0c7979e8d",
+        "kind": "intratick_events",
+        "count": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "bytes": 0,
+        "complete": true
+      }
+    },
+    "final": {
+      "tick_index": 1,
+      "simulation_index": 146,
+      "phase": "final",
+      "world_time": 166,
+      "time_of_day": 166,
+      "complete": true,
+      "state": {
+        "block_ticks": [],
+        "fluid_ticks": [],
+        "block_events": [],
+        "coverage": {
+          "status": "observed",
+          "chunks_ready": true,
+          "tracked_positions": 332,
+          "outside_prepared_chunks": [],
+          "certification": false,
+          "limits": "Vanilla writes, neighbor updates, scheduled/block events and tracked positions are observed. Entity constructions and uninstrumented runtime memory are not certified; no proof of universal influence completeness."
+        },
+        "blocks": {
+          "artifact_id": "faad1220-a702-4f89-8e09-87aa83e72350",
+          "kind": "snapshot_blocks",
+          "count": 332,
+          "sha256": "93c31f49410a669f33917b020adb83c914ebc7253457d024c36a47ba0caafc82",
+          "bytes": 38820,
+          "complete": true
+        }
+      },
+      "adapter_blocks": {
+        "artifact_id": "69a21125-70e2-4c58-b6ae-b343b870a33d",
+        "kind": "input_adapter_blocks",
+        "count": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "bytes": 0,
+        "complete": true
+      },
+      "construction_blocks": {
+        "artifact_id": "a04dfeab-a10d-401f-8d04-0b9358829b0a",
+        "kind": "input_construction_blocks",
+        "count": 332,
+        "sha256": "93c31f49410a669f33917b020adb83c914ebc7253457d024c36a47ba0caafc82",
+        "bytes": 38820,
+        "complete": true
+      },
+      "events": {
+        "artifact_id": "bddc54b8-e1ff-44b6-ad1c-1eaf3538641f",
+        "kind": "intratick_events",
+        "count": 1,
+        "sha256": "c08e3e10695ee59eff6f98862ccd1cd5b5d5e885d97c498b670ed020c13186d1",
+        "bytes": 239,
+        "complete": true
+      }
+    },
+    "intratick_events": {
+      "artifact_id": "7a6ed29c-3b0c-4b41-9b87-8898fc076d10",
+      "kind": "intratick_events",
+      "count": 1,
+      "sha256": "c08e3e10695ee59eff6f98862ccd1cd5b5d5e885d97c498b670ed020c13186d1",
+      "bytes": 239,
+      "complete": true
+    },
+    "transition": {
+      "status": "indeterminate",
+      "cause": "hopper_last_tick_time_effect_and_resume_unestablished",
+      "tick": 1,
+      "last_movement_tick": 1,
+      "recognition_tick": null,
+      "states_equal": false,
+      "internal_events": 0,
+      "external_input_events": 0,
+      "causes": [
+        "hopper_last_tick_time_effect_and_resume_unestablished",
+        "relevant_state_changed"
+      ],
+      "rest_scope": "Observed influence and covered prototype components only; not universal memory, restoration or door conformity",
+      "observed_ticks": 1,
+      "pending_ticks": 0,
+      "moving_ticks": 0,
+      "quiet_with_pending_ticks": 0,
+      "maximum_ticks": 36000,
+      "process_timeout_seconds": 2400,
+      "tick_limit_kind": "simulation"
+    }
+  },
+  "hopper_empty_followup": {
+    "report": {
+      "execution": {
+        "mode": "sprint",
+        "game_ticks": 8,
+        "wall_seconds": 0.264915,
+        "measured_tps": 30.198365513466584,
+        "nominal_tick_rate": 20.0,
+        "backend": "vanilla_ServerTickManager.startSprint"
+      },
+      "operation_id": "520aac75-285e-43b1-8e0a-fe22b8d8ed6c",
+      "operation": "advance",
+      "attempt_id": "bebc22ee-edf0-42cf-93c3-b567b86a86da",
+      "phase": "simulation",
+      "status": "ok",
+      "ticks_executed": 8,
+      "simulation_ticks": 154,
+      "preparation_ticks": 20,
+      "world_time": 174,
+      "preparation_initial_loaded": false,
+      "preparation_initial_ready": false,
+      "frozen": true,
+      "mutated": true,
+      "diff": {
+        "artifact_id": "ff65a9ce-7dae-42b3-82b9-6a84394f36cf",
+        "kind": "initial_final_diff",
+        "count": 1,
+        "sha256": "a2c0fd8b0e0cf74994625bcc1c8e51ae5655f21a7b25a779b2ca868d318011f0",
+        "bytes": 129,
+        "complete": true
+      },
+      "coverage": {
+        "status": "observed",
+        "chunks_ready": true,
+        "tracked_positions": 332,
+        "outside_prepared_chunks": [],
+        "certification": false,
+        "limits": "Vanilla writes, neighbor updates, scheduled/block events and tracked positions are observed. Entity constructions and uninstrumented runtime memory are not certified; no proof of universal influence completeness."
+      },
+      "trace": {
+        "artifact_id": "02e1bd5e-8d03-48e5-9d63-462666a8db09",
+        "kind": "trace",
+        "count": 8,
+        "sha256": "b177487ba240110569ee0be074b6c94e7f7680d984a5ff7fbd05204ca090f0cd",
+        "bytes": 11032,
+        "complete": true,
+        "expected_ticks": 8,
+        "start_world_time": 166,
+        "start_simulation_index": 146
+      },
+      "continuity": {
+        "complete": true,
+        "expected": 8,
+        "observed": 8,
+        "problems": []
+      },
+      "initial": {
+        "tick_index": 0,
+        "simulation_index": 146,
+        "phase": "initial",
+        "world_time": 166,
+        "time_of_day": 166,
+        "complete": true,
+        "state": {
+          "block_ticks": [],
+          "fluid_ticks": [],
+          "block_events": [],
+          "coverage": {
+            "status": "observed",
+            "chunks_ready": true,
+            "tracked_positions": 332,
+            "outside_prepared_chunks": [],
+            "certification": false,
+            "limits": "Vanilla writes, neighbor updates, scheduled/block events and tracked positions are observed. Entity constructions and uninstrumented runtime memory are not certified; no proof of universal influence completeness."
+          },
+          "blocks": {
+            "artifact_id": "5ca25634-0c03-4f20-bd1a-ebf7ecbdd793",
+            "kind": "snapshot_blocks",
+            "count": 332,
+            "sha256": "93c31f49410a669f33917b020adb83c914ebc7253457d024c36a47ba0caafc82",
+            "bytes": 38820,
+            "complete": true
+          }
+        },
+        "adapter_blocks": {
+          "artifact_id": "36c35bf3-4162-4267-9102-e5f25318ae07",
+          "kind": "input_adapter_blocks",
+          "count": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytes": 0,
+          "complete": true
+        },
+        "construction_blocks": {
+          "artifact_id": "8cc22f76-768d-416a-8450-f40d0ab55126",
+          "kind": "input_construction_blocks",
+          "count": 332,
+          "sha256": "93c31f49410a669f33917b020adb83c914ebc7253457d024c36a47ba0caafc82",
+          "bytes": 38820,
+          "complete": true
+        },
+        "events": {
+          "artifact_id": "389bf427-fb3d-4937-b49a-9b99170ee694",
+          "kind": "intratick_events",
+          "count": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytes": 0,
+          "complete": true
+        }
+      },
+      "final": {
+        "tick_index": 8,
+        "simulation_index": 154,
+        "phase": "final",
+        "world_time": 174,
+        "time_of_day": 174,
+        "complete": true,
+        "state": {
+          "block_ticks": [],
+          "fluid_ticks": [],
+          "block_events": [],
+          "coverage": {
+            "status": "observed",
+            "chunks_ready": true,
+            "tracked_positions": 332,
+            "outside_prepared_chunks": [],
+            "certification": false,
+            "limits": "Vanilla writes, neighbor updates, scheduled/block events and tracked positions are observed. Entity constructions and uninstrumented runtime memory are not certified; no proof of universal influence completeness."
+          },
+          "blocks": {
+            "artifact_id": "f089be5e-7123-4830-9648-64dac401a9be",
+            "kind": "snapshot_blocks",
+            "count": 332,
+            "sha256": "e90e77524e7eb212bf12a91151d7470436f660dae123a3c5d521efa38a91d588",
+            "bytes": 38820,
+            "complete": true
+          }
+        },
+        "adapter_blocks": {
+          "artifact_id": "cf99c2e7-8ff3-46eb-97f4-1f9d9ecb3d6b",
+          "kind": "input_adapter_blocks",
+          "count": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytes": 0,
+          "complete": true
+        },
+        "construction_blocks": {
+          "artifact_id": "5bbdb067-88bf-423c-adac-4d3610f3d2b5",
+          "kind": "input_construction_blocks",
+          "count": 332,
+          "sha256": "e90e77524e7eb212bf12a91151d7470436f660dae123a3c5d521efa38a91d588",
+          "bytes": 38820,
+          "complete": true
+        },
+        "events": {
+          "artifact_id": "42b78efb-20cc-4848-bd21-b21d0083a634",
+          "kind": "intratick_events",
+          "count": 1,
+          "sha256": "15e8a8ecf593a1fb32093d878138562f1f1cb29e7abeae526f06c11672f45f85",
+          "bytes": 239,
+          "complete": true
+        }
+      },
+      "intratick_events": {
+        "artifact_id": "e79fe3ac-2c7c-4fc2-9168-ae44b230560e",
+        "kind": "intratick_events",
+        "count": 8,
+        "sha256": "bf5f79d87144f482038d19f38caabfc7a7dcb9d3a6dffc0023499f471758a7a3",
+        "bytes": 1912,
+        "complete": true
+      }
+    },
+    "last_tick_times": [
+      "167",
+      "168",
+      "169",
+      "170",
+      "171",
+      "172",
+      "173",
+      "174"
+    ]
+  },
+  "hopper_locked": {
+    "execution": {
+      "mode": "sprint",
+      "game_ticks": 1,
+      "wall_seconds": 0.1499242,
+      "measured_tps": 6.670037258828128,
+      "nominal_tick_rate": 20.0,
+      "backend": "vanilla_ServerTickManager.startSprint"
+    },
+    "operation_id": "38d090bf-ca11-4225-9b2c-cbf6bd310037",
+    "operation": "transition",
+    "attempt_id": "bebc22ee-edf0-42cf-93c3-b567b86a86da",
+    "phase": "simulation",
+    "status": "ok",
+    "ticks_executed": 1,
+    "simulation_ticks": 167,
+    "preparation_ticks": 20,
+    "world_time": 187,
+    "preparation_initial_loaded": false,
+    "preparation_initial_ready": false,
+    "frozen": true,
+    "mutated": true,
+    "diff": {
+      "artifact_id": "df3341e5-6031-4d41-aea7-b822b7699a3c",
+      "kind": "initial_final_diff",
+      "count": 3,
+      "sha256": "15a1ba4f78cc207a8afc0574840718c11061a11895aac43f251f26d7e5cc5280",
+      "bytes": 388,
+      "complete": true
+    },
+    "coverage": {
+      "status": "observed",
+      "chunks_ready": true,
+      "tracked_positions": 332,
+      "outside_prepared_chunks": [],
+      "certification": false,
+      "limits": "Vanilla writes, neighbor updates, scheduled/block events and tracked positions are observed. Entity constructions and uninstrumented runtime memory are not certified; no proof of universal influence completeness."
+    },
+    "trace": {
+      "artifact_id": "5bf3fabe-5441-4d48-a4f4-fc5460abcd88",
+      "kind": "trace",
+      "count": 1,
+      "sha256": "7212f6327c947a568e937ccea0da1372dcfbad40530aad90772a6140700c3eab",
+      "bytes": 1983,
+      "complete": true,
+      "expected_ticks": 1,
+      "start_world_time": 186,
+      "start_simulation_index": 166
+    },
+    "continuity": {
+      "complete": true,
+      "expected": 1,
+      "observed": 1,
+      "problems": []
+    },
+    "initial": {
+      "tick_index": 0,
+      "simulation_index": 166,
+      "phase": "initial",
+      "world_time": 186,
+      "time_of_day": 186,
+      "complete": true,
+      "state": {
+        "block_ticks": [],
+        "fluid_ticks": [],
+        "block_events": [],
+        "coverage": {
+          "status": "observed",
+          "chunks_ready": true,
+          "tracked_positions": 332,
+          "outside_prepared_chunks": [],
+          "certification": false,
+          "limits": "Vanilla writes, neighbor updates, scheduled/block events and tracked positions are observed. Entity constructions and uninstrumented runtime memory are not certified; no proof of universal influence completeness."
+        },
+        "blocks": {
+          "artifact_id": "137b334a-3b49-45a3-9055-229009ef0ade",
+          "kind": "snapshot_blocks",
+          "count": 332,
+          "sha256": "f852af75072ffcfbc2f2bd13f43caa9a3a8f509e745f893ada0db06d8e7aea8f",
+          "bytes": 38844,
+          "complete": true
+        }
+      },
+      "adapter_blocks": {
+        "artifact_id": "2daf04a8-5133-4009-8bf1-9447dd507ef4",
+        "kind": "input_adapter_blocks",
+        "count": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "bytes": 0,
+        "complete": true
+      },
+      "construction_blocks": {
+        "artifact_id": "ec531a12-1b74-4e28-bdea-3540135dfa18",
+        "kind": "input_construction_blocks",
+        "count": 332,
+        "sha256": "f852af75072ffcfbc2f2bd13f43caa9a3a8f509e745f893ada0db06d8e7aea8f",
+        "bytes": 38844,
+        "complete": true
+      },
+      "events": {
+        "artifact_id": "f576fac0-fbdb-42eb-897c-24e0ba1d49c1",
+        "kind": "intratick_events",
+        "count": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "bytes": 0,
+        "complete": true
+      }
+    },
+    "final": {
+      "tick_index": 1,
+      "simulation_index": 167,
+      "phase": "final",
+      "world_time": 187,
+      "time_of_day": 187,
+      "complete": true,
+      "state": {
+        "block_ticks": [],
+        "fluid_ticks": [],
+        "block_events": [],
+        "coverage": {
+          "status": "observed",
+          "chunks_ready": true,
+          "tracked_positions": 332,
+          "outside_prepared_chunks": [],
+          "certification": false,
+          "limits": "Vanilla writes, neighbor updates, scheduled/block events and tracked positions are observed. Entity constructions and uninstrumented runtime memory are not certified; no proof of universal influence completeness."
+        },
+        "blocks": {
+          "artifact_id": "b5c256f1-9823-4a2f-9ed5-553cc0b604ef",
+          "kind": "snapshot_blocks",
+          "count": 332,
+          "sha256": "494973ed110200d6e617776ea425e04488fbb3fb6760855c40d772e8e81afb81",
+          "bytes": 38844,
+          "complete": true
+        }
+      },
+      "adapter_blocks": {
+        "artifact_id": "60cea687-2f2a-4f34-9739-a9465899cc5a",
+        "kind": "input_adapter_blocks",
+        "count": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "bytes": 0,
+        "complete": true
+      },
+      "construction_blocks": {
+        "artifact_id": "374c0656-fd63-4805-9c87-182ffd9c591f",
+        "kind": "input_construction_blocks",
+        "count": 332,
+        "sha256": "494973ed110200d6e617776ea425e04488fbb3fb6760855c40d772e8e81afb81",
+        "bytes": 38844,
+        "complete": true
+      },
+      "events": {
+        "artifact_id": "b5836d34-5d52-4e56-b79a-dfd773032a66",
+        "kind": "intratick_events",
+        "count": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "bytes": 0,
+        "complete": true
+      }
+    },
+    "intratick_events": {
+      "artifact_id": "ef77d33e-2b20-4f51-9940-4e109649017e",
+      "kind": "intratick_events",
+      "count": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "complete": true
+    },
+    "transition": {
+      "status": "indeterminate",
+      "cause": "hopper_last_tick_time_effect_and_resume_unestablished",
+      "tick": 1,
+      "last_movement_tick": 1,
+      "recognition_tick": null,
+      "states_equal": false,
+      "internal_events": 0,
+      "external_input_events": 0,
+      "causes": [
+        "hopper_last_tick_time_effect_and_resume_unestablished",
+        "relevant_state_changed"
+      ],
+      "rest_scope": "Observed influence and covered prototype components only; not universal memory, restoration or door conformity",
+      "observed_ticks": 1,
+      "pending_ticks": 0,
+      "moving_ticks": 0,
+      "quiet_with_pending_ticks": 0,
+      "maximum_ticks": 36000,
+      "process_timeout_seconds": 2400,
+      "tick_limit_kind": "simulation"
+    }
+  },
+  "hopper_locked_followup": {
+    "report": {
+      "execution": {
+        "mode": "sprint",
+        "game_ticks": 8,
+        "wall_seconds": 0.284927,
+        "measured_tps": 28.077367185279037,
+        "nominal_tick_rate": 20.0,
+        "backend": "vanilla_ServerTickManager.startSprint"
+      },
+      "operation_id": "3503aede-ee57-4f48-8503-d111a61580f2",
+      "operation": "advance",
+      "attempt_id": "bebc22ee-edf0-42cf-93c3-b567b86a86da",
+      "phase": "simulation",
+      "status": "ok",
+      "ticks_executed": 8,
+      "simulation_ticks": 175,
+      "preparation_ticks": 20,
+      "world_time": 195,
+      "preparation_initial_loaded": false,
+      "preparation_initial_ready": false,
+      "frozen": true,
+      "mutated": true,
+      "diff": {
+        "artifact_id": "494b1c34-5d44-4875-bc14-2e80c754b10a",
+        "kind": "initial_final_diff",
+        "count": 1,
+        "sha256": "3f25c2e8cadd4bd2e53c4d0f31be0ffec0f3650d51ea910a86bd4a8e5f867e34",
+        "bytes": 129,
+        "complete": true
+      },
+      "coverage": {
+        "status": "observed",
+        "chunks_ready": true,
+        "tracked_positions": 332,
+        "outside_prepared_chunks": [],
+        "certification": false,
+        "limits": "Vanilla writes, neighbor updates, scheduled/block events and tracked positions are observed. Entity constructions and uninstrumented runtime memory are not certified; no proof of universal influence completeness."
+      },
+      "trace": {
+        "artifact_id": "009baf6f-dd1d-4375-994e-8620789fb439",
+        "kind": "trace",
+        "count": 8,
+        "sha256": "7d0330df8652d0b1749c1ce9d47c29ff2c62124329c36843e3c69aec90b97b37",
+        "bytes": 11016,
+        "complete": true,
+        "expected_ticks": 8,
+        "start_world_time": 187,
+        "start_simulation_index": 167
+      },
+      "continuity": {
+        "complete": true,
+        "expected": 8,
+        "observed": 8,
+        "problems": []
+      },
+      "initial": {
+        "tick_index": 0,
+        "simulation_index": 167,
+        "phase": "initial",
+        "world_time": 187,
+        "time_of_day": 187,
+        "complete": true,
+        "state": {
+          "block_ticks": [],
+          "fluid_ticks": [],
+          "block_events": [],
+          "coverage": {
+            "status": "observed",
+            "chunks_ready": true,
+            "tracked_positions": 332,
+            "outside_prepared_chunks": [],
+            "certification": false,
+            "limits": "Vanilla writes, neighbor updates, scheduled/block events and tracked positions are observed. Entity constructions and uninstrumented runtime memory are not certified; no proof of universal influence completeness."
+          },
+          "blocks": {
+            "artifact_id": "b951b37b-936a-4167-8e18-4faf78234bab",
+            "kind": "snapshot_blocks",
+            "count": 332,
+            "sha256": "494973ed110200d6e617776ea425e04488fbb3fb6760855c40d772e8e81afb81",
+            "bytes": 38844,
+            "complete": true
+          }
+        },
+        "adapter_blocks": {
+          "artifact_id": "a25bed0c-1c92-431d-8c5f-ae42b94b49a6",
+          "kind": "input_adapter_blocks",
+          "count": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytes": 0,
+          "complete": true
+        },
+        "construction_blocks": {
+          "artifact_id": "d1e1d4a4-0098-418b-8842-3a4e0236185d",
+          "kind": "input_construction_blocks",
+          "count": 332,
+          "sha256": "494973ed110200d6e617776ea425e04488fbb3fb6760855c40d772e8e81afb81",
+          "bytes": 38844,
+          "complete": true
+        },
+        "events": {
+          "artifact_id": "22ceafd7-8f78-4b28-8848-dadd88c2d94e",
+          "kind": "intratick_events",
+          "count": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytes": 0,
+          "complete": true
+        }
+      },
+      "final": {
+        "tick_index": 8,
+        "simulation_index": 175,
+        "phase": "final",
+        "world_time": 195,
+        "time_of_day": 195,
+        "complete": true,
+        "state": {
+          "block_ticks": [],
+          "fluid_ticks": [],
+          "block_events": [],
+          "coverage": {
+            "status": "observed",
+            "chunks_ready": true,
+            "tracked_positions": 332,
+            "outside_prepared_chunks": [],
+            "certification": false,
+            "limits": "Vanilla writes, neighbor updates, scheduled/block events and tracked positions are observed. Entity constructions and uninstrumented runtime memory are not certified; no proof of universal influence completeness."
+          },
+          "blocks": {
+            "artifact_id": "6691fe83-cbf9-4cd6-878e-a00401e8b559",
+            "kind": "snapshot_blocks",
+            "count": 332,
+            "sha256": "7d1686fdf3bc833f3a77b7f595fb114fd91b61020fac6db29b31996b23cf8454",
+            "bytes": 38844,
+            "complete": true
+          }
+        },
+        "adapter_blocks": {
+          "artifact_id": "dffa2f2c-5885-44e5-9236-3cb2f2c7cab0",
+          "kind": "input_adapter_blocks",
+          "count": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytes": 0,
+          "complete": true
+        },
+        "construction_blocks": {
+          "artifact_id": "cfa49da0-68b5-4ac6-9a56-6a5d57b5848a",
+          "kind": "input_construction_blocks",
+          "count": 332,
+          "sha256": "7d1686fdf3bc833f3a77b7f595fb114fd91b61020fac6db29b31996b23cf8454",
+          "bytes": 38844,
+          "complete": true
+        },
+        "events": {
+          "artifact_id": "06fe93ea-d19c-4a4e-99db-1f7609637c8c",
+          "kind": "intratick_events",
+          "count": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytes": 0,
+          "complete": true
+        }
+      },
+      "intratick_events": {
+        "artifact_id": "79d6809d-98a5-43bb-94ef-8e29b0b687dc",
+        "kind": "intratick_events",
+        "count": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "bytes": 0,
+        "complete": true
+      }
+    },
+    "last_tick_times": [
+      "188",
+      "189",
+      "190",
+      "191",
+      "192",
+      "193",
+      "194",
+      "195"
+    ]
+  },
+  "chunk_loss": {
+    "execution": {
+      "mode": "sprint",
+      "game_ticks": 1,
+      "wall_seconds": 0.1534796,
+      "measured_tps": 6.515523887213676,
+      "nominal_tick_rate": 20.0,
+      "backend": "vanilla_ServerTickManager.startSprint"
+    },
+    "operation_id": "5c6cbf2d-4874-4133-9ff5-a66683a45e40",
+    "operation": "transition",
+    "attempt_id": "07aa2332-fd1d-4f8c-89d1-6e9ba9a68350",
+    "phase": "simulation",
+    "status": "error",
+    "ticks_executed": 1,
+    "simulation_ticks": 13,
+    "preparation_ticks": 13,
+    "world_time": 26,
+    "preparation_initial_loaded": false,
+    "preparation_initial_ready": false,
+    "frozen": true,
+    "mutated": true,
+    "error": {
+      "kind": "infrastructure",
+      "code": "chunks_unavailable",
+      "message": "Relevant chunks lost block/entity ticking readiness",
+      "effects": "World may have changed; inspect reported effective state before retry"
+    },
+    "diff": {
+      "artifact_id": "368df26f-78a3-4947-8035-2a55d650c951",
+      "kind": "initial_final_diff",
+      "count": 2,
+      "sha256": "e3a270da612c27ac863572a229ff7ee48194a3637b22c5bc65e6f860a6bb24ad",
+      "bytes": 223,
+      "complete": true
+    },
+    "coverage": {
+      "status": "insufficient",
+      "chunks_ready": false,
+      "tracked_positions": 332,
+      "outside_prepared_chunks": [],
+      "certification": false,
+      "limits": "Vanilla writes, neighbor updates, scheduled/block events and tracked positions are observed. Entity constructions and uninstrumented runtime memory are not certified; no proof of universal influence completeness."
+    },
+    "trace": {
+      "artifact_id": "dde53a05-7251-4f40-88c4-436baf6240af",
+      "kind": "trace",
+      "count": 1,
+      "sha256": "7d1ab61bc62c9b8cdc0d8ebeacbee4d7901252d14e14030f5090e57ece899fed",
+      "bytes": 1981,
+      "complete": true,
+      "expected_ticks": 60,
+      "start_world_time": 25,
+      "start_simulation_index": 12
+    },
+    "continuity": {
+      "complete": false,
+      "expected": 60,
+      "observed": 1,
+      "problems": [
+        "expected 60 end-of-tick observations, got 1"
+      ]
+    },
+    "initial": {
+      "tick_index": 0,
+      "simulation_index": 12,
+      "phase": "initial",
+      "world_time": 25,
+      "time_of_day": 25,
+      "complete": false,
+      "state": {
+        "block_ticks": [
+          {
+            "x": 1026,
+            "y": 80,
+            "z": 1026,
+            "type": "minecraft:observer",
+            "trigger_tick": 27,
+            "priority": 0,
+            "sub_tick_order": 8
+          }
+        ],
+        "fluid_ticks": [],
+        "block_events": [],
+        "coverage": {
+          "status": "observed",
+          "chunks_ready": true,
+          "tracked_positions": 332,
+          "outside_prepared_chunks": [],
+          "certification": false,
+          "limits": "Vanilla writes, neighbor updates, scheduled/block events and tracked positions are observed. Entity constructions and uninstrumented runtime memory are not certified; no proof of universal influence completeness."
+        },
+        "blocks": {
+          "artifact_id": "baa7192c-3fe3-4d81-bbce-d8684b8c7c47",
+          "kind": "snapshot_blocks",
+          "count": 332,
+          "sha256": "d8784770157bfea280bf0542a7ffa8c20a56fa558a84dc1f2a8eb64eea2ed663",
+          "bytes": 37896,
+          "complete": true
+        }
+      },
+      "adapter_blocks": {
+        "artifact_id": "5e5fca71-52cc-4936-a7b7-c936fab4041e",
+        "kind": "input_adapter_blocks",
+        "count": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "bytes": 0,
+        "complete": true
+      },
+      "construction_blocks": {
+        "artifact_id": "d981aa84-bfcb-4497-b3d7-e70ba7dbcb58",
+        "kind": "input_construction_blocks",
+        "count": 332,
+        "sha256": "d8784770157bfea280bf0542a7ffa8c20a56fa558a84dc1f2a8eb64eea2ed663",
+        "bytes": 37896,
+        "complete": true
+      },
+      "events": {
+        "artifact_id": "e6a23479-ca3d-4ad4-a5b8-0b53d17dac55",
+        "kind": "intratick_events",
+        "count": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "bytes": 0,
+        "complete": true
+      }
+    },
+    "final": {
+      "tick_index": 1,
+      "simulation_index": 13,
+      "phase": "final",
+      "world_time": 26,
+      "time_of_day": 26,
+      "complete": false,
+      "state": {
+        "block_ticks": [
+          {
+            "x": 1026,
+            "y": 80,
+            "z": 1026,
+            "type": "minecraft:observer",
+            "trigger_tick": 27,
+            "priority": 0,
+            "sub_tick_order": 8
+          }
+        ],
+        "fluid_ticks": [],
+        "block_events": [],
+        "coverage": {
+          "status": "insufficient",
+          "chunks_ready": false,
+          "tracked_positions": 332,
+          "outside_prepared_chunks": [],
+          "certification": false,
+          "limits": "Vanilla writes, neighbor updates, scheduled/block events and tracked positions are observed. Entity constructions and uninstrumented runtime memory are not certified; no proof of universal influence completeness."
+        },
+        "blocks": {
+          "artifact_id": "69b5dc1d-817d-4953-8930-3cd8873e2933",
+          "kind": "snapshot_blocks",
+          "count": 332,
+          "sha256": "d8784770157bfea280bf0542a7ffa8c20a56fa558a84dc1f2a8eb64eea2ed663",
+          "bytes": 37896,
+          "complete": true
+        }
+      },
+      "adapter_blocks": {
+        "artifact_id": "7446794d-6893-42ab-b8f6-5535fc69c2a2",
+        "kind": "input_adapter_blocks",
+        "count": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "bytes": 0,
+        "complete": true
+      },
+      "construction_blocks": {
+        "artifact_id": "6012f54d-826c-4093-b83b-212bdba8c9a4",
+        "kind": "input_construction_blocks",
+        "count": 332,
+        "sha256": "d8784770157bfea280bf0542a7ffa8c20a56fa558a84dc1f2a8eb64eea2ed663",
+        "bytes": 37896,
+        "complete": true
+      },
+      "events": {
+        "artifact_id": "05f207c9-2a41-4d39-9e84-c7c4ac563882",
+        "kind": "intratick_events",
+        "count": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "bytes": 0,
+        "complete": true
+      }
+    },
+    "intratick_events": {
+      "artifact_id": "e10bfd60-3826-455e-8013-e8c814b539b4",
+      "kind": "intratick_events",
+      "count": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "complete": true
+    },
+    "transition_diagnostics": {
+      "status": "running",
+      "cause": "pending_block_ticks",
+      "tick": 1,
+      "last_movement_tick": 0,
+      "recognition_tick": null,
+      "states_equal": true,
+      "internal_events": 0,
+      "external_input_events": 0,
+      "causes": [
+        "pending_block_ticks"
+      ],
+      "rest_scope": "Observed influence and covered prototype components only; not universal memory, restoration or door conformity",
+      "observed_ticks": 1,
+      "pending_ticks": 1,
+      "moving_ticks": 0,
+      "quiet_with_pending_ticks": 1,
+      "maximum_ticks": 60,
+      "process_timeout_seconds": 2400,
+      "tick_limit_kind": "simulation"
+    }
+  },
+  "coverage": {
+    "execution": {
+      "mode": "sprint",
+      "game_ticks": 1,
+      "wall_seconds": 0.1589119,
+      "measured_tps": 6.292794938579175,
+      "nominal_tick_rate": 20.0,
+      "backend": "vanilla_ServerTickManager.startSprint"
+    },
+    "operation_id": "c9a55975-96a2-43d6-ad29-4723d3ba4ca0",
+    "operation": "transition",
+    "attempt_id": "07aa2332-fd1d-4f8c-89d1-6e9ba9a68350",
+    "phase": "simulation",
+    "status": "ok",
+    "ticks_executed": 1,
+    "simulation_ticks": 14,
+    "preparation_ticks": 14,
+    "world_time": 28,
+    "preparation_initial_loaded": false,
+    "preparation_initial_ready": false,
+    "frozen": true,
+    "mutated": true,
+    "diff": {
+      "artifact_id": "e6175f7d-610a-468a-8ab6-4c16dd160cdc",
+      "kind": "initial_final_diff",
+      "count": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "complete": true
+    },
+    "coverage": {
+      "status": "insufficient",
+      "chunks_ready": true,
+      "tracked_positions": 333,
+      "outside_prepared_chunks": [
+        {
+          "x": 1120,
+          "y": 80,
+          "z": 1120
+        }
+      ],
+      "certification": false,
+      "limits": "Vanilla writes, neighbor updates, scheduled/block events and tracked positions are observed. Entity constructions and uninstrumented runtime memory are not certified; no proof of universal influence completeness."
+    },
+    "trace": {
+      "artifact_id": "7a71c0ed-d46c-4e5d-acbb-d7cdee6eb99c",
+      "kind": "trace",
+      "count": 1,
+      "sha256": "38309545a249d519a7ff79a093251aca3f61cf4635b570b25f3021e47e2a353e",
+      "bytes": 2280,
+      "complete": true,
+      "expected_ticks": 1,
+      "start_world_time": 27,
+      "start_simulation_index": 13
+    },
+    "continuity": {
+      "complete": false,
+      "expected": 1,
+      "observed": 1,
+      "problems": [
+        "incomplete or discontinuous observation 1"
+      ]
+    },
+    "initial": {
+      "tick_index": 0,
+      "simulation_index": 13,
+      "phase": "initial",
+      "world_time": 27,
+      "time_of_day": 27,
+      "complete": false,
+      "state": {
+        "block_ticks": [
+          {
+            "x": 1027,
+            "y": 80,
+            "z": 1026,
+            "type": "minecraft:observer",
+            "trigger_tick": 29,
+            "priority": 0,
+            "sub_tick_order": 9
+          },
+          {
+            "x": 1026,
+            "y": 80,
+            "z": 1026,
+            "type": "minecraft:observer",
+            "trigger_tick": 29,
+            "priority": 0,
+            "sub_tick_order": 10
+          },
+          {
+            "x": 1120,
+            "y": 80,
+            "z": 1120,
+            "type": "minecraft:stone",
+            "trigger_tick": 32,
+            "priority": 0,
+            "sub_tick_order": 11
+          }
+        ],
+        "fluid_ticks": [],
+        "block_events": [],
+        "coverage": {
+          "status": "insufficient",
+          "chunks_ready": true,
+          "tracked_positions": 333,
+          "outside_prepared_chunks": [
+            {
+              "x": 1120,
+              "y": 80,
+              "z": 1120
+            }
+          ],
+          "certification": false,
+          "limits": "Vanilla writes, neighbor updates, scheduled/block events and tracked positions are observed. Entity constructions and uninstrumented runtime memory are not certified; no proof of universal influence completeness."
+        },
+        "blocks": {
+          "artifact_id": "444b990e-f6fa-4819-b089-cd804d962b1f",
+          "kind": "snapshot_blocks",
+          "count": 332,
+          "sha256": "1440631c0590c73a7d169a0f6c21abf7e7d568c6f89351d726e8e67b214dff99",
+          "bytes": 37894,
+          "complete": true
+        }
+      },
+      "adapter_blocks": {
+        "artifact_id": "d14bb2e6-5106-43a2-8581-402166b2241e",
+        "kind": "input_adapter_blocks",
+        "count": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "bytes": 0,
+        "complete": true
+      },
+      "construction_blocks": {
+        "artifact_id": "2f0c6143-defa-434b-98b6-b8d2e81fe16c",
+        "kind": "input_construction_blocks",
+        "count": 332,
+        "sha256": "1440631c0590c73a7d169a0f6c21abf7e7d568c6f89351d726e8e67b214dff99",
+        "bytes": 37894,
+        "complete": true
+      },
+      "events": {
+        "artifact_id": "30d0bf13-c294-4ea2-9659-a9f8ffb38934",
+        "kind": "intratick_events",
+        "count": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "bytes": 0,
+        "complete": true
+      }
+    },
+    "final": {
+      "tick_index": 1,
+      "simulation_index": 14,
+      "phase": "final",
+      "world_time": 28,
+      "time_of_day": 28,
+      "complete": false,
+      "state": {
+        "block_ticks": [
+          {
+            "x": 1027,
+            "y": 80,
+            "z": 1026,
+            "type": "minecraft:observer",
+            "trigger_tick": 29,
+            "priority": 0,
+            "sub_tick_order": 9
+          },
+          {
+            "x": 1026,
+            "y": 80,
+            "z": 1026,
+            "type": "minecraft:observer",
+            "trigger_tick": 29,
+            "priority": 0,
+            "sub_tick_order": 10
+          },
+          {
+            "x": 1120,
+            "y": 80,
+            "z": 1120,
+            "type": "minecraft:stone",
+            "trigger_tick": 32,
+            "priority": 0,
+            "sub_tick_order": 11
+          }
+        ],
+        "fluid_ticks": [],
+        "block_events": [],
+        "coverage": {
+          "status": "insufficient",
+          "chunks_ready": true,
+          "tracked_positions": 333,
+          "outside_prepared_chunks": [
+            {
+              "x": 1120,
+              "y": 80,
+              "z": 1120
+            }
+          ],
+          "certification": false,
+          "limits": "Vanilla writes, neighbor updates, scheduled/block events and tracked positions are observed. Entity constructions and uninstrumented runtime memory are not certified; no proof of universal influence completeness."
+        },
+        "blocks": {
+          "artifact_id": "a17ac2f1-04d3-418c-a9cb-6d624cdbc24b",
+          "kind": "snapshot_blocks",
+          "count": 332,
+          "sha256": "1440631c0590c73a7d169a0f6c21abf7e7d568c6f89351d726e8e67b214dff99",
+          "bytes": 37894,
+          "complete": true
+        }
+      },
+      "adapter_blocks": {
+        "artifact_id": "46b8f384-6f27-4a2f-a32e-9077a07f8d04",
+        "kind": "input_adapter_blocks",
+        "count": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "bytes": 0,
+        "complete": true
+      },
+      "construction_blocks": {
+        "artifact_id": "16517ca0-9304-4db7-801e-4fe283733ae1",
+        "kind": "input_construction_blocks",
+        "count": 332,
+        "sha256": "1440631c0590c73a7d169a0f6c21abf7e7d568c6f89351d726e8e67b214dff99",
+        "bytes": 37894,
+        "complete": true
+      },
+      "events": {
+        "artifact_id": "b218e1db-6e07-46e2-8a53-a8b5964c3fd5",
+        "kind": "intratick_events",
+        "count": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "bytes": 0,
+        "complete": true
+      }
+    },
+    "intratick_events": {
+      "artifact_id": "522a0630-4bb9-481d-8180-6ddebe5f54ab",
+      "kind": "intratick_events",
+      "count": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "complete": true
+    },
+    "transition": {
+      "status": "indeterminate",
+      "cause": "insufficient_observation_coverage",
+      "tick": 1,
+      "last_movement_tick": 0,
+      "recognition_tick": null,
+      "states_equal": true,
+      "internal_events": 0,
+      "external_input_events": 0,
+      "causes": [
+        "insufficient_observation_coverage",
+        "pending_block_ticks"
+      ],
+      "rest_scope": "Observed influence and covered prototype components only; not universal memory, restoration or door conformity",
+      "observed_ticks": 1,
+      "pending_ticks": 1,
+      "moving_ticks": 0,
+      "quiet_with_pending_ticks": 1,
+      "maximum_ticks": 36000,
+      "process_timeout_seconds": 2400,
+      "tick_limit_kind": "simulation"
+    }
+  },
+  "clock_short": {
+    "execution": {
+      "mode": "sprint",
+      "game_ticks": 12,
+      "wall_seconds": 0.4487435,
+      "measured_tps": 26.741334414871748,
+      "nominal_tick_rate": 20.0,
+      "backend": "vanilla_ServerTickManager.startSprint"
+    },
+    "operation_id": "ff955aaf-8409-45f7-95a3-34cd082171c2",
+    "operation": "transition",
+    "attempt_id": "bebc22ee-edf0-42cf-93c3-b567b86a86da",
+    "phase": "simulation",
+    "status": "ok",
+    "ticks_executed": 12,
+    "simulation_ticks": 199,
+    "preparation_ticks": 20,
+    "world_time": 219,
+    "preparation_initial_loaded": false,
+    "preparation_initial_ready": false,
+    "frozen": true,
+    "mutated": true,
+    "diff": {
+      "artifact_id": "860c8060-fc2b-4b17-88c5-ff8afd402246",
+      "kind": "initial_final_diff",
+      "count": 2,
+      "sha256": "b0bff0471409ed7a593e7a1c78d3eacc13de323d0485a671221db8c07aeee4f2",
+      "bytes": 219,
+      "complete": true
+    },
+    "coverage": {
+      "status": "observed",
+      "chunks_ready": true,
+      "tracked_positions": 332,
+      "outside_prepared_chunks": [],
+      "certification": false,
+      "limits": "Vanilla writes, neighbor updates, scheduled/block events and tracked positions are observed. Entity constructions and uninstrumented runtime memory are not certified; no proof of universal influence completeness."
+    },
+    "trace": {
+      "artifact_id": "2445904c-1d4f-492b-a233-85c04c5a16a3",
+      "kind": "trace",
+      "count": 12,
+      "sha256": "f0671d8e65f6de61624af8bccfd5e44ea2070b828077876036d908a1060adb67",
+      "bytes": 24639,
+      "complete": true,
+      "expected_ticks": 12,
+      "start_world_time": 207,
+      "start_simulation_index": 187
+    },
+    "continuity": {
+      "complete": true,
+      "expected": 12,
+      "observed": 12,
+      "problems": []
+    },
+    "initial": {
+      "tick_index": 0,
+      "simulation_index": 187,
+      "phase": "initial",
+      "world_time": 207,
+      "time_of_day": 207,
+      "complete": true,
+      "state": {
+        "block_ticks": [
+          {
+            "x": 1026,
+            "y": 80,
+            "z": 1026,
+            "type": "minecraft:observer",
+            "trigger_tick": 209,
+            "priority": 0,
+            "sub_tick_order": 8
+          }
+        ],
+        "fluid_ticks": [],
+        "block_events": [],
+        "coverage": {
+          "status": "observed",
+          "chunks_ready": true,
+          "tracked_positions": 332,
+          "outside_prepared_chunks": [],
+          "certification": false,
+          "limits": "Vanilla writes, neighbor updates, scheduled/block events and tracked positions are observed. Entity constructions and uninstrumented runtime memory are not certified; no proof of universal influence completeness."
+        },
+        "blocks": {
+          "artifact_id": "277a58da-1a67-4711-84a7-ec97c8392fb0",
+          "kind": "snapshot_blocks",
+          "count": 332,
+          "sha256": "d8784770157bfea280bf0542a7ffa8c20a56fa558a84dc1f2a8eb64eea2ed663",
+          "bytes": 37896,
+          "complete": true
+        }
+      },
+      "adapter_blocks": {
+        "artifact_id": "a0f620ad-e78a-486a-b3b1-984e998e3d25",
+        "kind": "input_adapter_blocks",
+        "count": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "bytes": 0,
+        "complete": true
+      },
+      "construction_blocks": {
+        "artifact_id": "3adb4195-75a0-4c4f-95b3-732835686371",
+        "kind": "input_construction_blocks",
+        "count": 332,
+        "sha256": "d8784770157bfea280bf0542a7ffa8c20a56fa558a84dc1f2a8eb64eea2ed663",
+        "bytes": 37896,
+        "complete": true
+      },
+      "events": {
+        "artifact_id": "d645e8b4-5dfe-4bca-9108-69b7dc34d1df",
+        "kind": "intratick_events",
+        "count": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "bytes": 0,
+        "complete": true
+      }
+    },
+    "final": {
+      "tick_index": 12,
+      "simulation_index": 199,
+      "phase": "final",
+      "world_time": 219,
+      "time_of_day": 219,
+      "complete": true,
+      "state": {
+        "block_ticks": [
+          {
+            "x": 1026,
+            "y": 80,
+            "z": 1026,
+            "type": "minecraft:observer",
+            "trigger_tick": 221,
+            "priority": 0,
+            "sub_tick_order": 16
+          }
+        ],
+        "fluid_ticks": [],
+        "block_events": [],
+        "coverage": {
+          "status": "observed",
+          "chunks_ready": true,
+          "tracked_positions": 332,
+          "outside_prepared_chunks": [],
+          "certification": false,
+          "limits": "Vanilla writes, neighbor updates, scheduled/block events and tracked positions are observed. Entity constructions and uninstrumented runtime memory are not certified; no proof of universal influence completeness."
+        },
+        "blocks": {
+          "artifact_id": "408dec22-6d54-41f2-85ce-697406cdb073",
+          "kind": "snapshot_blocks",
+          "count": 332,
+          "sha256": "d8784770157bfea280bf0542a7ffa8c20a56fa558a84dc1f2a8eb64eea2ed663",
+          "bytes": 37896,
+          "complete": true
+        }
+      },
+      "adapter_blocks": {
+        "artifact_id": "b31327d1-0413-400b-92e9-3dd8a84c4c00",
+        "kind": "input_adapter_blocks",
+        "count": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "bytes": 0,
+        "complete": true
+      },
+      "construction_blocks": {
+        "artifact_id": "3c25d5de-ad18-4a28-bdc1-495a0a7808db",
+        "kind": "input_construction_blocks",
+        "count": 332,
+        "sha256": "d8784770157bfea280bf0542a7ffa8c20a56fa558a84dc1f2a8eb64eea2ed663",
+        "bytes": 37896,
+        "complete": true
+      },
+      "events": {
+        "artifact_id": "35142b6b-bbf4-4fb9-b7fc-e605d2a79e87",
+        "kind": "intratick_events",
+        "count": 21,
+        "sha256": "80512000d1a67a20e8de7a7a8ed51fa1feef8b4da55eb480ae808dc140b3ee18",
+        "bytes": 5580,
+        "complete": true
+      }
+    },
+    "intratick_events": {
+      "artifact_id": "8b70e2d7-c11d-44ab-9202-23fd7232d7a3",
+      "kind": "intratick_events",
+      "count": 168,
+      "sha256": "5cb8ea7889ec41a975dceac74a3bd2bdc4c803fa1106d833495a1e16d909ae99",
+      "bytes": 44435,
+      "complete": true
+    },
+    "transition": {
+      "status": "limit_reached",
+      "cause": "simulation_tick_limit",
+      "tick": 12,
+      "last_movement_tick": 12,
+      "recognition_tick": null,
+      "states_equal": false,
+      "internal_events": 32,
+      "external_input_events": 0,
+      "causes": [
+        "pending_block_ticks",
+        "relevant_state_changed",
+        "relevant_events_this_tick"
+      ],
+      "rest_scope": "Observed influence and covered prototype components only; not universal memory, restoration or door conformity",
+      "observed_ticks": 12,
+      "pending_ticks": 12,
+      "moving_ticks": 0,
+      "quiet_with_pending_ticks": 6,
+      "maximum_ticks": 12,
+      "process_timeout_seconds": 2400,
+      "tick_limit_kind": "simulation"
+    }
+  },
+  "clock_full": {
+    "report": {
+      "execution": {
+        "mode": "sprint",
+        "game_ticks": 36000,
+        "wall_seconds": 78.4253275,
+        "measured_tps": 459.035379865006,
+        "nominal_tick_rate": 20.0,
+        "backend": "vanilla_ServerTickManager.startSprint"
+      },
+      "operation_id": "9ad3ab57-d69f-404c-a642-89e04ff12dcf",
+      "operation": "transition",
+      "attempt_id": "bebc22ee-edf0-42cf-93c3-b567b86a86da",
+      "phase": "simulation",
+      "status": "ok",
+      "ticks_executed": 36000,
+      "simulation_ticks": 36199,
+      "preparation_ticks": 20,
+      "world_time": 36219,
+      "preparation_initial_loaded": false,
+      "preparation_initial_ready": false,
+      "frozen": true,
+      "mutated": true,
+      "diff": {
+        "artifact_id": "2999f92a-1b5a-469b-b0d9-2e744002eb1f",
+        "kind": "initial_final_diff",
+        "count": 2,
+        "sha256": "53b8b481bfdf93168a0c5ee62266f2feda80189b0669f0e9d199070fba17d9bc",
+        "bytes": 225,
+        "complete": true
+      },
+      "coverage": {
+        "status": "observed",
+        "chunks_ready": true,
+        "tracked_positions": 332,
+        "outside_prepared_chunks": [],
+        "certification": false,
+        "limits": "Vanilla writes, neighbor updates, scheduled/block events and tracked positions are observed. Entity constructions and uninstrumented runtime memory are not certified; no proof of universal influence completeness."
+      },
+      "initial": {
+        "tick_index": 0,
+        "simulation_index": 199,
+        "phase": "initial",
+        "world_time": 219,
+        "time_of_day": 219,
+        "complete": true,
+        "state": {
+          "block_ticks": [
+            {
+              "x": 1026,
+              "y": 80,
+              "z": 1026,
+              "type": "minecraft:observer",
+              "trigger_tick": 221,
+              "priority": 0,
+              "sub_tick_order": 16
+            }
+          ],
+          "fluid_ticks": [],
+          "block_events": [],
+          "coverage": {
+            "status": "observed",
+            "chunks_ready": true,
+            "tracked_positions": 332,
+            "outside_prepared_chunks": [],
+            "certification": false,
+            "limits": "Vanilla writes, neighbor updates, scheduled/block events and tracked positions are observed. Entity constructions and uninstrumented runtime memory are not certified; no proof of universal influence completeness."
+          },
+          "blocks": {
+            "artifact_id": "290fade4-75db-4183-8f26-ec3d1ed21578",
+            "kind": "snapshot_blocks",
+            "count": 332,
+            "sha256": "d8784770157bfea280bf0542a7ffa8c20a56fa558a84dc1f2a8eb64eea2ed663",
+            "bytes": 37896,
+            "complete": true
+          }
+        },
+        "adapter_blocks": {
+          "artifact_id": "fd431bc5-0674-46aa-bc91-20c750fa7372",
+          "kind": "input_adapter_blocks",
+          "count": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytes": 0,
+          "complete": true
+        },
+        "construction_blocks": {
+          "artifact_id": "b2fb0f92-c6b2-42fa-94ca-a224e43f8ff7",
+          "kind": "input_construction_blocks",
+          "count": 332,
+          "sha256": "d8784770157bfea280bf0542a7ffa8c20a56fa558a84dc1f2a8eb64eea2ed663",
+          "bytes": 37896,
+          "complete": true
+        },
+        "events": {
+          "artifact_id": "546d1980-26c7-4d5b-94d2-3c4d4ec23b52",
+          "kind": "intratick_events",
+          "count": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytes": 0,
+          "complete": true
+        }
+      },
+      "final": {
+        "tick_index": 36000,
+        "simulation_index": 36199,
+        "phase": "final",
+        "world_time": 36219,
+        "time_of_day": 36219,
+        "complete": true,
+        "state": {
+          "block_ticks": [
+            {
+              "x": 1026,
+              "y": 80,
+              "z": 1026,
+              "type": "minecraft:observer",
+              "trigger_tick": 36221,
+              "priority": 0,
+              "sub_tick_order": 24016
+            }
+          ],
+          "fluid_ticks": [],
+          "block_events": [],
+          "coverage": {
+            "status": "observed",
+            "chunks_ready": true,
+            "tracked_positions": 332,
+            "outside_prepared_chunks": [],
+            "certification": false,
+            "limits": "Vanilla writes, neighbor updates, scheduled/block events and tracked positions are observed. Entity constructions and uninstrumented runtime memory are not certified; no proof of universal influence completeness."
+          },
+          "blocks": {
+            "artifact_id": "e7210a80-03ea-4ab3-a2d2-7522a49ddbab",
+            "kind": "snapshot_blocks",
+            "count": 332,
+            "sha256": "d8784770157bfea280bf0542a7ffa8c20a56fa558a84dc1f2a8eb64eea2ed663",
+            "bytes": 37896,
+            "complete": true
+          }
+        },
+        "adapter_blocks": {
+          "artifact_id": "3d532503-1bf1-48f5-b8ef-72a3c60fabbe",
+          "kind": "input_adapter_blocks",
+          "count": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytes": 0,
+          "complete": true
+        },
+        "construction_blocks": {
+          "artifact_id": "835d9bca-fd73-43ea-9505-8891280d3d63",
+          "kind": "input_construction_blocks",
+          "count": 332,
+          "sha256": "d8784770157bfea280bf0542a7ffa8c20a56fa558a84dc1f2a8eb64eea2ed663",
+          "bytes": 37896,
+          "complete": true
+        },
+        "events": {
+          "artifact_id": "af66e2ad-ae75-4f7f-a8a6-39b81d0af6d9",
+          "kind": "intratick_events",
+          "count": 21,
+          "sha256": "5c547213764ef25beb87ad07b8e1d8ad3abc95e43ed81f314fe5df054a7a475d",
+          "bytes": 5837,
+          "complete": true
+        }
+      },
+      "intratick_events": {
+        "artifact_id": "505a4285-da5e-4a80-81ba-401c0fa27640",
+        "kind": "intratick_events",
+        "count": 504000,
+        "sha256": "3a7130644a8d649349c07791232412a162e4a7754a02064acc0402172a0e21f1",
+        "bytes": 139395331,
+        "complete": true
+      },
+      "transition": {
+        "status": "limit_reached",
+        "cause": "simulation_tick_limit",
+        "tick": 36000,
+        "last_movement_tick": 36000,
+        "recognition_tick": null,
+        "states_equal": false,
+        "internal_events": 96000,
+        "external_input_events": 0,
+        "causes": [
+          "pending_block_ticks",
+          "relevant_state_changed",
+          "relevant_events_this_tick"
+        ],
+        "rest_scope": "Observed influence and covered prototype components only; not universal memory, restoration or door conformity",
+        "observed_ticks": 36000,
+        "pending_ticks": 36000,
+        "moving_ticks": 0,
+        "quiet_with_pending_ticks": 18000,
+        "maximum_ticks": 36000,
+        "process_timeout_seconds": 2400,
+        "tick_limit_kind": "simulation"
+      }
+    },
+    "wall_seconds": 78.75
+  },
+  "input_callbacks": [
+    {
+      "mode": "direct",
+      "pressed": {
+        "execution": {
+          "mode": "sprint",
+          "game_ticks": 1,
+          "wall_seconds": 0.1935994,
+          "measured_tps": 5.165305264375819,
+          "nominal_tick_rate": 20.0,
+          "backend": "vanilla_ServerTickManager.startSprint"
+        },
+        "operation_id": "d43af0fc-e2a7-44d7-83b7-ee2a51221477",
+        "operation": "act_input",
+        "attempt_id": "bebc22ee-edf0-42cf-93c3-b567b86a86da",
+        "phase": "simulation",
+        "status": "ok",
+        "ticks_executed": 1,
+        "simulation_ticks": 36224,
+        "preparation_ticks": 20,
+        "world_time": 36244,
+        "preparation_initial_loaded": false,
+        "preparation_initial_ready": false,
+        "frozen": true,
+        "mutated": true,
+        "diff": {
+          "artifact_id": "db225065-5081-4468-bb48-f4894f3f3f89",
+          "kind": "initial_final_diff",
+          "count": 4,
+          "sha256": "d8ab33c26616e82b12cdc96450b56387848f53ca60761bf5624757dd6484230a",
+          "bytes": 794,
+          "complete": true
+        },
+        "coverage": {
+          "status": "observed",
+          "chunks_ready": true,
+          "tracked_positions": 918,
+          "outside_prepared_chunks": [],
+          "certification": false,
+          "limits": "Vanilla writes, neighbor updates, scheduled/block events and tracked positions are observed. Entity constructions and uninstrumented runtime memory are not certified; no proof of universal influence completeness."
+        },
+        "trace": {
+          "artifact_id": "613e66dd-691e-45d7-b37d-a188855ab5b6",
+          "kind": "trace",
+          "count": 1,
+          "sha256": "c3295cd5ab8bcc9ed746486245dab22d7f0ce76149319bd350bde2f727d5eb35",
+          "bytes": 1630,
+          "complete": true,
+          "expected_ticks": 1,
+          "start_world_time": 36243,
+          "start_simulation_index": 36223
+        },
+        "continuity": {
+          "complete": true,
+          "expected": 1,
+          "observed": 1,
+          "problems": []
+        },
+        "initial": {
+          "tick_index": 0,
+          "simulation_index": 36223,
+          "phase": "initial",
+          "world_time": 36243,
+          "time_of_day": 36243,
+          "complete": true,
+          "state": {
+            "block_ticks": [],
+            "fluid_ticks": [],
+            "block_events": [],
+            "coverage": {
+              "status": "observed",
+              "chunks_ready": true,
+              "tracked_positions": 918,
+              "outside_prepared_chunks": [],
+              "certification": false,
+              "limits": "Vanilla writes, neighbor updates, scheduled/block events and tracked positions are observed. Entity constructions and uninstrumented runtime memory are not certified; no proof of universal influence completeness."
+            },
+            "blocks": {
+              "artifact_id": "6f6324aa-07e1-4afa-bed6-a9b22f879d14",
+              "kind": "snapshot_blocks",
+              "count": 918,
+              "sha256": "24d6310d7f8b4352ebeb671c9eeb415fda848bae0f446a57c71b8e120dec85f5",
+              "bytes": 104785,
+              "complete": true
+            }
+          },
+          "adapter_blocks": {
+            "artifact_id": "b8ae05ff-ccff-4406-abb5-c5098661d124",
+            "kind": "input_adapter_blocks",
+            "count": 1,
+            "sha256": "11cdbff73a37fa2d21943589f138af42bc0e86572267797f5af598e349c7b5fc",
+            "bytes": 215,
+            "complete": true
+          },
+          "construction_blocks": {
+            "artifact_id": "376c9df6-5e7c-4a52-bed2-ae002f9bccf4",
+            "kind": "input_construction_blocks",
+            "count": 917,
+            "sha256": "9fdbc7bd8e4b13c030e9490a91f51e84997632d1da4ccadd18d28bb317b5558d",
+            "bytes": 104570,
+            "complete": true
+          },
+          "events": {
+            "artifact_id": "68d4417d-10aa-45a5-8377-7202e4dbbd87",
+            "kind": "intratick_events",
+            "count": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "bytes": 0,
+            "complete": true
+          }
+        },
+        "final": {
+          "tick_index": 1,
+          "simulation_index": 36224,
+          "phase": "final",
+          "world_time": 36244,
+          "time_of_day": 36244,
+          "complete": true,
+          "state": {
+            "block_ticks": [
+              {
+                "x": 1029,
+                "y": 80,
+                "z": 1030,
+                "type": "minecraft:redstone_wall_torch",
+                "trigger_tick": 36245,
+                "priority": 0,
+                "sub_tick_order": 24017
+              },
+              {
+                "x": 1027,
+                "y": 80,
+                "z": 1030,
+                "type": "minecraft:stone_button",
+                "trigger_tick": 36263,
+                "priority": 0,
+                "sub_tick_order": 24018
+              }
+            ],
+            "fluid_ticks": [],
+            "block_events": [],
+            "coverage": {
+              "status": "observed",
+              "chunks_ready": true,
+              "tracked_positions": 918,
+              "outside_prepared_chunks": [],
+              "certification": false,
+              "limits": "Vanilla writes, neighbor updates, scheduled/block events and tracked positions are observed. Entity constructions and uninstrumented runtime memory are not certified; no proof of universal influence completeness."
+            },
+            "blocks": {
+              "artifact_id": "736699fc-fe82-4dd6-871f-e0f1509bed99",
+              "kind": "snapshot_blocks",
+              "count": 918,
+              "sha256": "cb5dd9aca5e8d50af4f2e3e6506d957888b99622e97ffbb17de43802e5b7eb03",
+              "bytes": 104783,
+              "complete": true
+            }
+          },
+          "adapter_blocks": {
+            "artifact_id": "13c5afc4-846e-4b17-bc2e-0153424c76db",
+            "kind": "input_adapter_blocks",
+            "count": 1,
+            "sha256": "9f5e2f783c6ea06c513ae2a133cdc281ce476359ecd92a5347db3c25bfb16803",
+            "bytes": 213,
+            "complete": true
+          },
+          "construction_blocks": {
+            "artifact_id": "8cc2e2ee-d118-4c32-9fb4-9621ecaa34ac",
+            "kind": "input_construction_blocks",
+            "count": 917,
+            "sha256": "9fdbc7bd8e4b13c030e9490a91f51e84997632d1da4ccadd18d28bb317b5558d",
+            "bytes": 104570,
+            "complete": true
+          },
+          "events": {
+            "artifact_id": "0f618f41-2e5b-449d-bde8-6e210aa6e5c7",
+            "kind": "intratick_events",
+            "count": 65,
+            "sha256": "d4c723f2d62653d70aedb808f73fbd2052b8ab47f3f6080787dc24f1531f1ffc",
+            "bytes": 17190,
+            "complete": true
+          }
+        },
+        "intratick_events": {
+          "artifact_id": "e88217c6-1e84-4e17-a4d1-ab4710543f23",
+          "kind": "intratick_events",
+          "count": 65,
+          "sha256": "d4c723f2d62653d70aedb808f73fbd2052b8ab47f3f6080787dc24f1531f1ffc",
+          "bytes": 17190,
+          "complete": true
+        }
+      },
+      "pause": {
+        "execution": {
+          "mode": "sprint",
+          "game_ticks": 5,
+          "wall_seconds": 0.3645751,
+          "measured_tps": 13.714595429035061,
+          "nominal_tick_rate": 20.0,
+          "backend": "vanilla_ServerTickManager.startSprint"
+        },
+        "operation_id": "46e73e31-81d3-4366-812f-f3c0b3e4e666",
+        "operation": "transition",
+        "attempt_id": "bebc22ee-edf0-42cf-93c3-b567b86a86da",
+        "phase": "simulation",
+        "status": "ok",
+        "ticks_executed": 5,
+        "simulation_ticks": 36229,
+        "preparation_ticks": 20,
+        "world_time": 36249,
+        "preparation_initial_loaded": false,
+        "preparation_initial_ready": false,
+        "frozen": true,
+        "mutated": true,
+        "diff": {
+          "artifact_id": "800df7b7-1d7e-482d-b965-ab910fdc7d8d",
+          "kind": "initial_final_diff",
+          "count": 7,
+          "sha256": "2fd64faf84aa78033020102db54e3e3f8515347cb2f01c47ae00a36961c68739",
+          "bytes": 1040,
+          "complete": true
+        },
+        "coverage": {
+          "status": "observed",
+          "chunks_ready": true,
+          "tracked_positions": 918,
+          "outside_prepared_chunks": [],
+          "certification": false,
+          "limits": "Vanilla writes, neighbor updates, scheduled/block events and tracked positions are observed. Entity constructions and uninstrumented runtime memory are not certified; no proof of universal influence completeness."
+        },
+        "trace": {
+          "artifact_id": "48a4953f-9383-4660-93d9-2457f651f4db",
+          "kind": "trace",
+          "count": 5,
+          "sha256": "a392b5f483d2c6e3f11ba06b7e7668c0e6e628392e86e852c4a5f9f195eebd72",
+          "bytes": 10088,
+          "complete": true,
+          "expected_ticks": 5,
+          "start_world_time": 36244,
+          "start_simulation_index": 36224
+        },
+        "continuity": {
+          "complete": true,
+          "expected": 5,
+          "observed": 5,
+          "problems": []
+        },
+        "initial": {
+          "tick_index": 0,
+          "simulation_index": 36224,
+          "phase": "initial",
+          "world_time": 36244,
+          "time_of_day": 36244,
+          "complete": true,
+          "state": {
+            "block_ticks": [
+              {
+                "x": 1029,
+                "y": 80,
+                "z": 1030,
+                "type": "minecraft:redstone_wall_torch",
+                "trigger_tick": 36245,
+                "priority": 0,
+                "sub_tick_order": 24017
+              },
+              {
+                "x": 1027,
+                "y": 80,
+                "z": 1030,
+                "type": "minecraft:stone_button",
+                "trigger_tick": 36263,
+                "priority": 0,
+                "sub_tick_order": 24018
+              }
+            ],
+            "fluid_ticks": [],
+            "block_events": [],
+            "coverage": {
+              "status": "observed",
+              "chunks_ready": true,
+              "tracked_positions": 918,
+              "outside_prepared_chunks": [],
+              "certification": false,
+              "limits": "Vanilla writes, neighbor updates, scheduled/block events and tracked positions are observed. Entity constructions and uninstrumented runtime memory are not certified; no proof of universal influence completeness."
+            },
+            "blocks": {
+              "artifact_id": "e3b1a2c8-9021-4d8b-b253-5ccaffc9dcd4",
+              "kind": "snapshot_blocks",
+              "count": 918,
+              "sha256": "cb5dd9aca5e8d50af4f2e3e6506d957888b99622e97ffbb17de43802e5b7eb03",
+              "bytes": 104783,
+              "complete": true
+            }
+          },
+          "adapter_blocks": {
+            "artifact_id": "ed72bfa5-359d-4068-96fd-9d1adaa77137",
+            "kind": "input_adapter_blocks",
+            "count": 1,
+            "sha256": "9f5e2f783c6ea06c513ae2a133cdc281ce476359ecd92a5347db3c25bfb16803",
+            "bytes": 213,
+            "complete": true
+          },
+          "construction_blocks": {
+            "artifact_id": "0a8b4297-4be4-4f03-a0bd-6fefa1d86984",
+            "kind": "input_construction_blocks",
+            "count": 917,
+            "sha256": "9fdbc7bd8e4b13c030e9490a91f51e84997632d1da4ccadd18d28bb317b5558d",
+            "bytes": 104570,
+            "complete": true
+          },
+          "events": {
+            "artifact_id": "8ff35d60-3a3e-44b5-a18a-dc1590c41941",
+            "kind": "intratick_events",
+            "count": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "bytes": 0,
+            "complete": true
+          }
+        },
+        "final": {
+          "tick_index": 5,
+          "simulation_index": 36229,
+          "phase": "final",
+          "world_time": 36249,
+          "time_of_day": 36249,
+          "complete": true,
+          "state": {
+            "block_ticks": [
+              {
+                "x": 1027,
+                "y": 80,
+                "z": 1030,
+                "type": "minecraft:stone_button",
+                "trigger_tick": 36263,
+                "priority": 0,
+                "sub_tick_order": 24018
+              }
+            ],
+            "fluid_ticks": [],
+            "block_events": [],
+            "coverage": {
+              "status": "observed",
+              "chunks_ready": true,
+              "tracked_positions": 918,
+              "outside_prepared_chunks": [],
+              "certification": false,
+              "limits": "Vanilla writes, neighbor updates, scheduled/block events and tracked positions are observed. Entity constructions and uninstrumented runtime memory are not certified; no proof of universal influence completeness."
+            },
+            "blocks": {
+              "artifact_id": "35358f94-75ae-432a-b855-f10d0cdd099b",
+              "kind": "snapshot_blocks",
+              "count": 918,
+              "sha256": "767b90579a93330f2aa3f11640edd1e5ad9e319e68c40a42066603015cdd2a37",
+              "bytes": 104785,
+              "complete": true
+            }
+          },
+          "adapter_blocks": {
+            "artifact_id": "ec28a767-01b9-4d65-a841-fb6f3f410bef",
+            "kind": "input_adapter_blocks",
+            "count": 1,
+            "sha256": "9f5e2f783c6ea06c513ae2a133cdc281ce476359ecd92a5347db3c25bfb16803",
+            "bytes": 213,
+            "complete": true
+          },
+          "construction_blocks": {
+            "artifact_id": "856c8e63-eb95-415a-aecc-6ed1de6e9bce",
+            "kind": "input_construction_blocks",
+            "count": 917,
+            "sha256": "bb4334b0ea8f3600c248f8ad16b5513a1ba708b21906e5beab945d381cb17dda",
+            "bytes": 104572,
+            "complete": true
+          },
+          "events": {
+            "artifact_id": "1b0c8a62-034d-480d-a27c-87accdf9989f",
+            "kind": "intratick_events",
+            "count": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "bytes": 0,
+            "complete": true
+          }
+        },
+        "intratick_events": {
+          "artifact_id": "c71a53ce-239e-429b-81af-75831b09e1af",
+          "kind": "intratick_events",
+          "count": 109,
+          "sha256": "fda2e6cbb09bd83b03f72033de9a927b03df8dde327129f7613d64e929302a82",
+          "bytes": 28516,
+          "complete": true
+        },
+        "transition": {
+          "status": "limit_reached",
+          "cause": "simulation_tick_limit",
+          "tick": 5,
+          "last_movement_tick": 1,
+          "recognition_tick": null,
+          "states_equal": true,
+          "internal_events": 2,
+          "external_input_events": 0,
+          "causes": [
+            "pending_block_ticks"
+          ],
+          "rest_scope": "Observed influence and covered prototype components only; not universal memory, restoration or door conformity",
+          "observed_ticks": 5,
+          "pending_ticks": 5,
+          "moving_ticks": 0,
+          "quiet_with_pending_ticks": 4,
+          "maximum_ticks": 5,
+          "process_timeout_seconds": 2400,
+          "tick_limit_kind": "simulation"
+        }
+      },
+      "finished": {
+        "execution": {
+          "mode": "sprint",
+          "game_ticks": 17,
+          "wall_seconds": 0.7471507,
+          "measured_tps": 22.753107237937407,
+          "nominal_tick_rate": 20.0,
+          "backend": "vanilla_ServerTickManager.startSprint"
+        },
+        "operation_id": "aec625b5-a392-45a1-9e70-b0f6eb91f4f5",
+        "operation": "transition",
+        "attempt_id": "bebc22ee-edf0-42cf-93c3-b567b86a86da",
+        "phase": "simulation",
+        "status": "ok",
+        "ticks_executed": 17,
+        "simulation_ticks": 36246,
+        "preparation_ticks": 20,
+        "world_time": 36266,
+        "preparation_initial_loaded": false,
+        "preparation_initial_ready": false,
+        "frozen": true,
+        "mutated": true,
+        "diff": {
+          "artifact_id": "454b739c-2a02-4734-bb35-fc796faa97c5",
+          "kind": "initial_final_diff",
+          "count": 5,
+          "sha256": "dbbc74df1d356ecee0b7d9bd8c2a9a830bed35d4c8445768475e218d106f4f55",
+          "bytes": 923,
+          "complete": true
+        },
+        "coverage": {
+          "status": "observed",
+          "chunks_ready": true,
+          "tracked_positions": 918,
+          "outside_prepared_chunks": [],
+          "certification": false,
+          "limits": "Vanilla writes, neighbor updates, scheduled/block events and tracked positions are observed. Entity constructions and uninstrumented runtime memory are not certified; no proof of universal influence completeness."
+        },
+        "trace": {
+          "artifact_id": "17273bfe-cb91-4460-9bf8-c70dc9fdf12c",
+          "kind": "trace",
+          "count": 17,
+          "sha256": "94564b029e1c275507922d3babacea223adbc529686fb72d6e44eef1f11d189d",
+          "bytes": 34089,
+          "complete": true,
+          "expected_ticks": 17,
+          "start_world_time": 36249,
+          "start_simulation_index": 36229
+        },
+        "continuity": {
+          "complete": true,
+          "expected": 17,
+          "observed": 17,
+          "problems": []
+        },
+        "initial": {
+          "tick_index": 0,
+          "simulation_index": 36229,
+          "phase": "initial",
+          "world_time": 36249,
+          "time_of_day": 36249,
+          "complete": true,
+          "state": {
+            "block_ticks": [
+              {
+                "x": 1027,
+                "y": 80,
+                "z": 1030,
+                "type": "minecraft:stone_button",
+                "trigger_tick": 36263,
+                "priority": 0,
+                "sub_tick_order": 24018
+              }
+            ],
+            "fluid_ticks": [],
+            "block_events": [],
+            "coverage": {
+              "status": "observed",
+              "chunks_ready": true,
+              "tracked_positions": 918,
+              "outside_prepared_chunks": [],
+              "certification": false,
+              "limits": "Vanilla writes, neighbor updates, scheduled/block events and tracked positions are observed. Entity constructions and uninstrumented runtime memory are not certified; no proof of universal influence completeness."
+            },
+            "blocks": {
+              "artifact_id": "36fa794a-dbed-4d61-b8e3-897d6b4aea3f",
+              "kind": "snapshot_blocks",
+              "count": 918,
+              "sha256": "767b90579a93330f2aa3f11640edd1e5ad9e319e68c40a42066603015cdd2a37",
+              "bytes": 104785,
+              "complete": true
+            }
+          },
+          "adapter_blocks": {
+            "artifact_id": "a4a15d0d-272d-4620-b241-f6688e12c925",
+            "kind": "input_adapter_blocks",
+            "count": 1,
+            "sha256": "9f5e2f783c6ea06c513ae2a133cdc281ce476359ecd92a5347db3c25bfb16803",
+            "bytes": 213,
+            "complete": true
+          },
+          "construction_blocks": {
+            "artifact_id": "0acbbc51-296e-491b-b1ab-a2f5bb3fc028",
+            "kind": "input_construction_blocks",
+            "count": 917,
+            "sha256": "bb4334b0ea8f3600c248f8ad16b5513a1ba708b21906e5beab945d381cb17dda",
+            "bytes": 104572,
+            "complete": true
+          },
+          "events": {
+            "artifact_id": "20113b50-917e-4566-a410-9f31b484ce5e",
+            "kind": "intratick_events",
+            "count": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "bytes": 0,
+            "complete": true
+          }
+        },
+        "final": {
+          "tick_index": 17,
+          "simulation_index": 36246,
+          "phase": "final",
+          "world_time": 36266,
+          "time_of_day": 36266,
+          "complete": true,
+          "state": {
+            "block_ticks": [],
+            "fluid_ticks": [],
+            "block_events": [],
+            "coverage": {
+              "status": "observed",
+              "chunks_ready": true,
+              "tracked_positions": 918,
+              "outside_prepared_chunks": [],
+              "certification": false,
+              "limits": "Vanilla writes, neighbor updates, scheduled/block events and tracked positions are observed. Entity constructions and uninstrumented runtime memory are not certified; no proof of universal influence completeness."
+            },
+            "blocks": {
+              "artifact_id": "66e127a9-5252-479a-8d94-6adf7959e0a1",
+              "kind": "snapshot_blocks",
+              "count": 918,
+              "sha256": "24d6310d7f8b4352ebeb671c9eeb415fda848bae0f446a57c71b8e120dec85f5",
+              "bytes": 104785,
+              "complete": true
+            }
+          },
+          "adapter_blocks": {
+            "artifact_id": "d598b216-99a2-4564-ac11-d2babe3263f8",
+            "kind": "input_adapter_blocks",
+            "count": 1,
+            "sha256": "11cdbff73a37fa2d21943589f138af42bc0e86572267797f5af598e349c7b5fc",
+            "bytes": 215,
+            "complete": true
+          },
+          "construction_blocks": {
+            "artifact_id": "6a491501-5000-472b-8b47-b2839bc0a1d1",
+            "kind": "input_construction_blocks",
+            "count": 917,
+            "sha256": "9fdbc7bd8e4b13c030e9490a91f51e84997632d1da4ccadd18d28bb317b5558d",
+            "bytes": 104570,
+            "complete": true
+          },
+          "events": {
+            "artifact_id": "9abe1692-bb88-41cc-865c-bf592564d60e",
+            "kind": "intratick_events",
+            "count": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "bytes": 0,
+            "complete": true
+          }
+        },
+        "intratick_events": {
+          "artifact_id": "87303c19-f7dc-48f1-8d81-f7a394f1c486",
+          "kind": "intratick_events",
+          "count": 171,
+          "sha256": "878d5f425eec96ec9fc22c1e508a0398a85ca604d9475407173a29dcac1ee190",
+          "bytes": 45391,
+          "complete": true
+        },
+        "transition": {
+          "status": "terminated",
+          "cause": "quiescent_two_consecutive_states",
+          "tick": 17,
+          "last_movement_tick": 16,
+          "recognition_tick": 17,
+          "states_equal": true,
+          "internal_events": 4,
+          "external_input_events": 3,
+          "causes": [
+            "quiescent_two_consecutive_states"
+          ],
+          "rest_scope": "Observed influence and covered prototype components only; not universal memory, restoration or door conformity",
+          "observed_ticks": 17,
+          "pending_ticks": 15,
+          "moving_ticks": 0,
+          "quiet_with_pending_ticks": 14,
+          "maximum_ticks": 36000,
+          "process_timeout_seconds": 2400,
+          "tick_limit_kind": "simulation"
+        }
+      }
+    },
+    {
+      "mode": "repeater",
+      "pressed": {
+        "execution": {
+          "mode": "sprint",
+          "game_ticks": 1,
+          "wall_seconds": 0.1203773,
+          "measured_tps": 8.30721406776859,
+          "nominal_tick_rate": 20.0,
+          "backend": "vanilla_ServerTickManager.startSprint"
+        },
+        "operation_id": "098bd670-958f-4a8f-aa15-0c53e1f700f5",
+        "operation": "act_input",
+        "attempt_id": "bebc22ee-edf0-42cf-93c3-b567b86a86da",
+        "phase": "simulation",
+        "status": "ok",
+        "ticks_executed": 1,
+        "simulation_ticks": 36259,
+        "preparation_ticks": 20,
+        "world_time": 36279,
+        "preparation_initial_loaded": false,
+        "preparation_initial_ready": false,
+        "frozen": true,
+        "mutated": true,
+        "diff": {
+          "artifact_id": "54fbfe4a-a262-4288-a5bf-314711d31cbb",
+          "kind": "initial_final_diff",
+          "count": 4,
+          "sha256": "c6ba7263a791687e9d20be7be8af0bc667ec39a0c97cc3320229668fb6f43a64",
+          "bytes": 784,
+          "complete": true
+        },
+        "coverage": {
+          "status": "observed",
+          "chunks_ready": true,
+          "tracked_positions": 963,
+          "outside_prepared_chunks": [],
+          "certification": false,
+          "limits": "Vanilla writes, neighbor updates, scheduled/block events and tracked positions are observed. Entity constructions and uninstrumented runtime memory are not certified; no proof of universal influence completeness."
+        },
+        "trace": {
+          "artifact_id": "60dff6fa-d925-49ac-bafd-005a060f53b9",
+          "kind": "trace",
+          "count": 1,
+          "sha256": "cdc5822c729af996df09b94103233eeb5e92336618c08f2a8127d17b42efe991",
+          "bytes": 1620,
+          "complete": true,
+          "expected_ticks": 1,
+          "start_world_time": 36278,
+          "start_simulation_index": 36258
+        },
+        "continuity": {
+          "complete": true,
+          "expected": 1,
+          "observed": 1,
+          "problems": []
+        },
+        "initial": {
+          "tick_index": 0,
+          "simulation_index": 36258,
+          "phase": "initial",
+          "world_time": 36278,
+          "time_of_day": 36278,
+          "complete": true,
+          "state": {
+            "block_ticks": [],
+            "fluid_ticks": [],
+            "block_events": [],
+            "coverage": {
+              "status": "observed",
+              "chunks_ready": true,
+              "tracked_positions": 963,
+              "outside_prepared_chunks": [],
+              "certification": false,
+              "limits": "Vanilla writes, neighbor updates, scheduled/block events and tracked positions are observed. Entity constructions and uninstrumented runtime memory are not certified; no proof of universal influence completeness."
+            },
+            "blocks": {
+              "artifact_id": "74855283-1ae5-4cf3-84de-4ce16231643c",
+              "kind": "snapshot_blocks",
+              "count": 963,
+              "sha256": "40a58af42f17aec6d0cfd3259ef51eee6b707e146248a9126b1c0cd142bfc956",
+              "bytes": 109998,
+              "complete": true
+            }
+          },
+          "adapter_blocks": {
+            "artifact_id": "3ed11f6c-4475-4f8b-90be-fc9fb014e781",
+            "kind": "input_adapter_blocks",
+            "count": 4,
+            "sha256": "037d644ac7457bf16d4dfdc42aee94d7877e0b3a8b07d5d2e36e537b9b79f8bf",
+            "bytes": 682,
+            "complete": true
+          },
+          "construction_blocks": {
+            "artifact_id": "5a20865b-c579-41d9-be36-35f6ff1e4dfe",
+            "kind": "input_construction_blocks",
+            "count": 959,
+            "sha256": "9e5afcf6e4c9495c9fe514d625e41631abb329ab92a787c1b4e8498570d87b24",
+            "bytes": 109316,
+            "complete": true
+          },
+          "events": {
+            "artifact_id": "152978c6-042f-4d9c-ac13-19400401acb0",
+            "kind": "intratick_events",
+            "count": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "bytes": 0,
+            "complete": true
+          }
+        },
+        "final": {
+          "tick_index": 1,
+          "simulation_index": 36259,
+          "phase": "final",
+          "world_time": 36279,
+          "time_of_day": 36279,
+          "complete": true,
+          "state": {
+            "block_ticks": [
+              {
+                "x": 1027,
+                "y": 80,
+                "z": 1030,
+                "type": "minecraft:repeater",
+                "trigger_tick": 36280,
+                "priority": -1,
+                "sub_tick_order": 24020
+              },
+              {
+                "x": 1025,
+                "y": 80,
+                "z": 1030,
+                "type": "minecraft:stone_button",
+                "trigger_tick": 36298,
+                "priority": 0,
+                "sub_tick_order": 24021
+              }
+            ],
+            "fluid_ticks": [],
+            "block_events": [],
+            "coverage": {
+              "status": "observed",
+              "chunks_ready": true,
+              "tracked_positions": 963,
+              "outside_prepared_chunks": [],
+              "certification": false,
+              "limits": "Vanilla writes, neighbor updates, scheduled/block events and tracked positions are observed. Entity constructions and uninstrumented runtime memory are not certified; no proof of universal influence completeness."
+            },
+            "blocks": {
+              "artifact_id": "b289e037-0958-4f45-afbd-bbd0a9097576",
+              "kind": "snapshot_blocks",
+              "count": 963,
+              "sha256": "fc19d524830c32660ed1ebfa010cec247059b8ed647a3d68a1709743b0bb866e",
+              "bytes": 109996,
+              "complete": true
+            }
+          },
+          "adapter_blocks": {
+            "artifact_id": "5283835f-e062-48e9-a181-c317992f69d0",
+            "kind": "input_adapter_blocks",
+            "count": 4,
+            "sha256": "eb09944505442e61684d4f87c1be6f1b8e2203357300a2bb5a284179910311ed",
+            "bytes": 680,
+            "complete": true
+          },
+          "construction_blocks": {
+            "artifact_id": "d846021a-75d0-4338-b292-b029d972612f",
+            "kind": "input_construction_blocks",
+            "count": 959,
+            "sha256": "9e5afcf6e4c9495c9fe514d625e41631abb329ab92a787c1b4e8498570d87b24",
+            "bytes": 109316,
+            "complete": true
+          },
+          "events": {
+            "artifact_id": "7f592792-7e4e-43c9-8714-0e2cea9cfc53",
+            "kind": "intratick_events",
+            "count": 70,
+            "sha256": "21c4fd7e2fee64b717ab72388df9a9ae07c3529a6080222f063ccfa5dafd062c",
+            "bytes": 18626,
+            "complete": true
+          }
+        },
+        "intratick_events": {
+          "artifact_id": "f9e72cf2-a68a-4151-b9e5-8b83fdbece6c",
+          "kind": "intratick_events",
+          "count": 70,
+          "sha256": "21c4fd7e2fee64b717ab72388df9a9ae07c3529a6080222f063ccfa5dafd062c",
+          "bytes": 18626,
+          "complete": true
+        }
+      },
+      "pause": {
+        "execution": {
+          "mode": "sprint",
+          "game_ticks": 5,
+          "wall_seconds": 0.3062095,
+          "measured_tps": 16.328689998187514,
+          "nominal_tick_rate": 20.0,
+          "backend": "vanilla_ServerTickManager.startSprint"
+        },
+        "operation_id": "1e5ab866-8bed-44eb-b1f0-230613fe2ca9",
+        "operation": "transition",
+        "attempt_id": "bebc22ee-edf0-42cf-93c3-b567b86a86da",
+        "phase": "simulation",
+        "status": "ok",
+        "ticks_executed": 5,
+        "simulation_ticks": 36264,
+        "preparation_ticks": 20,
+        "world_time": 36284,
+        "preparation_initial_loaded": false,
+        "preparation_initial_ready": false,
+        "frozen": true,
+        "mutated": true,
+        "diff": {
+          "artifact_id": "95598d7d-2ba1-4b1d-b62d-8ce4a748a8f2",
+          "kind": "initial_final_diff",
+          "count": 10,
+          "sha256": "ee002f5007d79db8d49b3f42a0005c18fffdc4a8b0ab5fe05b6d0d63eb321d22",
+          "bytes": 1511,
+          "complete": true
+        },
+        "coverage": {
+          "status": "observed",
+          "chunks_ready": true,
+          "tracked_positions": 963,
+          "outside_prepared_chunks": [],
+          "certification": false,
+          "limits": "Vanilla writes, neighbor updates, scheduled/block events and tracked positions are observed. Entity constructions and uninstrumented runtime memory are not certified; no proof of universal influence completeness."
+        },
+        "trace": {
+          "artifact_id": "344dea78-4816-4735-8d68-804e3acaf2d7",
+          "kind": "trace",
+          "count": 5,
+          "sha256": "dbcfaa0a454358374a15a7996cc66435b3e8e79f1988bb6ebfc9287a2bf4df51",
+          "bytes": 10393,
+          "complete": true,
+          "expected_ticks": 5,
+          "start_world_time": 36279,
+          "start_simulation_index": 36259
+        },
+        "continuity": {
+          "complete": true,
+          "expected": 5,
+          "observed": 5,
+          "problems": []
+        },
+        "initial": {
+          "tick_index": 0,
+          "simulation_index": 36259,
+          "phase": "initial",
+          "world_time": 36279,
+          "time_of_day": 36279,
+          "complete": true,
+          "state": {
+            "block_ticks": [
+              {
+                "x": 1027,
+                "y": 80,
+                "z": 1030,
+                "type": "minecraft:repeater",
+                "trigger_tick": 36280,
+                "priority": -1,
+                "sub_tick_order": 24020
+              },
+              {
+                "x": 1025,
+                "y": 80,
+                "z": 1030,
+                "type": "minecraft:stone_button",
+                "trigger_tick": 36298,
+                "priority": 0,
+                "sub_tick_order": 24021
+              }
+            ],
+            "fluid_ticks": [],
+            "block_events": [],
+            "coverage": {
+              "status": "observed",
+              "chunks_ready": true,
+              "tracked_positions": 963,
+              "outside_prepared_chunks": [],
+              "certification": false,
+              "limits": "Vanilla writes, neighbor updates, scheduled/block events and tracked positions are observed. Entity constructions and uninstrumented runtime memory are not certified; no proof of universal influence completeness."
+            },
+            "blocks": {
+              "artifact_id": "48c1f8c4-7452-4b6a-818c-4d21093f8901",
+              "kind": "snapshot_blocks",
+              "count": 963,
+              "sha256": "fc19d524830c32660ed1ebfa010cec247059b8ed647a3d68a1709743b0bb866e",
+              "bytes": 109996,
+              "complete": true
+            }
+          },
+          "adapter_blocks": {
+            "artifact_id": "5e5d9e53-4a03-4126-ad94-a8e4ea9393f3",
+            "kind": "input_adapter_blocks",
+            "count": 4,
+            "sha256": "eb09944505442e61684d4f87c1be6f1b8e2203357300a2bb5a284179910311ed",
+            "bytes": 680,
+            "complete": true
+          },
+          "construction_blocks": {
+            "artifact_id": "c10f2cc8-1b44-4e78-9604-f45d80d29635",
+            "kind": "input_construction_blocks",
+            "count": 959,
+            "sha256": "9e5afcf6e4c9495c9fe514d625e41631abb329ab92a787c1b4e8498570d87b24",
+            "bytes": 109316,
+            "complete": true
+          },
+          "events": {
+            "artifact_id": "e6dad006-0df9-49d6-bad8-56d93242129a",
+            "kind": "intratick_events",
+            "count": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "bytes": 0,
+            "complete": true
+          }
+        },
+        "final": {
+          "tick_index": 5,
+          "simulation_index": 36264,
+          "phase": "final",
+          "world_time": 36284,
+          "time_of_day": 36284,
+          "complete": true,
+          "state": {
+            "block_ticks": [
+              {
+                "x": 1025,
+                "y": 80,
+                "z": 1030,
+                "type": "minecraft:stone_button",
+                "trigger_tick": 36298,
+                "priority": 0,
+                "sub_tick_order": 24021
+              }
+            ],
+            "fluid_ticks": [],
+            "block_events": [],
+            "coverage": {
+              "status": "observed",
+              "chunks_ready": true,
+              "tracked_positions": 963,
+              "outside_prepared_chunks": [],
+              "certification": false,
+              "limits": "Vanilla writes, neighbor updates, scheduled/block events and tracked positions are observed. Entity constructions and uninstrumented runtime memory are not certified; no proof of universal influence completeness."
+            },
+            "blocks": {
+              "artifact_id": "3191d205-abfa-4076-ba2c-19b78625227c",
+              "kind": "snapshot_blocks",
+              "count": 963,
+              "sha256": "cd50d706dfe87efecce20785588ba8459767d00250be10ecc48d7240e22a5e00",
+              "bytes": 109996,
+              "complete": true
+            }
+          },
+          "adapter_blocks": {
+            "artifact_id": "09cb323f-a9b6-4e5a-85ae-c9d9b35a208c",
+            "kind": "input_adapter_blocks",
+            "count": 4,
+            "sha256": "e5e67c48d098b8996c4b1c85227b23051333d6c8cf2f9a1e5b42d4a2f7d454a2",
+            "bytes": 678,
+            "complete": true
+          },
+          "construction_blocks": {
+            "artifact_id": "34be1803-c46a-4a23-b77b-80110b3e197f",
+            "kind": "input_construction_blocks",
+            "count": 959,
+            "sha256": "23c59d2f3f853e7506c6a4d0c3b01295ca3e18d699e03681841fa3109f3ba08d",
+            "bytes": 109318,
+            "complete": true
+          },
+          "events": {
+            "artifact_id": "c041dc5e-a4be-4900-894a-dbc14817c1c9",
+            "kind": "intratick_events",
+            "count": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "bytes": 0,
+            "complete": true
+          }
+        },
+        "intratick_events": {
+          "artifact_id": "6bd9cdfa-1227-4238-a34a-449c867c4287",
+          "kind": "intratick_events",
+          "count": 166,
+          "sha256": "bbc179a066431515cecb628169febd1ae0e3ff274ce86213c3baa6fccda0718f",
+          "bytes": 43765,
+          "complete": true
+        },
+        "transition": {
+          "status": "limit_reached",
+          "cause": "simulation_tick_limit",
+          "tick": 5,
+          "last_movement_tick": 3,
+          "recognition_tick": null,
+          "states_equal": true,
+          "internal_events": 5,
+          "external_input_events": 2,
+          "causes": [
+            "pending_block_ticks"
+          ],
+          "rest_scope": "Observed influence and covered prototype components only; not universal memory, restoration or door conformity",
+          "observed_ticks": 5,
+          "pending_ticks": 5,
+          "moving_ticks": 0,
+          "quiet_with_pending_ticks": 3,
+          "maximum_ticks": 5,
+          "process_timeout_seconds": 2400,
+          "tick_limit_kind": "simulation"
+        }
+      },
+      "finished": {
+        "execution": {
+          "mode": "sprint",
+          "game_ticks": 19,
+          "wall_seconds": 0.6759052,
+          "measured_tps": 28.11045099223974,
+          "nominal_tick_rate": 20.0,
+          "backend": "vanilla_ServerTickManager.startSprint"
+        },
+        "operation_id": "8aa07ab8-79ec-4a88-831e-1a6cb17d1ae6",
+        "operation": "transition",
+        "attempt_id": "bebc22ee-edf0-42cf-93c3-b567b86a86da",
+        "phase": "simulation",
+        "status": "ok",
+        "ticks_executed": 19,
+        "simulation_ticks": 36283,
+        "preparation_ticks": 20,
+        "world_time": 36303,
+        "preparation_initial_loaded": false,
+        "preparation_initial_ready": false,
+        "frozen": true,
+        "mutated": true,
+        "diff": {
+          "artifact_id": "8466337e-7d70-488a-bcf0-19c1cc153c98",
+          "kind": "initial_final_diff",
+          "count": 7,
+          "sha256": "09597392575dc0da808d2ec29b0d628fdb5fff4fb676fff97cceeb075ca0eb08",
+          "bytes": 1302,
+          "complete": true
+        },
+        "coverage": {
+          "status": "observed",
+          "chunks_ready": true,
+          "tracked_positions": 963,
+          "outside_prepared_chunks": [],
+          "certification": false,
+          "limits": "Vanilla writes, neighbor updates, scheduled/block events and tracked positions are observed. Entity constructions and uninstrumented runtime memory are not certified; no proof of universal influence completeness."
+        },
+        "trace": {
+          "artifact_id": "da84f2ed-4966-46ac-b971-efefc693f32c",
+          "kind": "trace",
+          "count": 19,
+          "sha256": "50a4be1c531fb8b09fb7540c9d805ec9c31b6ad0653bb9c1e5545c758aa4707e",
+          "bytes": 38168,
+          "complete": true,
+          "expected_ticks": 19,
+          "start_world_time": 36284,
+          "start_simulation_index": 36264
+        },
+        "continuity": {
+          "complete": true,
+          "expected": 19,
+          "observed": 19,
+          "problems": []
+        },
+        "initial": {
+          "tick_index": 0,
+          "simulation_index": 36264,
+          "phase": "initial",
+          "world_time": 36284,
+          "time_of_day": 36284,
+          "complete": true,
+          "state": {
+            "block_ticks": [
+              {
+                "x": 1025,
+                "y": 80,
+                "z": 1030,
+                "type": "minecraft:stone_button",
+                "trigger_tick": 36298,
+                "priority": 0,
+                "sub_tick_order": 24021
+              }
+            ],
+            "fluid_ticks": [],
+            "block_events": [],
+            "coverage": {
+              "status": "observed",
+              "chunks_ready": true,
+              "tracked_positions": 963,
+              "outside_prepared_chunks": [],
+              "certification": false,
+              "limits": "Vanilla writes, neighbor updates, scheduled/block events and tracked positions are observed. Entity constructions and uninstrumented runtime memory are not certified; no proof of universal influence completeness."
+            },
+            "blocks": {
+              "artifact_id": "de9436a4-f04a-4a10-aed6-564d3f9879fe",
+              "kind": "snapshot_blocks",
+              "count": 963,
+              "sha256": "cd50d706dfe87efecce20785588ba8459767d00250be10ecc48d7240e22a5e00",
+              "bytes": 109996,
+              "complete": true
+            }
+          },
+          "adapter_blocks": {
+            "artifact_id": "fe2af87a-8937-4f3a-9739-1c00f2101ccd",
+            "kind": "input_adapter_blocks",
+            "count": 4,
+            "sha256": "e5e67c48d098b8996c4b1c85227b23051333d6c8cf2f9a1e5b42d4a2f7d454a2",
+            "bytes": 678,
+            "complete": true
+          },
+          "construction_blocks": {
+            "artifact_id": "a14a4e50-b78a-4ee2-90fa-47d1a91cfe98",
+            "kind": "input_construction_blocks",
+            "count": 959,
+            "sha256": "23c59d2f3f853e7506c6a4d0c3b01295ca3e18d699e03681841fa3109f3ba08d",
+            "bytes": 109318,
+            "complete": true
+          },
+          "events": {
+            "artifact_id": "5e309b0a-e2f1-4f3d-bd23-2a4be2f508f4",
+            "kind": "intratick_events",
+            "count": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "bytes": 0,
+            "complete": true
+          }
+        },
+        "final": {
+          "tick_index": 19,
+          "simulation_index": 36283,
+          "phase": "final",
+          "world_time": 36303,
+          "time_of_day": 36303,
+          "complete": true,
+          "state": {
+            "block_ticks": [],
+            "fluid_ticks": [],
+            "block_events": [],
+            "coverage": {
+              "status": "observed",
+              "chunks_ready": true,
+              "tracked_positions": 963,
+              "outside_prepared_chunks": [],
+              "certification": false,
+              "limits": "Vanilla writes, neighbor updates, scheduled/block events and tracked positions are observed. Entity constructions and uninstrumented runtime memory are not certified; no proof of universal influence completeness."
+            },
+            "blocks": {
+              "artifact_id": "97eb6253-c842-44f1-a316-d83a1f175b32",
+              "kind": "snapshot_blocks",
+              "count": 963,
+              "sha256": "40a58af42f17aec6d0cfd3259ef51eee6b707e146248a9126b1c0cd142bfc956",
+              "bytes": 109998,
+              "complete": true
+            }
+          },
+          "adapter_blocks": {
+            "artifact_id": "87498660-7819-4c37-8eb2-b47fb9f092ca",
+            "kind": "input_adapter_blocks",
+            "count": 4,
+            "sha256": "037d644ac7457bf16d4dfdc42aee94d7877e0b3a8b07d5d2e36e537b9b79f8bf",
+            "bytes": 682,
+            "complete": true
+          },
+          "construction_blocks": {
+            "artifact_id": "d415d068-5cfc-4633-af81-318e7ac115d6",
+            "kind": "input_construction_blocks",
+            "count": 959,
+            "sha256": "9e5afcf6e4c9495c9fe514d625e41631abb329ab92a787c1b4e8498570d87b24",
+            "bytes": 109316,
+            "complete": true
+          },
+          "events": {
+            "artifact_id": "47460522-e92f-4462-a28b-ae9b45ff3471",
+            "kind": "intratick_events",
+            "count": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "bytes": 0,
+            "complete": true
+          }
+        },
+        "intratick_events": {
+          "artifact_id": "795f7f67-7c25-4413-89e7-81ac1fab2d68",
+          "kind": "intratick_events",
+          "count": 237,
+          "sha256": "5f0d5c280f6497ce12d5877bbdb2c71ca6a6e0255d5122c14a315f8baa0ef6f3",
+          "bytes": 63174,
+          "complete": true
+        },
+        "transition": {
+          "status": "terminated",
+          "cause": "quiescent_two_consecutive_states",
+          "tick": 19,
+          "last_movement_tick": 18,
+          "recognition_tick": 19,
+          "states_equal": true,
+          "internal_events": 5,
+          "external_input_events": 6,
+          "causes": [
+            "quiescent_two_consecutive_states"
+          ],
+          "rest_scope": "Observed influence and covered prototype components only; not universal memory, restoration or door conformity",
+          "observed_ticks": 19,
+          "pending_ticks": 17,
+          "moving_ticks": 0,
+          "quiet_with_pending_ticks": 15,
+          "maximum_ticks": 36000,
+          "process_timeout_seconds": 2400,
+          "tick_limit_kind": "simulation"
+        }
+      }
+    }
+  ],
+  "unexpected_adapter_callback": {
+    "waiting": {
+      "execution": {
+        "mode": "sprint",
+        "game_ticks": 3,
+        "wall_seconds": 0.2311598,
+        "measured_tps": 12.978035108180574,
+        "nominal_tick_rate": 20.0,
+        "backend": "vanilla_ServerTickManager.startSprint"
+      },
+      "operation_id": "47a995e6-7628-4bdc-8710-52bc501611ce",
+      "operation": "transition",
+      "attempt_id": "bebc22ee-edf0-42cf-93c3-b567b86a86da",
+      "phase": "simulation",
+      "status": "ok",
+      "ticks_executed": 3,
+      "simulation_ticks": 36298,
+      "preparation_ticks": 20,
+      "world_time": 36318,
+      "preparation_initial_loaded": false,
+      "preparation_initial_ready": false,
+      "frozen": true,
+      "mutated": true,
+      "diff": {
+        "artifact_id": "b535f583-16ac-4880-87ea-c367944ad8a3",
+        "kind": "initial_final_diff",
+        "count": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "bytes": 0,
+        "complete": true
+      },
+      "coverage": {
+        "status": "observed",
+        "chunks_ready": true,
+        "tracked_positions": 963,
+        "outside_prepared_chunks": [],
+        "certification": false,
+        "limits": "Vanilla writes, neighbor updates, scheduled/block events and tracked positions are observed. Entity constructions and uninstrumented runtime memory are not certified; no proof of universal influence completeness."
+      },
+      "trace": {
+        "artifact_id": "72940e0f-eaf4-455b-b431-51c89363b54e",
+        "kind": "trace",
+        "count": 3,
+        "sha256": "a23ce0d81fb70b879206c779415b93a74b4222dd7caf5612c379448bd3d83540",
+        "bytes": 5999,
+        "complete": true,
+        "expected_ticks": 3,
+        "start_world_time": 36315,
+        "start_simulation_index": 36295
+      },
+      "continuity": {
+        "complete": true,
+        "expected": 3,
+        "observed": 3,
+        "problems": []
+      },
+      "initial": {
+        "tick_index": 0,
+        "simulation_index": 36295,
+        "phase": "initial",
+        "world_time": 36315,
+        "time_of_day": 36315,
+        "complete": true,
+        "state": {
+          "block_ticks": [
+            {
+              "x": 1027,
+              "y": 80,
+              "z": 1030,
+              "type": "minecraft:stone",
+              "trigger_tick": 36320,
+              "priority": 0,
+              "sub_tick_order": 24025
+            }
+          ],
+          "fluid_ticks": [],
+          "block_events": [],
+          "coverage": {
+            "status": "observed",
+            "chunks_ready": true,
+            "tracked_positions": 963,
+            "outside_prepared_chunks": [],
+            "certification": false,
+            "limits": "Vanilla writes, neighbor updates, scheduled/block events and tracked positions are observed. Entity constructions and uninstrumented runtime memory are not certified; no proof of universal influence completeness."
+          },
+          "blocks": {
+            "artifact_id": "15f4923d-f02d-48fa-a1eb-22ac426ef9f9",
+            "kind": "snapshot_blocks",
+            "count": 963,
+            "sha256": "d18f20d70e554d4ce88b69bef7fe697e9b28bae5b2835cf98488d8e869fa8364",
+            "bytes": 109870,
+            "complete": true
+          }
+        },
+        "adapter_blocks": {
+          "artifact_id": "c573b8e0-4cb0-41fc-abbd-884f5cc75e4a",
+          "kind": "input_adapter_blocks",
+          "count": 1,
+          "sha256": "11cdbff73a37fa2d21943589f138af42bc0e86572267797f5af598e349c7b5fc",
+          "bytes": 215,
+          "complete": true
+        },
+        "construction_blocks": {
+          "artifact_id": "11595fd3-ce92-49e4-baf8-e62a03c7c28e",
+          "kind": "input_construction_blocks",
+          "count": 962,
+          "sha256": "9f5c85e71a16e04468e1777d5e0a98bcdfe3128c06a2b82bb8d1085461527078",
+          "bytes": 109655,
+          "complete": true
+        },
+        "events": {
+          "artifact_id": "ac736d7c-439d-4a0a-afa3-a5a1eaec78d6",
+          "kind": "intratick_events",
+          "count": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytes": 0,
+          "complete": true
+        }
+      },
+      "final": {
+        "tick_index": 3,
+        "simulation_index": 36298,
+        "phase": "final",
+        "world_time": 36318,
+        "time_of_day": 36318,
+        "complete": true,
+        "state": {
+          "block_ticks": [
+            {
+              "x": 1027,
+              "y": 80,
+              "z": 1030,
+              "type": "minecraft:stone",
+              "trigger_tick": 36320,
+              "priority": 0,
+              "sub_tick_order": 24025
+            }
+          ],
+          "fluid_ticks": [],
+          "block_events": [],
+          "coverage": {
+            "status": "observed",
+            "chunks_ready": true,
+            "tracked_positions": 963,
+            "outside_prepared_chunks": [],
+            "certification": false,
+            "limits": "Vanilla writes, neighbor updates, scheduled/block events and tracked positions are observed. Entity constructions and uninstrumented runtime memory are not certified; no proof of universal influence completeness."
+          },
+          "blocks": {
+            "artifact_id": "4638d384-e9bb-4615-bc53-15460a05cd9d",
+            "kind": "snapshot_blocks",
+            "count": 963,
+            "sha256": "d18f20d70e554d4ce88b69bef7fe697e9b28bae5b2835cf98488d8e869fa8364",
+            "bytes": 109870,
+            "complete": true
+          }
+        },
+        "adapter_blocks": {
+          "artifact_id": "fa3f79ae-ca59-498c-a8e2-f57290d99845",
+          "kind": "input_adapter_blocks",
+          "count": 1,
+          "sha256": "11cdbff73a37fa2d21943589f138af42bc0e86572267797f5af598e349c7b5fc",
+          "bytes": 215,
+          "complete": true
+        },
+        "construction_blocks": {
+          "artifact_id": "f0e4a095-97b7-47d6-868e-5156c9e49f5c",
+          "kind": "input_construction_blocks",
+          "count": 962,
+          "sha256": "9f5c85e71a16e04468e1777d5e0a98bcdfe3128c06a2b82bb8d1085461527078",
+          "bytes": 109655,
+          "complete": true
+        },
+        "events": {
+          "artifact_id": "122629de-3009-4c8d-9b01-c1660f556460",
+          "kind": "intratick_events",
+          "count": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytes": 0,
+          "complete": true
+        }
+      },
+      "intratick_events": {
+        "artifact_id": "7e5478e1-ee75-4231-aee6-6ca24e33dc73",
+        "kind": "intratick_events",
+        "count": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "bytes": 0,
+        "complete": true
+      },
+      "transition": {
+        "status": "limit_reached",
+        "cause": "simulation_tick_limit",
+        "tick": 3,
+        "last_movement_tick": 0,
+        "recognition_tick": null,
+        "states_equal": true,
+        "internal_events": 0,
+        "external_input_events": 0,
+        "causes": [
+          "pending_block_ticks"
+        ],
+        "rest_scope": "Observed influence and covered prototype components only; not universal memory, restoration or door conformity",
+        "observed_ticks": 3,
+        "pending_ticks": 3,
+        "moving_ticks": 0,
+        "quiet_with_pending_ticks": 3,
+        "maximum_ticks": 3,
+        "process_timeout_seconds": 2400,
+        "tick_limit_kind": "simulation"
+      }
+    },
+    "finished": {
+      "execution": {
+        "mode": "sprint",
+        "game_ticks": 3,
+        "wall_seconds": 0.2306536,
+        "measured_tps": 13.006517132184367,
+        "nominal_tick_rate": 20.0,
+        "backend": "vanilla_ServerTickManager.startSprint"
+      },
+      "operation_id": "9af9aab1-d47f-4fcb-ba5e-e1ba677d218f",
+      "operation": "transition",
+      "attempt_id": "bebc22ee-edf0-42cf-93c3-b567b86a86da",
+      "phase": "simulation",
+      "status": "ok",
+      "ticks_executed": 3,
+      "simulation_ticks": 36301,
+      "preparation_ticks": 20,
+      "world_time": 36321,
+      "preparation_initial_loaded": false,
+      "preparation_initial_ready": false,
+      "frozen": true,
+      "mutated": true,
+      "diff": {
+        "artifact_id": "ff12341a-3ea8-483a-9160-43cfa558420c",
+        "kind": "initial_final_diff",
+        "count": 1,
+        "sha256": "3665087c390581536cb55c1750500b3db435abf3e1113beb55480d222e5539a4",
+        "bytes": 204,
+        "complete": true
+      },
+      "coverage": {
+        "status": "observed",
+        "chunks_ready": true,
+        "tracked_positions": 963,
+        "outside_prepared_chunks": [],
+        "certification": false,
+        "limits": "Vanilla writes, neighbor updates, scheduled/block events and tracked positions are observed. Entity constructions and uninstrumented runtime memory are not certified; no proof of universal influence completeness."
+      },
+      "trace": {
+        "artifact_id": "2b4e58b6-6fe3-48af-9bf6-1d4851f3d791",
+        "kind": "trace",
+        "count": 3,
+        "sha256": "b902bf097f452d2c6af0140ef723e4d2165457d4f612a3d4dfebf1fc60fd5f4c",
+        "bytes": 5827,
+        "complete": true,
+        "expected_ticks": 3,
+        "start_world_time": 36318,
+        "start_simulation_index": 36298
+      },
+      "continuity": {
+        "complete": true,
+        "expected": 3,
+        "observed": 3,
+        "problems": []
+      },
+      "initial": {
+        "tick_index": 0,
+        "simulation_index": 36298,
+        "phase": "initial",
+        "world_time": 36318,
+        "time_of_day": 36318,
+        "complete": true,
+        "state": {
+          "block_ticks": [
+            {
+              "x": 1027,
+              "y": 80,
+              "z": 1030,
+              "type": "minecraft:stone",
+              "trigger_tick": 36320,
+              "priority": 0,
+              "sub_tick_order": 24025
+            }
+          ],
+          "fluid_ticks": [],
+          "block_events": [],
+          "coverage": {
+            "status": "observed",
+            "chunks_ready": true,
+            "tracked_positions": 963,
+            "outside_prepared_chunks": [],
+            "certification": false,
+            "limits": "Vanilla writes, neighbor updates, scheduled/block events and tracked positions are observed. Entity constructions and uninstrumented runtime memory are not certified; no proof of universal influence completeness."
+          },
+          "blocks": {
+            "artifact_id": "1872dcea-45b0-4cf0-b606-5a0ed66d4c72",
+            "kind": "snapshot_blocks",
+            "count": 963,
+            "sha256": "d18f20d70e554d4ce88b69bef7fe697e9b28bae5b2835cf98488d8e869fa8364",
+            "bytes": 109870,
+            "complete": true
+          }
+        },
+        "adapter_blocks": {
+          "artifact_id": "46d81a7c-fd81-451c-a664-0aac4164e317",
+          "kind": "input_adapter_blocks",
+          "count": 1,
+          "sha256": "11cdbff73a37fa2d21943589f138af42bc0e86572267797f5af598e349c7b5fc",
+          "bytes": 215,
+          "complete": true
+        },
+        "construction_blocks": {
+          "artifact_id": "d92f59a2-f74d-4f00-b36b-05b2febdf7bc",
+          "kind": "input_construction_blocks",
+          "count": 962,
+          "sha256": "9f5c85e71a16e04468e1777d5e0a98bcdfe3128c06a2b82bb8d1085461527078",
+          "bytes": 109655,
+          "complete": true
+        },
+        "events": {
+          "artifact_id": "7cf2a9d2-b5cb-434d-bfa5-6118d45fce69",
+          "kind": "intratick_events",
+          "count": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytes": 0,
+          "complete": true
+        }
+      },
+      "final": {
+        "tick_index": 3,
+        "simulation_index": 36301,
+        "phase": "final",
+        "world_time": 36321,
+        "time_of_day": 36321,
+        "complete": true,
+        "state": {
+          "block_ticks": [],
+          "fluid_ticks": [],
+          "block_events": [],
+          "coverage": {
+            "status": "observed",
+            "chunks_ready": true,
+            "tracked_positions": 963,
+            "outside_prepared_chunks": [],
+            "certification": false,
+            "limits": "Vanilla writes, neighbor updates, scheduled/block events and tracked positions are observed. Entity constructions and uninstrumented runtime memory are not certified; no proof of universal influence completeness."
+          },
+          "blocks": {
+            "artifact_id": "78b5a359-e7ff-4542-8b7b-a80d3c53a59f",
+            "kind": "snapshot_blocks",
+            "count": 963,
+            "sha256": "d18f20d70e554d4ce88b69bef7fe697e9b28bae5b2835cf98488d8e869fa8364",
+            "bytes": 109870,
+            "complete": true
+          }
+        },
+        "adapter_blocks": {
+          "artifact_id": "0f72c5e8-a3f8-4094-9da5-9f76b0068f5f",
+          "kind": "input_adapter_blocks",
+          "count": 1,
+          "sha256": "11cdbff73a37fa2d21943589f138af42bc0e86572267797f5af598e349c7b5fc",
+          "bytes": 215,
+          "complete": true
+        },
+        "construction_blocks": {
+          "artifact_id": "f4165e57-cd32-4e4a-99af-85254d171d80",
+          "kind": "input_construction_blocks",
+          "count": 962,
+          "sha256": "9f5c85e71a16e04468e1777d5e0a98bcdfe3128c06a2b82bb8d1085461527078",
+          "bytes": 109655,
+          "complete": true
+        },
+        "events": {
+          "artifact_id": "fd950b72-58cf-4fcd-8314-d315df6c6b7c",
+          "kind": "intratick_events",
+          "count": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytes": 0,
+          "complete": true
+        }
+      },
+      "intratick_events": {
+        "artifact_id": "f780c5b2-ec6e-476c-b71b-6e6f44e9ca06",
+        "kind": "intratick_events",
+        "count": 2,
+        "sha256": "560150515351a3670ad6a0b480bd9c01a3dadaacbb2ec667cb5bca14a82891c5",
+        "bytes": 543,
+        "complete": true
+      },
+      "transition": {
+        "status": "terminated",
+        "cause": "quiescent_two_consecutive_states",
+        "tick": 3,
+        "last_movement_tick": 0,
+        "recognition_tick": 3,
+        "states_equal": true,
+        "internal_events": 1,
+        "external_input_events": 0,
+        "causes": [
+          "quiescent_two_consecutive_states"
+        ],
+        "rest_scope": "Observed influence and covered prototype components only; not universal memory, restoration or door conformity",
+        "observed_ticks": 3,
+        "pending_ticks": 1,
+        "moving_ticks": 0,
+        "quiet_with_pending_ticks": 1,
+        "maximum_ticks": 36000,
+        "process_timeout_seconds": 2400,
+        "tick_limit_kind": "simulation"
+      }
+    }
+  }
+}

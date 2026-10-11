@@ -1,6 +1,7 @@
-"""Real MCP replay of issue #1; the 36000 bound uses genuine 20 TPS unit steps."""
+"""Real MCP replay of issue #1; the 36000 bound uses actual game ticks in the selected cadence."""
 from contextlib import AsyncExitStack
 from datetime import timedelta
+from importlib.metadata import version
 import json
 import os
 from pathlib import Path
@@ -12,10 +13,13 @@ from mcp import ClientSession
 from mcp.client.streamable_http import streamable_http_client
 from integration import TASK_ID, server_urls
 from observation import ObservationRuntimeIntegration
+from input import InputRuntimeIntegration
+from construction import point, placement
 
 
 class TransitionRuntimeIntegration(ObservationRuntimeIntegration):
     async def _connect(self):
+        self.assertEqual(version("mcp"), "1.26.0")
         self.stack = AsyncExitStack()
         await self.stack.__aenter__()
         self.sessions = []
@@ -64,6 +68,7 @@ class TransitionRuntimeIntegration(ObservationRuntimeIntegration):
             await self.hoppers(a)
             await self.coverage_and_chunks(b)
             await self.clock(a)
+            await self.input_callbacks(a)
         finally:
             output = Path(os.environ.get("STONEBENCH_TRANSITION_EVIDENCE", ".runtime/transition-summary.json"))
             output.parent.mkdir(parents=True, exist_ok=True)
@@ -136,6 +141,40 @@ class TransitionRuntimeIntegration(ObservationRuntimeIntegration):
         self.assertEqual(fault["coverage"]["status"], "insufficient")
         self.evidence["coverage"] = await self.transition(session, "indeterminate", 1, trace=True)
 
+    async def input_callbacks(self, session):
+        # Remove the prototype floor through the real construction API before #8's input envelope.
+        await self.fixture(session, "clear")
+        self.assert_ok(await self.call(session, "modify_blocks", {"blocks": [placement(point(x,y,z), "minecraft:air")
+            for x in range(1024,1034) for y in range(79,83) for z in range(1024,1030)], "notify_neighbors": False}))
+        self.evidence["input_callbacks"] = []
+        for mode in ("direct", "repeater"):
+            await InputRuntimeIntegration.fixture(self, session, "torch", "minecraft:stone_button")
+            self.assert_ok(await self.call(session, "prepare_input", {"mode": mode}))
+            press = await self.call(session, "act_input", {"ticks": 1, "trace": True})
+            self.assert_ok(press)
+            paused = await self.call(session, "transition", {"max_ticks": 5, "trace": True})
+            self.assert_ok(paused)
+            self.assertEqual(paused["transition"]["status"], "limit_reached")
+            self.assertTrue(paused["final"]["state"]["block_ticks"])
+            finished = await self.call(session, "transition", {"trace": True})
+            self.assert_ok(finished)
+            self.assertEqual(finished["transition"]["status"], "terminated")
+            self.assertGreater(finished["transition"]["external_input_events"], 0)
+            ticks = await self.pages(session, finished["trace"], 256)
+            self.assertTrue(all(t["rest"]["status"] == "running" for t in ticks[:-1]))
+            self.evidence["input_callbacks"].append({"mode": mode, "pressed": press, "pause": paused, "finished": finished})
+        await InputRuntimeIntegration.fixture(self, session, "torch", "minecraft:stone_button")
+        self.assert_ok(await self.call(session, "__test_transition_external_tick"))
+        waiting = await self.call(session, "transition", {"max_ticks": 3, "trace": True})
+        self.assert_ok(waiting)
+        self.assertEqual(waiting["transition"]["status"], "limit_reached")
+        finished = await self.call(session, "transition", {"trace": True})
+        self.assert_ok(finished)
+        self.assertEqual(finished["transition"]["status"], "terminated")
+        self.assertEqual(finished["transition"]["external_input_events"], 0)
+        self.assertGreater(finished["transition"]["internal_events"], 0)
+        self.evidence["unexpected_adapter_callback"] = {"waiting": waiting, "finished": finished}
+
     async def clock(self, session):
         await self.fixture(session, "clock")
         short = await self.transition(session, "limit_reached", 12, max_ticks=12, trace=True)
@@ -155,6 +194,3 @@ class TransitionRuntimeIntegration(ObservationRuntimeIntegration):
 
 if __name__ == "__main__":
     unittest.main(defaultTest="TransitionRuntimeIntegration", verbosity=2)
-
-
-

@@ -2,6 +2,8 @@ package stonebench;
 
 import com.google.gson.*;
 import java.util.*;
+import java.util.function.Predicate;
+import java.util.function.BiPredicate;
 
 /** Conservative observed rest for Minecraft 1.21.11; not a conformity certificate. */
 public final class Rest {
@@ -11,10 +13,13 @@ public final class Rest {
     private long internalEvents, externalEvents;
     private boolean coverageLost;
     private final Set<String> externalPositions;
+    private final BiPredicate<JsonObject,JsonObject> expectedExternalEvent;
 
-    public Rest(JsonObject initial,Set<String> externalPositions) {
-        previous=initial.deepCopy();this.externalPositions=Set.copyOf(externalPositions);
-        coverageLost=!initial.has("coverage") || !initial.getAsJsonObject("coverage").get("status").getAsString().equals("observed");
+    public Rest(JsonObject initial,Set<String> externalPositions) {this(initial,externalPositions,event->false);}
+    public Rest(JsonObject initial,Set<String> externalPositions,Predicate<JsonObject> expectedExternalEvent) {this(initial,externalPositions,(event,state)->expectedExternalEvent.test(event));}
+    public Rest(JsonObject initial,Set<String> externalPositions,BiPredicate<JsonObject,JsonObject> expectedExternalEvent) {
+        previous=initial.deepCopy();this.externalPositions=Set.copyOf(externalPositions);this.expectedExternalEvent=expectedExternalEvent;
+        coverageLost=!complete(initial);
     }
     public JsonObject accept(JsonObject current,List<JsonObject> events,int tick,int maximum) {
         if(maximum<1 || maximum>MAX_TICKS || tick!=elapsed+1 || tick>maximum) throw new IllegalArgumentException("Transition observations must be consecutive real ticks within 1..36000");
@@ -29,8 +34,9 @@ public final class Rest {
             String kind=event.get("kind").getAsString();
             if(kind.equals("block_state_read")) continue;
             if(kind.equals("block_write_result") && !event.getAsJsonObject("detail").get("changed").getAsBoolean()) continue;
-            if(kind.equals("block_write_requested") && Objects.equals(event.getAsJsonObject("detail").get("before"),event.getAsJsonObject("detail").get("requested"))) continue;
-            boolean external=externalPositions.contains(position(event.getAsJsonObject("position")));
+            if(kind.equals("block_write_requested")) continue; // Actual result and neighbor/events retain effective activity.
+            boolean callback=Set.of("scheduled_block_tick","block_tick_schedule_requested","block_event_callback","block_event_enqueued","scheduled_fluid_tick","fluid_tick_schedule_requested").contains(kind);
+            boolean external=callback?expectedExternalEvent.test(event,current):externalPositions.contains(position(event.getAsJsonObject("position")));
             if(external) externalEvents++;else internalEvents++;
             // External callbacks still prevent a false pause; their future queue is never excluded.
             activity=true;
@@ -77,13 +83,20 @@ public final class Rest {
         else if(!pending && !mobile && !cooldown && !transfer && same && !activity) status="terminated";
         else if(tick==maximum) status="limit_reached";
         if(status.equals("terminated")) causes.add("quiescent_two_consecutive_states");
-        JsonObject result=new JsonObject();result.addProperty("status",status);result.addProperty("tick",tick);result.addProperty("last_movement_tick",lastMovement);
+        String cause=status.equals("terminated")?"quiescent_two_consecutive_states":status.equals("limit_reached")?"simulation_tick_limit":insufficient?"insufficient_observation_coverage":status.equals("indeterminate") && hopper?"hopper_last_tick_time_effect_and_resume_unestablished":status.equals("indeterminate")?"unestablished_runtime_memory":causes.isEmpty()?"awaiting_consecutive_state":causes.get(0).getAsString();
+        JsonObject result=new JsonObject();result.addProperty("status",status);result.addProperty("cause",cause);result.addProperty("tick",tick);result.addProperty("last_movement_tick",lastMovement);
         result.add("recognition_tick",status.equals("terminated")?new JsonPrimitive(tick):JsonNull.INSTANCE);
         result.addProperty("states_equal",same);result.addProperty("internal_events",internalEvents);result.addProperty("external_input_events",externalEvents);result.add("causes",causes);
         result.addProperty("rest_scope","Observed influence and covered prototype components only; not universal memory, restoration or door conformity");
         previous=current.deepCopy();return result;
     }
+    private static boolean complete(JsonObject state) {
+        try {
+            JsonObject coverage=state.getAsJsonObject("coverage");
+            if(!coverage.get("status").getAsString().equals("observed") || !coverage.get("chunks_ready").getAsBoolean() || !state.get("blocks").isJsonObject()) return false;
+            for(String queue:List.of("block_ticks","fluid_ticks","block_events")) if(!state.get(queue).isJsonArray()) return false;
+            return true;
+        } catch(RuntimeException e) {return false;}
+    }
     private static String position(JsonObject value) {return value.get("x").getAsInt()+","+value.get("y").getAsInt()+","+value.get("z").getAsInt();}
 }
-
-

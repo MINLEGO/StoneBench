@@ -2,6 +2,7 @@ package stonebench;
 
 import com.google.gson.*;
 import java.util.*;
+import java.util.function.BiPredicate;
 
 /** One bounded transition, called only after complete real end-of-tick observations. */
 public final class Transition {
@@ -10,9 +11,10 @@ public final class Transition {
     private final Rest rest;
     private JsonObject outcome;
     private int observedTicks,pendingTicks,movingTicks,quietPendingTicks;
-    public Transition(JsonObject initial,int maximum,Set<String> externalInputPositions) {
+    public Transition(JsonObject initial,int maximum,Set<String> externalInputPositions) {this(initial,maximum,externalInputPositions,(event,state)->false);}
+    public Transition(JsonObject initial,int maximum,Set<String> externalInputPositions,BiPredicate<JsonObject,JsonObject> expectedExternalEvent) {
         if(maximum<1 || maximum>Rest.MAX_TICKS) throw new IllegalArgumentException("max_ticks must be within 1..36000");
-        this.maximum=maximum;rest=new Rest(initial,externalInputPositions);
+        this.maximum=maximum;rest=new Rest(initial,externalInputPositions,expectedExternalEvent);
     }
     public boolean tick(JsonObject raw,List<JsonObject> events,int executed) {
         if(outcome!=null && !outcome.get("status").getAsString().equals("running")) throw new IllegalStateException("Transition already finished");
@@ -30,4 +32,3 @@ public final class Transition {
         result.addProperty("tick_limit_kind","simulation");return result;
     }
 }
-
