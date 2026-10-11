@@ -173,6 +173,14 @@ class InputRuntimeIntegration(ObservationRuntimeIntegration):
             self.assert_error(refused,"validation")
             self.assertFalse(refused["mutated"])
             old=[support,source,output]
+        support,source=point(1300,-64,1300),point(1301,-64,1300)
+        await self.modify(s,[placement(support,"minecraft:stone"),placement(source,"minecraft:lever",{"face":"wall","facing":"east"})])
+        self.assert_ok(await self.call(s,"declare_input",{"device":"minecraft:lever","position":source,"orientation":"east","input_block":support}))
+        below=await self.call(s,"prepare_input",{"mode":"repeater"})
+        self.assert_error(below,"validation")
+        self.assertFalse(below["mutated"])
+        self.assertIn("build limits",below["error"]["message"])
+        self.evidence["negative_controls"].append(below)
 
     async def negatives(self,s):
         await self.fixture(s,"torch","minecraft:lever",False)

@@ -67,6 +67,7 @@ public final class Inputs {
         }
         if(world.getBlockState(driver).get(Properties.POWERED) || world.getReceivedRedstonePower(input)!=0) throw new IllegalArgumentException("Adapter preparation requires inactive input");
         BlockPos support=position.offset(outward),remote=support.offset(outward),floor=position.down();
+        for(BlockPos pos:List.of(position,support,remote,floor)) if(!world.isInBuildLimit(pos) || !world.getWorldBorder().contains(pos)) throw new IllegalArgumentException("Adapter coordinate outside vanilla build limits/world border: "+pos);
         for(BlockPos pos:List.of(support,remote,floor)) if(!world.getBlockState(pos).isAir()) throw new IllegalArgumentException("External adapter needs three vacant coordinates: "+pos);
         for(BlockPos center:List.of(position,support,remote,floor)) for(BlockPos nearby:BlockPos.iterate(center.add(-2,-2,-2),center.add(2,2,2))) Observation.track(nearby);
         ADAPTER.addAll(List.of(support,remote,floor));
@@ -78,6 +79,7 @@ public final class Inputs {
         world.setBlockState(support,Blocks.STONE.getDefaultState(),Block.NOTIFY_ALL);
         world.setBlockState(position,Blocks.REPEATER.getDefaultState().with(Properties.HORIZONTAL_FACING,outward).with(Properties.DELAY,1),Block.NOTIFY_ALL);
         world.setBlockState(remote,BlockCatalog.entry(device).block().getDefaultState().with(Properties.BLOCK_FACE,BlockFace.WALL).with(Properties.HORIZONTAL_FACING,outward),Block.NOTIFY_ALL);
+        if(!world.getBlockState(position).isOf(Blocks.REPEATER) || !world.getBlockState(remote).isOf(BlockCatalog.entry(device).block()) || !world.getBlockState(position).canPlaceAt(world,position) || !world.getBlockState(remote).canPlaceAt(world,remote)) throw new IllegalStateException("Vanilla adapter support was lost during preparation");
         driver=remote;mode=selected;
         JsonObject after=construction(Observation.raw(world)),result=describe();JsonArray differences=ObservationComparison.fields(before,after);
         result.add("preservation_differences",Artifacts.write("input_preservation_diff",differences.asList()));result.addProperty("construction_preserved",differences.isEmpty());
@@ -115,3 +117,4 @@ public final class Inputs {
         copy.remove("coverage");return copy;
     }
 }
+
