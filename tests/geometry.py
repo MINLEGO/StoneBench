@@ -60,6 +60,9 @@ class GeometryRuntimeIntegration(StoneBenchRuntimeIntegration):
             self.assertEqual(closed["frame_state"]["status"], "satisfied", "Vanilla actually moved all four door blocks")
             self.assertEqual(closed["door_composition"]["status"], "satisfied", "Rules 2932/31749 canonical quartz")
             self.assertEqual(closed["encadrement"]["status"], "satisfied", "Piston head full inward collision face is valid enclosure")
+            heads = [row for row in self.evidence[-1]["measurement_roles"] if row.get("block") == "minecraft:piston_head"]
+            self.assertTrue(heads)
+            self.assertTrue(all(row["volume_exclusion"] == "retained_wiring" for row in heads), "A physical enclosure role does not erase piston circuitry")
             await self.modify(a, [placement(point(x, y, 1025), "minecraft:air") for x in (1022, 1027) for y in (80, 81)])
             self.assert_ok(await self.call(a, "advance", {"ticks": 8}))
             opened = await self.geometry(a)

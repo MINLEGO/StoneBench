@@ -45,7 +45,7 @@ public final class RegularDoorGeometry {
             minX=Math.min(x,minX);minY=Math.min(y,minY);minZ=Math.min(z,minZ);maxX=Math.max(x,maxX);maxY=Math.max(y,maxY);maxZ=Math.max(z,maxZ);
         }
         JsonArray entities=new JsonArray();if(!cells.isEmpty())for(var e:world.getOtherEntities(null,new Box(minX,minY,minZ,maxX+1,maxY+1,maxZ+1))) {JsonObject row=new JsonObject();row.addProperty("uuid",e.getUuidAsString());row.addProperty("type",net.minecraft.registry.Registries.ENTITY_TYPE.getId(e.getType()).toString());entities.add(row);}
-                JsonObject liveInput=input==null?null:input.deepCopy();
+        JsonObject liveInput=input==null?null:input.deepCopy();
         if(liveInput!=null) {
             JsonObject device=liveInput.getAsJsonObject("driver"),support=liveInput.getAsJsonObject("input_block");
             BlockPos dp=new BlockPos(device.get("x").getAsInt(),device.get("y").getAsInt(),device.get("z").getAsInt()),ip=new BlockPos(support.get("x").getAsInt(),support.get("y").getAsInt(),support.get("z").getAsInt());
@@ -68,7 +68,7 @@ public final class RegularDoorGeometry {
                 JsonObject role=c.json();role.addProperty("role","frame_interior");role.addProperty("volume_exclusion",f.expected.equals("closed")?"hallway_nonopen":"conditional_open_pattern");exclusions.add(role);
             } else if(f.ring(c)) {
                 if(!c.collision)ringMissing.add(c.json());else if(!c.enclosureFace)ringUnusual.add(c.json());
-                JsonObject role=c.json();role.addProperty("role","physical_encadrement");role.addProperty("volume_exclusion","conditional_frame_or_hallway_role; never arbitrary circuit exclusion");exclusions.add(role);
+                JsonObject role=c.json();role.addProperty("role","physical_encadrement");role.addProperty("volume_exclusion",c.block.equals("minecraft:piston_head")||c.block.equals("minecraft:moving_piston")?"retained_wiring":"conditional_frame_or_hallway_role; never arbitrary circuit exclusion");exclusions.add(role);
             }
         }
         for(Cell c:cells)if(f.interior(c)&&!f.layer(c)&&c.collision)obstructions.add(c.json());
