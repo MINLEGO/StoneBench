@@ -1,0 +1,42 @@
+[
+  {
+    "archive": "docs/evidence/issue-7/observation-server-1-artifacts.zip",
+    "sha256": "2953734bcb03ac66196de6949cb02314636cb7f586df4d96b3049a3d6fcae549",
+    "artifacts": 81,
+    "entries": 7058,
+    "traces": [
+      {
+        "artifact_id": "5a214933-3ef5-4c0f-850a-a9095fc193ac",
+        "expected_ticks": 2,
+        "observations": 2,
+        "complete": true
+      },
+      {
+        "artifact_id": "5c43b4dc-908f-426b-8a39-2cb11592300f",
+        "expected_ticks": 12,
+        "observations": 12,
+        "complete": true
+      }
+    ]
+  },
+  {
+    "archive": "docs/evidence/issue-7/observation-server-2-artifacts.zip",
+    "sha256": "9914db6b44db6c6f5a8dd648ed3f3964cff62b538b1cd0c1932530d842289327",
+    "artifacts": 29,
+    "entries": 12,
+    "traces": [
+      {
+        "artifact_id": "3d04f156-3e76-48d0-9a21-b952cf96d68c",
+        "expected_ticks": 1,
+        "observations": 1,
+        "complete": false
+      },
+      {
+        "artifact_id": "fc9dfb7c-027e-4db3-9d52-e37d64ccddb2",
+        "expected_ticks": 40,
+        "observations": 2,
+        "complete": false
+      }
+    ]
+  }
+]

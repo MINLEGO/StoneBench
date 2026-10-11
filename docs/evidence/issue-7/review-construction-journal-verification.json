@@ -1,0 +1,115 @@
+{
+  "status": "ok",
+  "journals": [
+    {
+      "attempt_id": "6dccb431-7a66-4a94-84f4-898219914e28",
+      "operations": 93,
+      "simulation_ticks": 27,
+      "preparation_ticks": 9,
+      "world_time": 36,
+      "errors": [
+        {
+          "code": "invalid_arguments",
+          "ticks_executed": 0
+        },
+        {
+          "code": "invalid_arguments",
+          "ticks_executed": 0
+        },
+        {
+          "code": "invalid_arguments",
+          "ticks_executed": 0
+        },
+        {
+          "code": "invalid_arguments",
+          "ticks_executed": 0
+        },
+        {
+          "code": "invalid_arguments",
+          "ticks_executed": 0
+        },
+        {
+          "code": "invalid_arguments",
+          "ticks_executed": 0
+        },
+        {
+          "code": "invalid_arguments",
+          "ticks_executed": 0
+        },
+        {
+          "code": "invalid_arguments",
+          "ticks_executed": 0
+        },
+        {
+          "code": "invalid_arguments",
+          "ticks_executed": 0
+        },
+        {
+          "code": "invalid_arguments",
+          "ticks_executed": 0
+        },
+        {
+          "code": "unsupported_component",
+          "ticks_executed": 0
+        },
+        {
+          "code": "invalid_arguments",
+          "ticks_executed": 0
+        },
+        {
+          "code": "invalid_arguments",
+          "ticks_executed": 0
+        },
+        {
+          "code": "invalid_arguments",
+          "ticks_executed": 0
+        },
+        {
+          "code": "invalid_arguments",
+          "ticks_executed": 0
+        },
+        {
+          "code": "invalid_arguments",
+          "ticks_executed": 0
+        },
+        {
+          "code": "invalid_arguments",
+          "ticks_executed": 0
+        },
+        {
+          "code": "invalid_arguments",
+          "ticks_executed": 0
+        },
+        {
+          "code": "invalid_arguments",
+          "ticks_executed": 0
+        },
+        {
+          "code": "invalid_arguments",
+          "ticks_executed": 0
+        },
+        {
+          "code": "chunks_unavailable",
+          "ticks_executed": 1
+        }
+      ]
+    },
+    {
+      "attempt_id": "168f24c4-ed87-41f2-bd59-21f61073db8c",
+      "operations": 36,
+      "simulation_ticks": 16,
+      "preparation_ticks": 11,
+      "world_time": 27,
+      "errors": [
+        {
+          "code": "server_error",
+          "ticks_executed": 0
+        },
+        {
+          "code": "invalid_arguments",
+          "ticks_executed": 0
+        }
+      ]
+    }
+  ]
+}

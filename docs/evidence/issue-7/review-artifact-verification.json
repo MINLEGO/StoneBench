@@ -1,0 +1,126 @@
+[
+  {
+    "archive": "C:\\Users\\minle\\.codex\\worktrees\\issue-7\\StoneBench\\docs\\evidence\\issue-7\\review-construction-server-1-artifacts.zip",
+    "sha256": "17755cc26ab11ee7ebc9c397c03e3973c73d150a6da682b37825ca05f2a33769",
+    "artifacts": 84,
+    "entries": 38761,
+    "traces": []
+  },
+  {
+    "archive": "C:\\Users\\minle\\.codex\\worktrees\\issue-7\\StoneBench\\docs\\evidence\\issue-7\\review-construction-server-2-artifacts.zip",
+    "sha256": "130028f16840612c48469c51e90789df8b8ab249a90ab99bfb153a6f6ecd5f64",
+    "artifacts": 112,
+    "entries": 2840,
+    "traces": []
+  },
+  {
+    "archive": "C:\\Users\\minle\\.codex\\worktrees\\issue-7\\StoneBench\\docs\\evidence\\issue-7\\review-fluid-server-1-artifacts.zip",
+    "sha256": "24c24f77821bb000225958eafa29d7638118210479b7b56baf30d87418e0a1a6",
+    "artifacts": 27,
+    "entries": 220,
+    "traces": [
+      {
+        "artifact_id": "35708b0a-b4c4-4f1c-8ad3-22f754087754",
+        "expected_ticks": 6,
+        "observations": 6,
+        "complete": true
+      }
+    ]
+  },
+  {
+    "archive": "C:\\Users\\minle\\.codex\\worktrees\\issue-7\\StoneBench\\docs\\evidence\\issue-7\\review-fluid-server-2-artifacts.zip",
+    "sha256": "c178d5f224c7b24a919ca6762600ec94e0b7eb3b4d010fc5025014d3a6f82444",
+    "artifacts": 27,
+    "entries": 220,
+    "traces": [
+      {
+        "artifact_id": "56a1a77d-c978-46b2-b950-98a2a8d03895",
+        "expected_ticks": 6,
+        "observations": 6,
+        "complete": true
+      }
+    ]
+  },
+  {
+    "archive": "C:\\Users\\minle\\.codex\\worktrees\\issue-7\\StoneBench\\docs\\evidence\\issue-7\\review-integration-server-1-artifacts.zip",
+    "sha256": "51471ef0b4821c0ef2511fdc62b992165e0149c8ff5b55638690a3f94ebabb5c",
+    "artifacts": 28,
+    "entries": 8,
+    "traces": []
+  },
+  {
+    "archive": "C:\\Users\\minle\\.codex\\worktrees\\issue-7\\StoneBench\\docs\\evidence\\issue-7\\review-integration-server-2-artifacts.zip",
+    "sha256": "3c4c3596dec1ae58a85cf5b9703f893aead502c1541d933e3a0b2060b6bbbadd",
+    "artifacts": 7,
+    "entries": 4,
+    "traces": []
+  },
+  {
+    "archive": "C:\\Users\\minle\\.codex\\worktrees\\issue-7\\StoneBench\\docs\\evidence\\issue-7\\review-observation-server-1-artifacts.zip",
+    "sha256": "63a69ab9cf8b63ae5646d697d650d9fcc35337fb1d06c236dfe6c9ff89008aac",
+    "artifacts": 81,
+    "entries": 7058,
+    "traces": [
+      {
+        "artifact_id": "4e76fb49-3c3c-44de-8095-780ac53aff6d",
+        "expected_ticks": 12,
+        "observations": 12,
+        "complete": true
+      },
+      {
+        "artifact_id": "b6395a6f-63a8-4dc5-a072-9c56248991d2",
+        "expected_ticks": 2,
+        "observations": 2,
+        "complete": true
+      }
+    ]
+  },
+  {
+    "archive": "C:\\Users\\minle\\.codex\\worktrees\\issue-7\\StoneBench\\docs\\evidence\\issue-7\\review-observation-server-2-artifacts.zip",
+    "sha256": "31d9b5bd53a957d02363de509e54f26975212d40b157bd454136a8255cd5573d",
+    "artifacts": 29,
+    "entries": 12,
+    "traces": [
+      {
+        "artifact_id": "4cccfee1-9105-40fc-970d-90f317821fda",
+        "expected_ticks": 40,
+        "observations": 2,
+        "complete": false
+      },
+      {
+        "artifact_id": "72c317ad-1080-4fd8-9d8a-be1ef329d3c4",
+        "expected_ticks": 1,
+        "observations": 1,
+        "complete": false
+      }
+    ]
+  },
+  {
+    "archive": "C:\\Users\\minle\\.codex\\worktrees\\issue-7\\StoneBench\\docs\\evidence\\issue-7\\review-recovery-server-1-artifacts.zip",
+    "sha256": "1869e06e423a93ea85a353344ba95126fb6f03375166c45ad631f92f87b9aacd",
+    "artifacts": 15,
+    "entries": 3075,
+    "traces": [
+      {
+        "artifact_id": "405b3c78-ebb4-49a1-8f10-d22c7ca36750",
+        "expected_ticks": 3,
+        "observations": 3,
+        "complete": true
+      }
+    ]
+  },
+  {
+    "archive": "C:\\Users\\minle\\.codex\\worktrees\\issue-7\\StoneBench\\docs\\evidence\\issue-7\\review-recovery-server-2-artifacts.zip",
+    "sha256": "c2db0f046e820186fdfcdbd119c9f3418c1e9f4d343ee4ac22d9f3728e6ec551",
+    "artifacts": 15,
+    "entries": 3075,
+    "traces": [
+      {
+        "artifact_id": "9be23dab-5047-453d-8d69-c6873a76e4da",
+        "expected_ticks": 3,
+        "observations": 3,
+        "complete": true
+      }
+    ]
+  }
+]

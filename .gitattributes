@@ -1,1 +1,5 @@
 docs/evidence/issue-5/**/*.jsonl text eol=lf
+# Diagnostic artifacts and manifest hashes must survive Windows checkout byte-for-byte.
+docs/evidence/issue-7/** -text whitespace=cr-at-eol
+# Raw console output retains whitespace emitted by Gradle/Minecraft.
+docs/evidence/issue-7/*.txt -whitespace

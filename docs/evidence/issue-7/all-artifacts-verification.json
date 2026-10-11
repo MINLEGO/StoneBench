@@ -1,0 +1,84 @@
+[
+  {
+    "archive": "C:\\Users\\minle\\.codex\\worktrees\\issue-7\\StoneBench\\docs\\evidence\\issue-7\\observation-server-1-artifacts.zip",
+    "sha256": "2953734bcb03ac66196de6949cb02314636cb7f586df4d96b3049a3d6fcae549",
+    "artifacts": 81,
+    "entries": 7058,
+    "traces": [
+      {
+        "artifact_id": "5a214933-3ef5-4c0f-850a-a9095fc193ac",
+        "expected_ticks": 2,
+        "observations": 2,
+        "complete": true
+      },
+      {
+        "artifact_id": "5c43b4dc-908f-426b-8a39-2cb11592300f",
+        "expected_ticks": 12,
+        "observations": 12,
+        "complete": true
+      }
+    ]
+  },
+  {
+    "archive": "C:\\Users\\minle\\.codex\\worktrees\\issue-7\\StoneBench\\docs\\evidence\\issue-7\\observation-server-2-artifacts.zip",
+    "sha256": "9914db6b44db6c6f5a8dd648ed3f3964cff62b538b1cd0c1932530d842289327",
+    "artifacts": 29,
+    "entries": 12,
+    "traces": [
+      {
+        "artifact_id": "3d04f156-3e76-48d0-9a21-b952cf96d68c",
+        "expected_ticks": 1,
+        "observations": 1,
+        "complete": false
+      },
+      {
+        "artifact_id": "fc9dfb7c-027e-4db3-9d52-e37d64ccddb2",
+        "expected_ticks": 40,
+        "observations": 2,
+        "complete": false
+      }
+    ]
+  },
+  {
+    "archive": "C:\\Users\\minle\\.codex\\worktrees\\issue-7\\StoneBench\\docs\\evidence\\issue-7\\regression-5-final-server-1-artifacts.zip",
+    "sha256": "afb65e6f233c4414e5978cf23aceaae62f1f7112fcbf90910861a224391b02fc",
+    "artifacts": 28,
+    "entries": 8,
+    "traces": []
+  },
+  {
+    "archive": "C:\\Users\\minle\\.codex\\worktrees\\issue-7\\StoneBench\\docs\\evidence\\issue-7\\regression-5-final-server-2-artifacts.zip",
+    "sha256": "b0be5da781b95af9132f3fc934e4967d67c2276505dd8ea3e8f7bde53fdbe63d",
+    "artifacts": 7,
+    "entries": 4,
+    "traces": []
+  },
+  {
+    "archive": "C:\\Users\\minle\\.codex\\worktrees\\issue-7\\StoneBench\\docs\\evidence\\issue-7\\regression-5-full-server-1-artifacts.zip",
+    "sha256": "3a47955efa0e1c9631a4ec824d63703e88dbdd058cb604f15407935565b1aa6a",
+    "artifacts": 28,
+    "entries": 8,
+    "traces": []
+  },
+  {
+    "archive": "C:\\Users\\minle\\.codex\\worktrees\\issue-7\\StoneBench\\docs\\evidence\\issue-7\\regression-5-full-server-2-artifacts.zip",
+    "sha256": "991cba08ebbf51f9569104643a25a2326bd04243380182266f1a21962870317f",
+    "artifacts": 7,
+    "entries": 4,
+    "traces": []
+  },
+  {
+    "archive": "C:\\Users\\minle\\.codex\\worktrees\\issue-7\\StoneBench\\docs\\evidence\\issue-7\\regression-6-final-server-1-artifacts.zip",
+    "sha256": "1735c79a2aaab7ca08a6befdd34ce1fe23f755317b9c9cd37f1a5ef8fda0aed4",
+    "artifacts": 84,
+    "entries": 38761,
+    "traces": []
+  },
+  {
+    "archive": "C:\\Users\\minle\\.codex\\worktrees\\issue-7\\StoneBench\\docs\\evidence\\issue-7\\regression-6-final-server-2-artifacts.zip",
+    "sha256": "1d04b41217c26dc61b1f64dd79431f2e9c0d1d50e5b28b254de78195f1bcbfe2",
+    "artifacts": 112,
+    "entries": 2840,
+    "traces": []
+  }
+]

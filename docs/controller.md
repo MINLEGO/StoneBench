@@ -2,7 +2,7 @@
 
 Each attempt uses its own fresh server process and directory. Start two processes for two attempts; never reuse a world directory for a new attempt. `start_attempt` fails if that server already has an attempt. Its immutable `stonebench/attempt.json` records geometry, environment, preparation and identity. Every operation is appended to `stonebench/operations.jsonl`.
 
-Production catalog: `start_attempt`, `describe_task`, `read_blocks`, `describe_blocks`, `modify_blocks`, `advance`. Streamable HTTP endpoint: `http://127.0.0.1:18765/mcp`. MCP protocol versions 2025-11-25, 2025-06-18 and 2025-03-26 are supported; initialization, notifications, tool discovery/calls and ping use JSON-RPC. Responses use JSON rather than the optional SSE stream; GET/DELETE return 405. Local Origin headers are validated. Server console logs are separate from MCP. See the [MCP transport specification](https://modelcontextprotocol.io/specification/2025-11-25/basic/transports).
+Production catalog: `start_attempt`, `describe_task`, `read_blocks`, `read_region`, `read_artifact`, `compare_traces`, `describe_blocks`, `modify_blocks`, `advance`. Streamable HTTP endpoint: `http://127.0.0.1:18765/mcp`. MCP protocol versions 2025-11-25, 2025-06-18 and 2025-03-26 are supported; initialization, notifications, tool discovery/calls and ping use JSON-RPC. Responses use JSON rather than the optional SSE stream; GET/DELETE return 405. Local Origin headers are validated. Server console logs are separate from MCP. See the [MCP transport specification](https://modelcontextprotocol.io/specification/2025-11-25/basic/transports).
 
 ```json
 {"name":"start_attempt","arguments":{"task_id":"2x2-volume","budget_tokens":100000}}
@@ -20,11 +20,11 @@ Each tool returns MCP `structuredContent` and equivalent text, with `operation_i
 
 Pinned environment: Minecraft 1.21.11, Yarn 1.21.11+build.3, Fabric Loader 0.19.5, Loom 1.14.10, Gradle 9.2.1, Java target 21. The launch scripts default to installed JDK 21.0.12. Seed 731928, flat air generator, no structures, no players, view/simulation distance 2, no automatic empty-server pause. Effective random tick speed 0, mob spawning false and weather advance false are set through vanilla rules and recorded. All eight tasks use these settings.
 
-`-Dstonebench.test=true` adds isolated fixture/fault tools solely for disposable integration servers. They never appear in the production catalog. Removing forced chunk tickets exercises real readiness loss; no readiness boolean is mocked. Ordered construction and inventory tools are described below. Typed internal NBT observation, per-tick traces/diffs, checkpointing, conformity and Inspect are subsequent tickets; this controller does not claim those capabilities.
+`-Dstonebench.test=true` adds isolated fixture/fault tools solely for disposable integration servers. They never appear in the production catalog. Removing forced chunk tickets exercises real readiness loss; no readiness boolean is mocked. Ordered construction and inventory tools are described below. Typed NBT, per-tick observations and diffs are available as recoverable artifacts; see docs/observation.md. Checkpointing, conformity and Inspect are subsequent tickets.
 
 ## Ordered construction lots
 
-`describe_blocks` publishes the explicit supported ids, configurable property values, computed state properties and inventory capacity. An unsupported component returns `kind=unsupported, code=unsupported_component`; coverage is a construction API limit, not a conformity rule. Raw block states, NBT, data components, piston progression, power, locks, cooldowns and internal timestamps cannot be injected. Typed internal block-entity observation belongs to the subsequent observation ticket; the catalog labels those fields accordingly.
+`describe_blocks` publishes the explicit supported ids, configurable property values, computed state properties and inventory capacity. An unsupported component returns `kind=unsupported, code=unsupported_component`; coverage is a construction API limit, not a conformity rule. Raw block states, NBT, data components, piston progression, power, locks, cooldowns and internal timestamps cannot be injected. Typed internal block-entity observation is read-only; see docs/observation.md for observed runtime fields and explicit certification limits.
 
 ```json
 {"name":"modify_blocks","arguments":{"blocks":[{"x":1024,"y":80,"z":1024,"block":"minecraft:redstone_wire"},{"x":1024,"y":79,"z":1024,"block":"minecraft:stone"}],"notify_neighbors":true}}
