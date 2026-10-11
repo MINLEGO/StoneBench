@@ -45,7 +45,16 @@ public final class RegularDoorGeometry {
             minX=Math.min(x,minX);minY=Math.min(y,minY);minZ=Math.min(z,minZ);maxX=Math.max(x,maxX);maxY=Math.max(y,maxY);maxZ=Math.max(z,maxZ);
         }
         JsonArray entities=new JsonArray();if(!cells.isEmpty())for(var e:world.getOtherEntities(null,new Box(minX,minY,minZ,maxX+1,maxY+1,maxZ+1))) {JsonObject row=new JsonObject();row.addProperty("uuid",e.getUuidAsString());row.addProperty("type",net.minecraft.registry.Registries.ENTITY_TYPE.getId(e.getType()).toString());entities.add(row);}
-        JsonObject report=evaluate(task,args,cells,raw.getAsJsonObject("coverage"),input,entities);report.addProperty("world_time",world.getTime());report.addProperty("frozen_snapshot",true);return report;
+                JsonObject liveInput=input==null?null:input.deepCopy();
+        if(liveInput!=null) {
+            JsonObject device=liveInput.getAsJsonObject("driver"),support=liveInput.getAsJsonObject("input_block");
+            BlockPos dp=new BlockPos(device.get("x").getAsInt(),device.get("y").getAsInt(),device.get("z").getAsInt()),ip=new BlockPos(support.get("x").getAsInt(),support.get("y").getAsInt(),support.get("z").getAsInt());
+            BlockState ds=world.getBlockState(dp);Direction outward=Direction.byId(liveInput.get("orientation").getAsString());
+            boolean valid=outward!=null&&outward.getAxis().isHorizontal()&&net.minecraft.registry.Registries.BLOCK.getId(ds.getBlock()).toString().equals(liveInput.get("device").getAsString())&&ds.contains(net.minecraft.state.property.Properties.BLOCK_FACE)&&ds.get(net.minecraft.state.property.Properties.BLOCK_FACE)==net.minecraft.block.enums.BlockFace.WALL&&ds.get(net.minecraft.state.property.Properties.HORIZONTAL_FACING)==outward&&ds.canPlaceAt(world,dp)&&!world.getBlockState(ip).isAir();
+            if(valid)for(Cell c:cells)if(!c.block.equals("minecraft:air")) {int delta=outward.getAxis()==Direction.Axis.X?c.x-ip.getX():c.z-ip.getZ();if(delta*outward.getDirection().offset()>0){valid=false;break;}}
+            if(!valid)liveInput.addProperty("validation","live_device_support_or_exterior_invalid");
+        }
+        JsonObject report=evaluate(task,args,cells,raw.getAsJsonObject("coverage"),liveInput,entities);report.addProperty("world_time",world.getTime());report.addProperty("frozen_snapshot",true);return report;
     }
     static JsonObject evaluate(JsonObject task,JsonObject args,List<Cell> cells,JsonObject coverage,JsonObject input,JsonArray entities) {
         Frame f=frame(task,args);Map<String,Cell> byPosition=new HashMap<>();for(Cell c:cells)byPosition.put(c.key(),c);
@@ -80,10 +89,17 @@ public final class RegularDoorGeometry {
         add(rows,"stable_state","indeterminate",JsonNull.INSTANCE,"This tool observes a snapshot; bounded transition/rest protocol supplies stability evidence.");
         add(rows,"influence_coverage","indeterminate",coverage,"Insufficient/gapped coverage blocks certification. Even a complete static snapshot does not establish all temporal influences and transient positions; protocol must supply that evidence.");
         for(String id:List.of("record_reliability","record_isolation","record_seamless"))add(rows,id,"not_verified",JsonNull.INSTANCE,"Community record rule outside alpha coverage.");
+        if(input!=null&&input.has("input_block")) {
+            JsonObject support=input.getAsJsonObject("input_block");boolean found=false;
+            for(JsonElement e:exclusions){JsonObject r=e.getAsJsonObject();if(samePosition(r,support)){r.addProperty("role","input_block");r.addProperty("volume_exclusion","retained_wiring");found=true;}}
+            if(!found){JsonObject r=support.deepCopy();r.addProperty("role","input_block");r.addProperty("volume_exclusion","retained_wiring");exclusions.add(r);}
+            if(input.has("adapter_positions"))for(JsonElement e:input.getAsJsonArray("adapter_positions")){JsonObject r=e.getAsJsonObject().deepCopy();r.addProperty("role",input.has("driver")&&samePosition(r,input.getAsJsonObject("driver"))?"input_device":"external_adapter");r.addProperty("volume_exclusion","excluded_validated_input_adapter");exclusions.add(r);}
+        }
         JsonObject report=new JsonObject();report.addProperty("protocol_version",Rules.VERSION);report.addProperty("expected_state",f.expected);report.addProperty("frame_min_z",f.minZ);report.addProperty("frame_max_z",f.maxZ);report.add("criteria",rows);report.add("measurement_roles",exclusions);report.add("coverage",coverage.deepCopy());
         boolean failed=false;for(JsonElement r:rows)if(r.getAsJsonObject().get("mandatory").getAsBoolean()&&r.getAsJsonObject().get("status").getAsString().equals("failed"))failed=true;
         report.addProperty("geometry_status",failed?"failed":"indeterminate");report.addProperty("conforms_to_alpha",false);report.addProperty("scope","Geometry snapshot diagnostics; functional protocol, stability and measurements are separate.");return report;
     }
+    static boolean samePosition(JsonObject a,JsonObject b){return a.get("x").equals(b.get("x"))&&a.get("y").equals(b.get("y"))&&a.get("z").equals(b.get("z"));}
     private static java.util.UUID fixtureEntity;
     public static JsonObject testEntity(ServerWorld world,boolean present) {
         if(!Controller.TEST)throw new IllegalArgumentException("Test-only geometry fixture");

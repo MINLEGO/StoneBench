@@ -114,6 +114,11 @@ class GeometryRuntimeIntegration(StoneBenchRuntimeIntegration):
             declared = await self.geometry(b, "closed", frame_min_z=1024, frame_max_z=1025)
             self.assertEqual(declared["input"]["status"], "satisfied")
             self.assertEqual(declared["input"]["observed"]["input_block"], support)
+            roles = self.evidence[-1]["measurement_roles"]
+            support_role = next(row for row in roles if all(row[key] == support[key] for key in ("x", "y", "z")))
+            self.assertEqual(support_role["volume_exclusion"], "retained_wiring", "Rules 30714 input block must not become arbitrary excluded frame")
+            device_role = next(row for row in roles if all(row[key] == device[key] for key in ("x", "y", "z")))
+            self.assertEqual(device_role["volume_exclusion"], "excluded_validated_input_adapter", "Rules 24437 input device exclusion")
         finally:
             out = Path(os.environ.get("STONEBENCH_GEOMETRY_EVIDENCE", ".runtime/geometry-summary.json"))
             out.parent.mkdir(parents=True, exist_ok=True)
