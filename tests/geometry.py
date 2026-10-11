@@ -123,5 +123,3 @@ class GeometryRuntimeIntegration(StoneBenchRuntimeIntegration):
 
 if __name__ == "__main__":
     unittest.main()
-
-

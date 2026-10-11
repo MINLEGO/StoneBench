@@ -93,6 +93,3 @@ public final class RegularDoorGeometry {
     }
     static void add(JsonArray rows,String id,String status,JsonElement observed,String detail){rows.add(Rules.diagnostic(id,status,observed,detail));}
 }
-
-
-

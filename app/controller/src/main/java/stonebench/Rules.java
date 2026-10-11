@@ -48,4 +48,3 @@ public final class Rules {
         Criterion c=CRITERIA.stream().filter(v->v.id.equals(id)).findFirst().orElseThrow();JsonObject row=row(c);row.addProperty("status",status);row.add("observed",observed);row.addProperty("diagnostic",detail);return row;
     }
 }
-
