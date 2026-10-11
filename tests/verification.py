@@ -104,6 +104,28 @@ class VerificationRuntimeIntegration(integration.StoneBenchRuntimeIntegration):
                 "verification": self.evidence_summary(powered_report),
             }
 
+            watchdog = await self.verify(first, checkpoint_id, "publish_watchdog")
+            self.assertEqual(watchdog["verdict"], "infrastructure_error", self.report_context(watchdog))
+            self.assertFalse(watchdog["conforms_to_alpha"])
+            self.assertEqual(watchdog["stop_cause"], "individual_phase_watchdog", self.report_context(watchdog))
+            self.assertIn("test_final_publication", json.dumps(watchdog["infrastructure_error"]))
+            roots = [Path(item) for item in os.environ["STONEBENCH_SERVER_ROOTS"].split(";")]
+            job_root = next(root / "stonebench/verifications" / watchdog["request_id"] for root in roots
+                            if (root / "stonebench/verifications" / watchdog["request_id"]).exists())
+            gate = json.loads((job_root / "publication-gate.json").read_text(encoding="utf-8"))
+            self.assertEqual(gate["provisional_verdict"], "conforms_to_alpha")
+            marker = json.loads((job_root / "cancel.json").read_text(encoding="utf-8"))
+            self.assertEqual(marker["reason"], "individual_phase_watchdog:test_final_publication")
+            await asyncio.sleep(.5)
+            for name in ("result.json", "late-worker-result.json"):
+                if (job_root / name).exists():
+                    final = json.loads((job_root / name).read_text(encoding="utf-8"))
+                    self.assertEqual(final["verdict"], "infrastructure_error", final)
+                    self.assertFalse(final["conforms_to_alpha"])
+            evidence["publication_watchdog"] = self.evidence_summary(watchdog)
+            evidence["publication_watchdog"]["gate"] = gate
+            evidence["publication_watchdog"]["durable_stop"] = marker
+
             cancelled = await self.cancel_worker_during_boot(first, checkpoint_id)
             evidence["worker_cancellation"] = cancelled
             interrupted = await self.interrupt_worker(first, checkpoint_id)

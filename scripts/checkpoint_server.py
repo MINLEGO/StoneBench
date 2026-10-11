@@ -229,22 +229,27 @@ def _serve_owned(root, java, port, execution, test=False, verification_mcp_port=
                         pass
                 if (verification_directory / "cancel.json").exists() or time.monotonic()>verification_workers.phase_deadline:
                     cancelled = (verification_directory / "cancel.json").exists()
-                    reason = "user_cancelled" if cancelled else "individual_phase_watchdog:" + verification_workers.phase
+                    marker = json.loads((verification_directory / "cancel.json").read_text(encoding="utf-8")) if cancelled else {}
+                    reason = marker.get("reason", "user_cancelled") if cancelled else "individual_phase_watchdog:" + verification_workers.phase
+                    if not cancelled:
+                        write_json(verification_directory / "cancel.json", {"reason": reason})
                     verification_workers.stop(reason)
-                    if not (verification_directory / "result.json").exists():
-                        # A stalled file/tool thread must not hold the working lease
-                        # indefinitely after its owned JVMs are confirmed stopped.
-                        request = json.loads((verification_directory / "request.json").read_text(encoding="utf-8"))
-                        write_json(verification_directory / "result.json", {
-                            "request_id": request["request_id"], "checkpoint_id": request["checkpoint_id"],
-                            "protocol_version": VERSION,
-                            "manifest_sha256": request["manifest_sha256"], "criteria": [], "boundaries": [],
-                            "copies": [], "verdict": "infrastructure_error", "conforms_to_alpha": False,
-                            "stop_cause": "verification_interrupted" if cancelled else "individual_phase_watchdog", "first_difference": None,
-                            "infrastructure_error": {"kind": "cancelled" if cancelled else "phase_timeout", "diagnostic": reason,
-                                                     "progress": verification_workers.state()},
-                            "retained_worker_directory": str(verification_directory),
-                            "late_worker_result": "late-worker-result.json if the worker thread returns"})
+                    with verification_workers.lock:
+                        if not (verification_directory / "result.json").exists():
+                            # A stalled I/O thread cannot retain the working lease
+                            # after its owned JVMs are confirmed stopped.
+                            request = json.loads((verification_directory / "request.json").read_text(encoding="utf-8"))
+                            timed_out = reason.startswith("individual_phase_watchdog:")
+                            write_json(verification_directory / "result.json", {
+                                "request_id": request["request_id"], "checkpoint_id": request["checkpoint_id"],
+                                "protocol_version": VERSION,
+                                "manifest_sha256": request["manifest_sha256"], "criteria": [], "boundaries": [],
+                                "copies": [], "verdict": "infrastructure_error", "conforms_to_alpha": False,
+                                "stop_cause": "individual_phase_watchdog" if timed_out else "verification_interrupted", "first_difference": None,
+                                "infrastructure_error": {"kind": "phase_timeout" if timed_out else "cancelled", "diagnostic": reason,
+                                                         "progress": verification_workers.state()},
+                                "retained_worker_directory": str(verification_directory),
+                                "late_worker_result": "late-worker-result.json if the worker thread returns"})
             request_path, response_path = control / "restore-request.json", control / "restore-response.json"
             if request_path.exists() and response_path.exists():
                 request = json.loads(request_path.read_text(encoding="utf-8"))

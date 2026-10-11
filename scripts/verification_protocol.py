@@ -37,7 +37,7 @@ def construction(snapshot):
     return value
 
 
-def criteria(geometry, closed, rest, trace_complete):
+def criteria(geometry, closed, rest, trace_complete, memory_coverage):
     rows = deepcopy(geometry["criteria"])
     initial = {row["id"]: row for row in closed["criteria"]}
     for row in rows:
@@ -51,9 +51,15 @@ def criteria(geometry, closed, rest, trace_complete):
             row["observed"] = rest
             row["diagnostic"] = "Bounded functional rest proof; no universal indefinite stability claim."
         if identifier == "influence_coverage":
-            row["status"] = "satisfied" if trace_complete and rest["status"] == "terminated" else "indeterminate"
-            row["observed"] = {"complete_real_tick_trace": trace_complete, "rest": rest}
-            row["diagnostic"] = "Every real tick and intratick observer event covered in the instrumented alpha component scope; original mandatory memory gaps remain."
+            coverage = geometry.get("coverage", {})
+            covered = (coverage.get("status") == "observed" and coverage.get("chunks_ready") is True
+                       and memory_coverage.get("restorable_observed_scope") is True
+                       and memory_coverage.get("uncovered_components") == [])
+            row["status"] = "satisfied" if covered and trace_complete and rest["status"] == "terminated" else "indeterminate"
+            row["observed"] = {"complete_real_tick_trace": trace_complete, "rest": rest,
+                               "snapshot_coverage": coverage, "checkpoint_memory_coverage": memory_coverage}
+            row["diagnostic"] = ("Complete real tick/intratick traces and rest in the instrumented alpha scope; checkpoint provenance proves no uncovered relevant component memory. No universal JVM claim."
+                                 if row["status"] == "satisfied" else "Mandatory scope, trace, rest or relevant component memory coverage remains incomplete.")
     return rows
 
 

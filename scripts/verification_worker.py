@@ -220,7 +220,7 @@ def run(source, request_directory, java, execution, test, workers, base_mcp, bas
             root, port = copy("repeater", 0)
             initial = call(port, "verification_snapshot")
             closed = call(port, "check_geometry", dict(geometry_args, expected_state="closed"))
-            preconditions = criteria(closed, closed, context["rest"], True)
+            preconditions = criteria(closed, closed, context["rest"], True, manifest["provenance"].get("memory_coverage", {}))
             report["criteria"] += preconditions
             if not compliant(preconditions):
                 report["stop_cause"] = "checkpoint_preconditions"
@@ -254,7 +254,7 @@ def run(source, request_directory, java, execution, test, workers, base_mcp, bas
                         rest_report = post_fault["transition"]
                     snapshot = call(worker_port, "verification_snapshot")
                     geometry = call(worker_port, "check_geometry", dict(geometry_args, expected_state=expected))
-                    rows = criteria(geometry, closed, rest_report, complete)
+                    rows = criteria(geometry, closed, rest_report, complete, manifest["provenance"].get("memory_coverage", {}))
                     report["criteria"] += rows
                     entry = {"mode": mode, "cycle": cycle, "expected_state": expected, "operation": operation,
                              "snapshot": snapshot, "geometry": geometry, "criteria": rows, "trace_complete": complete,
@@ -374,4 +374,23 @@ def run(source, request_directory, java, execution, test, workers, base_mcp, bas
         report["traces_retained"] = True
         # A lost-owner result may already have been finalized by the controller.
         # Preserve it and keep any late worker evidence separately.
-        write_json(directory / ("late-worker-result.json" if (directory / "result.json").exists() else "result.json"), report)
+        if test and request.get("test_plan", {}).get("scenario") == "publish_watchdog":
+            # Pause after the provisional verdict: the real owner deadline must
+            # leave a durable marker before the final publication veto.
+            with workers.lock:
+                workers.phase = "test_final_publication"
+                workers.phase_deadline = time.monotonic() + .2
+                workers.progress_sequence += 1
+            write_json(directory / "publication-gate.json", {"provisional_verdict": report["verdict"]})
+            deadline = time.monotonic() + 10
+            while not (directory / "cancel.json").exists() and time.monotonic() < deadline:
+                time.sleep(.05)
+        with workers.lock:
+            if workers.cancelled or (directory / "cancel.json").exists():
+                marker = json.loads((directory / "cancel.json").read_text(encoding="utf-8")) if (directory / "cancel.json").exists() else {}
+                reason = marker.get("reason", workers.cancel_reason or "user_cancelled")
+                report["infrastructure_error"] = {"kind": "phase_timeout" if reason.startswith("individual_phase_watchdog:") else "cancelled", "diagnostic": reason}
+                report["stop_cause"] = "individual_phase_watchdog" if reason.startswith("individual_phase_watchdog:") else "verification_interrupted"
+                report["verdict"] = "infrastructure_error"
+                report["conforms_to_alpha"] = False
+            write_json(directory / ("late-worker-result.json" if (directory / "result.json").exists() else "result.json"), report)

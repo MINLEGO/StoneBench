@@ -74,9 +74,10 @@ class VerificationProtocolTests(unittest.TestCase):
             for identifier in ids
         ]
         closed = {"criteria": closed_rows}
-        geometry = {"expected_state": "open", "criteria": open_rows}
+        geometry = {"expected_state": "open", "criteria": open_rows, "coverage": {"status": "observed", "chunks_ready": True}}
 
-        evaluated = criteria(geometry, closed, {"status": "terminated"}, True)
+        evaluated = criteria(geometry, closed, {"status": "terminated"}, True,
+                             {"restorable_observed_scope": True, "uncovered_components": []})
 
         self.assertEqual(next(row for row in evaluated if row["id"] == "regular_arrangement")["status"], "satisfied")
         self.assertEqual(next(row for row in evaluated if row["id"] == "frame_state")["status"], "failed")
@@ -89,6 +90,21 @@ class VerificationProtocolTests(unittest.TestCase):
         self.assertEqual(verdict({"criteria": criteria_rows}), "failed")
         self.assertEqual(verdict({"criteria": criteria_rows, "infrastructure_error": {"kind": "OSError"}}),
                          "infrastructure_error")
+
+    def test_influence_requires_relevant_memory_and_observation_coverage(self):
+        row = {"id": "influence_coverage", "mandatory": True, "status": "indeterminate"}
+        geometry = {"expected_state": "closed", "criteria": [row], "coverage": {"status": "observed", "chunks_ready": True}}
+        memory = {"restorable_observed_scope": True, "uncovered_components": []}
+        positive = criteria(geometry, geometry, {"status": "terminated"}, True, memory)
+        self.assertTrue(compliant(positive))
+        for uncovered in ({}, {"restorable_observed_scope": False, "uncovered_components": ["torch:burnout_history"]},
+                          {"restorable_observed_scope": True, "uncovered_components": ["missing_runtime"]}):
+            negative = criteria(geometry, geometry, {"status": "terminated"}, True, uncovered)
+            self.assertFalse(compliant(negative))
+            self.assertEqual(verdict({"criteria": negative}), "indeterminate")
+        incomplete = {**geometry, "coverage": {"status": "indeterminate", "chunks_ready": False}}
+        self.assertFalse(compliant(criteria(incomplete, incomplete, {"status": "terminated"}, True, memory)))
+        self.assertFalse(compliant(criteria(geometry, geometry, {"status": "terminated"}, False, memory)))
 
 
 if __name__ == "__main__":

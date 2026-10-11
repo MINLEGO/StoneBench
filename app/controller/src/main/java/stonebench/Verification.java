@@ -50,7 +50,7 @@ final class Verification {
     static JsonObject testConfig(JsonObject args) throws IOException {
         if(!Controller.TEST) throw new IllegalArgumentException("Test-only verification faults");
         String scenario=Task.string(args,"scenario");
-        if(!Set.of("none","positive","recurrence2","no_return5","direct_block","direct_inventory","direct_internal","bad_open","publication_failure").contains(scenario)) throw new IllegalArgumentException("Unknown verification fault scenario");
+        if(!Set.of("none","positive","recurrence2","no_return5","direct_block","direct_inventory","direct_internal","bad_open","publication_failure","publish_watchdog").contains(scenario)) throw new IllegalArgumentException("Unknown verification fault scenario");
         JsonObject result=new JsonObject();result.addProperty("scenario",scenario);result.addProperty("test_only",true);
         CheckpointStorage.writeAtomic(Path.of("stonebench/verification-test-plan.json"),result);return result;
     }
@@ -59,11 +59,11 @@ final class Verification {
         if(!Files.exists(directory.resolve("result.json"))){
             Path heartbeat=directory.resolve("heartbeat.json");long last=Files.exists(heartbeat)?CheckpointStorage.read(heartbeat).get("owner_time_ms").getAsLong():started;
             if(System.currentTimeMillis()-last<=90_000)return null;
-            CheckpointStorage.writeAtomic(directory.resolve("cancel.json"),new JsonObject());JsonObject lost=new JsonObject();lost.addProperty("request_id",directory.getFileName().toString());lost.addProperty("verdict","infrastructure_error");lost.addProperty("conforms_to_alpha",false);lost.addProperty("stop_cause","owner_heartbeat_lost");lost.addProperty("infrastructure_error","Supervisor heartbeat absent for 90s; retained copies require owned-supervisor recovery");CheckpointStorage.writeAtomic(directory.resolve("result.json"),lost);
+            JsonObject marker=new JsonObject();marker.addProperty("reason","owner_heartbeat_lost");CheckpointStorage.writeAtomic(directory.resolve("cancel.json"),marker);JsonObject lost=new JsonObject();lost.addProperty("request_id",directory.getFileName().toString());lost.addProperty("verdict","infrastructure_error");lost.addProperty("conforms_to_alpha",false);lost.addProperty("stop_cause","owner_heartbeat_lost");lost.addProperty("infrastructure_error","Supervisor heartbeat absent for 90s; retained copies require owned-supervisor recovery");CheckpointStorage.writeAtomic(directory.resolve("result.json"),lost);
         }
         JsonObject report=CheckpointStorage.read(directory.resolve("result.json"));
         JsonObject current=snapshot.get();
-        if(Files.exists(directory.resolve("cancel.json"))){JsonObject error=new JsonObject();error.addProperty("kind","cancelled");error.addProperty("diagnostic","Cancellation accepted before controller finalization");if(report.has("infrastructure_error"))error.add("worker_error",report.get("infrastructure_error"));report.add("infrastructure_error",error);report.addProperty("verdict","infrastructure_error");report.addProperty("conforms_to_alpha",false);report.addProperty("stop_cause","verification_interrupted");}
+        if(Files.exists(directory.resolve("cancel.json"))){JsonObject marker=CheckpointStorage.read(directory.resolve("cancel.json"));String reason=marker.has("reason")?marker.get("reason").getAsString():"user_cancelled";JsonObject error=new JsonObject();error.addProperty("kind",reason.startsWith("individual_phase_watchdog:")?"phase_timeout":"cancelled");error.addProperty("diagnostic",reason);if(report.has("infrastructure_error"))error.add("worker_error",report.get("infrastructure_error"));report.add("infrastructure_error",error);report.addProperty("verdict","infrastructure_error");report.addProperty("conforms_to_alpha",false);report.addProperty("stop_cause",reason.startsWith("individual_phase_watchdog:")?"individual_phase_watchdog":reason.equals("owner_heartbeat_lost")?reason:"verification_interrupted");}
         report.addProperty("status","completed");
         JsonArray differences=ObservationComparison.fields(before,current);
         report.addProperty("working_construction_preserved",differences.isEmpty());
