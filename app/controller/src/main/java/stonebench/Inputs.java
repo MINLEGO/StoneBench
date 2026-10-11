@@ -42,7 +42,7 @@ public final class Inputs {
         int plane=direction.getAxis()==Direction.Axis.X?i.getX():i.getZ();
         for(var value:blocks.entrySet()) {
             JsonObject row=value.getValue().getAsJsonObject();BlockPos other=new BlockPos(row.get("x").getAsInt(),row.get("y").getAsInt(),row.get("z").getAsInt());
-            if(other.equals(p) || adapter(other) || row.get("block").getAsString().equals("minecraft:air")) continue;
+            if(other.equals(p) || adapter(other) || world.getBlockState(other).isAir()) continue;
             int coordinate=direction.getAxis()==Direction.Axis.X?other.getX():other.getZ();
             if((coordinate-plane)*direction.getDirection().offset()>0) throw new IllegalArgumentException("Input is not on the exterior lateral construction envelope");
         }
@@ -117,4 +117,5 @@ public final class Inputs {
         copy.remove("coverage");return copy;
     }
 }
+
 
