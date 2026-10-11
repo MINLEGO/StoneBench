@@ -34,6 +34,14 @@ def run(root, java, port, output):
         # This PID is the child just created by this test's supervisor, not a PID
         # discovered from another attempt. Production code never kills it.
         child = int((root / "server.pid").read_text())
+        # Lease remains held while the first Java runs, and across its restart gap.
+        time.sleep(1)
+        before = world_files(root)
+        journal = (root / "stonebench/operations.jsonl").read_bytes()
+        concurrent = subprocess.run(command, input="stop\n", text=True, capture_output=True, timeout=30)
+        assert concurrent.returncode != 0 and "Supervisor lease held" in concurrent.stderr, concurrent.stderr
+        assert wrapper.poll() is None, "Second supervisor disturbed first owner"
+        assert world_files(root) == before and (root / "stonebench/operations.jsonl").read_bytes() == journal
         wrapper.kill()
         wrapper.wait(timeout=30)
         # Allow already-submitted save I/O from boot to settle, with Java frozen.
@@ -71,6 +79,7 @@ def run(root, java, port, output):
         reprise = str(Path(output).with_suffix(".reprise.json"))
         check(root, java, port, reprise)
         result = {"success": True, "supervisor_killed_with_java_alive": True,
+                  "second_supervisor_refused_first_owner_continues": True,
                   "refused_without_world_or_journal_mutation": True, "missing_pid_held_lock_refused": True,
                   "diagnostic": with_child_alive.stderr.strip(), "after_owned_child_stop": json.loads(Path(reprise).read_text())}
         Path(output).write_text(json.dumps(result, indent=2) + "\n")

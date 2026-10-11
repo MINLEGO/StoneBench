@@ -7,13 +7,44 @@ import subprocess
 import time
 import sys
 import threading
-from checkpoint_restore import apply_restore, recover_incomplete, rollback_boot
+from contextlib import contextmanager
+from checkpoint_restore import apply_restore, recover_incomplete, rollback_boot, write_json
+
+
+@contextmanager
+def supervisor_lease(root):
+    """One non-inherited OS handle owns the root until this supervisor exits."""
+    path = Path(root) / "supervisor.lock"
+    if os.name == "nt":
+        import ctypes
+        from ctypes import wintypes
+        kernel = ctypes.WinDLL("kernel32", use_last_error=True)
+        kernel.CreateFileW.restype = ctypes.c_void_p
+        kernel.CreateFileW.argtypes = (wintypes.LPCWSTR, wintypes.DWORD, wintypes.DWORD, ctypes.c_void_p,
+                                      wintypes.DWORD, wintypes.DWORD, ctypes.c_void_p)
+        handle = kernel.CreateFileW(str(path), 0xC0000000, 0, None, 4, 0x80, None)
+        if handle == ctypes.c_void_p(-1).value:
+            raise RuntimeError("Supervisor lease held or ownership uncertain; no world recovery performed")
+        try:
+            yield
+        finally:
+            kernel.CloseHandle(ctypes.c_void_p(handle))
+    else:
+        import fcntl
+        with path.open("a+b") as stream:
+            try:
+                fcntl.flock(stream, fcntl.LOCK_EX | fcntl.LOCK_NB)
+            except OSError as error:
+                raise RuntimeError("Supervisor lease held; no world recovery performed") from error
+            yield
 
 
 def ensure_previous_child_absent(root):
     """Fail closed before recovery; never terminate a process discovered on disk."""
     import ctypes
     root = Path(root)
+    if (root / "stonebench/child-starting.json").exists():
+        raise RuntimeError("Child launch ownership uncertain; establish its exit before removing child-starting.json")
     recorded = root / "server.pid"
     if recorded.exists():
         try:
@@ -71,6 +102,12 @@ def ensure_previous_child_absent(root):
 
 def serve(root, java, port, execution, test=False):
     root = Path(root).resolve()
+    with supervisor_lease(root):
+        _serve_owned(root, java, port, execution, test)
+
+
+def _serve_owned(root, java, port, execution, test=False):
+    root = Path(root).resolve()
     for required in ("fabric-server.jar", "server.properties", "mods/stonebench-controller.jar"):
         if not (root / required).is_file():
             raise ValueError("Prepared pinned server root required: " + required)
@@ -126,9 +163,17 @@ def serve(root, java, port, execution, test=False):
         if test:
             command.append("-Dstonebench.test=true")
         command.extend(("-jar", "fabric-server.jar", "nogui"))
-        process = subprocess.Popen(command, cwd=root, stdin=subprocess.PIPE, stdout=stdout, stderr=stderr,
-                                   text=True, creationflags=subprocess.CREATE_NO_WINDOW if os.name == "nt" else 0)
+        # Fail closed even if this process dies before it can publish the new PID.
+        starting = control / "child-starting.json"
+        write_json(starting, {"supervisor_pid": os.getpid(), "boot": boot, "status": "child_launch_pending"})
+        try:
+            process = subprocess.Popen(command, cwd=root, stdin=subprocess.PIPE, stdout=stdout, stderr=stderr,
+                                       text=True, creationflags=subprocess.CREATE_NO_WINDOW if os.name == "nt" else 0)
+        except Exception:
+            starting.unlink()
+            raise
         (root / "server.pid").write_text(str(process.pid), encoding="ascii")
+        starting.unlink()
         deadline = time.monotonic() + 180
         while not (control / "ready").exists():
             if process.poll() is not None:

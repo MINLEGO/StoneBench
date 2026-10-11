@@ -8,6 +8,7 @@ import sys
 from unittest.mock import patch
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
 from checkpoint_restore import apply_restore, file_map, write_json, digest, rollback_boot, recover_incomplete
+from checkpoint_server import ensure_previous_child_absent
 
 
 class RestoreTransactionChecks(unittest.TestCase):
@@ -118,6 +119,13 @@ class RestoreTransactionChecks(unittest.TestCase):
         self.assertFalse((self.control / "restore-request.json").exists())
         self.assertFalse((self.control / "restore-response.json").exists())
         self.assertTrue((self.control / "restore-history" / self.request_id / "request.json").exists())
+
+    def test_uncertain_launch_marker_refuses_before_recovery(self):
+        write_json(self.control / "child-starting.json", {"status": "child_launch_pending"})
+        before = file_map(self.server / "world")
+        with self.assertRaisesRegex(RuntimeError, "ownership uncertain"):
+            ensure_previous_child_absent(self.server)
+        self.assertEqual(file_map(self.server / "world"), before)
 
 
 if __name__ == "__main__":
