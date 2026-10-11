@@ -18,10 +18,10 @@ public final class Rules {
         new Criterion("continuable",14017,"Fixed entrance pattern extends in either normal direction without colliding with wiring.","All observed blocks on passage rays, including positions outside declared layers; Dummies index 5274","snapshot plus temporal influence coverage required",true),
         new Criterion("hallway_composition",3627,"Quartz-like hallway and air defaults are optional for this alpha without SUPER/FULL SEAMLESS.","Collision and wiring assessed separately; no mandatory quartz wall or air-id whitelist","not an alpha restriction; source exception index 3852",false),
         new Criterion("input",19273,"A supported button or lever on a lateral exterior surface has constant support; input block remains wiring.","Validated live input declaration; alpha forbids top/bottom attachment","input tool integration",true),
-        new Criterion("no_entities",567,"Alpha excludes constructions using entities.","Entities within observed construction bounds","presence fails conservatively; absence limited to tracked influence bounds",true),
+        new Criterion("no_entities",-1,"Alpha excludes constructions using entities.","Entities within observed construction bounds","presence fails conservatively; absence limited to tracked influence bounds",true),
         new Criterion("no_required_clock",20402,"Alpha excludes a permanently running internal clock required for operation.","Transition/rest behavior, not an invented component blacklist","transition proof required; snapshot cannot determine necessity",true),
         new Criterion("stable_state",30583,"The requested open/closed pattern is stable until the next input.","Transition/rest certificate","not inferred from a frozen snapshot",true),
-        new Criterion("influence_coverage",30106,"All relevant influences and transient positions are observed without gaps.","Observation coverage and trace completeness","snapshot cannot prove temporal completeness",true),
+        new Criterion("influence_coverage",-1,"All relevant influences and transient positions are observed without gaps.","Observation coverage and trace completeness","snapshot cannot prove temporal completeness",true),
         new Criterion("record_reliability",20096,"Community reliability over time and normal gameplay.","Not covered by bounded alpha cycles","outside alpha",false),
         new Criterion("record_isolation",21859,"Player movement and external activations do not break stable states.","Not covered by the alpha","outside alpha",false),
         new Criterion("record_seamless",22706,"Community record title requires a seamless tier.","No seamless restriction requested by alpha","outside alpha",false)
@@ -42,7 +42,17 @@ public final class Rules {
         measures.addProperty("rest","Rest recognition is distinct; no dynamic volume or timing measurement in geometry checks.");result.add("measurement_contract",measures);return result;
     }
     static JsonObject row(Criterion c) {
-        JsonObject row=new JsonObject();row.addProperty("id",c.id);row.addProperty("source",Task.RULES);row.addProperty("source_index",c.index);row.addProperty("revision_id",REVISION);row.addProperty("expected",c.expected);row.addProperty("observation",c.observation);row.addProperty("coverage",c.coverage);row.addProperty("mandatory",c.mandatory);return row;
+        JsonObject row=new JsonObject();row.addProperty("id",c.id);JsonArray sources=new JsonArray();
+        if(c.index>=0)sources.add(reference(Task.RULES,"community",REVISION,"native_character_index",Integer.toString(c.index)));
+        if(c.id.equals("door_composition"))sources.add(reference(Task.RULES,"community",REVISION,"native_character_index","31749"));
+        if(c.id.equals("encadrement")||c.id.equals("continuable"))sources.add(reference("https://docs.google.com/document/d/1a0xI0Pj6lKlULCmVr9n4GH2jnpjDXal4HeiJGhzRF0s/edit","community_explanation","sha256:0c022decbc7532c0d2383e21bd6fb53d8554e94809be70dffc035e78a486aad9","native_character_index",c.id.equals("encadrement")?"9641":"5274"));
+        if(Set.of("fixed_passage","door_orientation","input","no_entities","no_required_clock","influence_coverage").contains(c.id))sources.add(reference("https://github.com/MINLEGO/StoneBench/issues/4","alpha_scope","updated_at:2026-10-10T18:13:48Z;body_sha256:3d1e0b8b087ab007a377d35ed678c8b0faf99cdaafc2b6c53db846ff61422870","section",c.id.equals("influence_coverage")?"Implementation Decisions / Description d'une t�che et zone pertinente":c.id.equals("fixed_passage")?"Implementation Decisions / Description d'une t�che et zone pertinente":c.id.equals("input")?"User Stories / 18":"Solution / Chaque tentative commence"));
+        if(c.id.equals("influence_coverage"))sources.add(reference("https://github.com/MINLEGO/StoneBench/blob/bd32f911ac9a20e7f1ae98277588bebd03d3a451/docs/observation.md","implementation_contract","git:bd32f911ac9a20e7f1ae98277588bebd03d3a451","document","paragraph: The influence set grows"));
+        row.add("sources",sources);
+        JsonObject first=sources.get(0).getAsJsonObject();row.add("source",first.get("source"));row.add("revision_id",first.get("revision_id"));if(c.index>=0)row.addProperty("source_index",c.index);row.addProperty("expected",c.expected);row.addProperty("observation",c.observation);row.addProperty("coverage",c.coverage);row.addProperty("mandatory",c.mandatory);return row;
+    }
+    static JsonObject reference(String source,String authority,String revision,String locatorType,String locator) {
+        JsonObject r=new JsonObject();r.addProperty("source",source);r.addProperty("authority",authority);r.addProperty("revision_id",revision);r.addProperty("locator_type",locatorType);r.addProperty("locator",locator);return r;
     }
     static JsonObject diagnostic(String id,String status,JsonElement observed,String detail) {
         Criterion c=CRITERIA.stream().filter(v->v.id.equals(id)).findFirst().orElseThrow();JsonObject row=row(c);row.addProperty("status",status);row.add("observed",observed);row.addProperty("diagnostic",detail);return row;

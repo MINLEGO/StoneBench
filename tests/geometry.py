@@ -40,6 +40,15 @@ class GeometryRuntimeIntegration(integration.StoneBenchRuntimeIntegration):
             self.assertEqual(table["continuable"]["source_index"], 14017)
             self.assertEqual(table["door_composition"]["source_index"], 2932)
 
+            self.assertEqual(table["no_entities"]["sources"][0]["authority"], "alpha_scope")
+            self.assertEqual(table["influence_coverage"]["sources"][0]["authority"], "alpha_scope")
+            self.assertEqual({r["locator"] for r in table["door_composition"]["sources"]}, {"2932", "31749"})
+            self.assertEqual(table["encadrement"]["sources"][1]["locator"], "9641")
+            self.assertEqual(table["continuable"]["sources"][1]["locator"], "5274")
+            empty_closed = await self.geometry(a, "closed")
+            self.assertEqual(empty_closed["regular_arrangement"]["status"], "failed", "Observed air is not a closed rectangular door")
+            self.assertEqual(empty_closed["frame_state"]["status"], "failed")
+
             # A real two-sided 2x2 piston door: open quartz at side pillars, closed at fixed passage.
             rows = []
             for y in (80, 81):
@@ -54,12 +63,14 @@ class GeometryRuntimeIntegration(integration.StoneBenchRuntimeIntegration):
             self.assertEqual(opened["frame_state"]["status"], "satisfied", "Rules 30358 opened frame")
             self.assertEqual(opened["encadrement"]["status"], "satisfied", "Dummies 9641 fixed layer physical walls")
             self.assertEqual(opened["continuable"]["status"], "satisfied", "Rules 14017/Dummies 5274 fixed entrance pattern")
+            self.assertEqual(opened["regular_arrangement"]["status"], "indeterminate", "Open snapshot cannot establish closed arrangement")
             self.assertEqual(opened["stable_state"]["status"], "indeterminate")
             power = [placement(point(x, y, 1025), "minecraft:redstone_block") for x in (1022, 1027) for y in (80, 81)]
             await self.modify(a, power)
             self.assert_ok(await self.call(a, "advance", {"ticks": 8, "trace": True}))
             closed = await self.geometry(a, "closed")
             self.assertEqual(closed["frame_state"]["status"], "satisfied", "Vanilla actually moved all four door blocks")
+            self.assertEqual(closed["regular_arrangement"]["status"], "satisfied")
             self.assertEqual(closed["door_composition"]["status"], "satisfied", "Rules 2932/31749 canonical quartz")
             self.assertEqual(closed["encadrement"]["status"], "satisfied", "Piston head full inward collision face is valid enclosure")
             heads = [row for row in self.evidence[-1]["measurement_roles"] if row.get("block") == "minecraft:piston_head"]
