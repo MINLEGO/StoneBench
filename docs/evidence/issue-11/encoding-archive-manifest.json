@@ -1,0 +1,18 @@
+{
+  "tested_jar_sha256": "b124e9744f5274a84578761937ecc87b01f5b42a78db1ac9e58f618baa0c4746",
+  "tick_execution": "sprint",
+  "minecraft": "1.21.11",
+  "worlds": "app\\controller\\.runtime\\tests-c423602f2e1e4e528c34408e12539704",
+  "files": [
+    {
+      "file": "encoding-geometry-artifacts.zip",
+      "bytes": 493214,
+      "sha256": "9b8b9e32aff8a9c7e76aadfeb8139829b1d6ff337f8d775d0503f51c5b00aa0f"
+    }
+  ],
+  "base_head": "9143f7fc26384b19018469411c3d2b339d4fdca7",
+  "tested_source_sha256": {
+    "app\\controller\\src\\main\\java\\stonebench\\Rules.java": "0137aef748eba2915c406d64dc64c7a6771825e8abfb360f7850fab4fafb0310",
+    "tests\\geometry.py": "7b0c360457fd533600c53dadf8ce53475a73b05c06a5a4c4f79479a4478974bc"
+  }
+}

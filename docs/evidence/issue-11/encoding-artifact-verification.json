@@ -1,0 +1,16 @@
+[
+  {
+    "archive": "docs/evidence/issue-11/encoding-geometry-artifacts.zip",
+    "sha256": "9b8b9e32aff8a9c7e76aadfeb8139829b1d6ff337f8d775d0503f51c5b00aa0f",
+    "artifacts": 254,
+    "entries": 33861,
+    "traces": [
+      {
+        "artifact_id": "f82de65f-05fc-4708-9894-f985087e3708",
+        "expected_ticks": 8,
+        "observations": 8,
+        "complete": true
+      }
+    ]
+  }
+]

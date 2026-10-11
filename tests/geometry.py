@@ -40,6 +40,11 @@ class GeometryRuntimeIntegration(integration.StoneBenchRuntimeIntegration):
             self.assertEqual(table["continuable"]["source_index"], 14017)
             self.assertEqual(table["door_composition"]["source_index"], 2932)
 
+            locator = "Implementation Decisions / Description d'une t\u00e2che et zone pertinente"
+            for criterion in ("fixed_passage", "influence_coverage"):
+                alpha_source = next(r for r in table[criterion]["sources"] if r["authority"] == "alpha_scope")
+                self.assertEqual(alpha_source["locator"], locator)
+            self.assertNotIn("\ufffd", json.dumps(table, ensure_ascii=False), "Source strings must not contain replacement characters")
             self.assertEqual(table["no_entities"]["sources"][0]["authority"], "alpha_scope")
             self.assertEqual(table["influence_coverage"]["sources"][0]["authority"], "alpha_scope")
             self.assertEqual({r["locator"] for r in table["door_composition"]["sources"]}, {"2932", "31749"})
