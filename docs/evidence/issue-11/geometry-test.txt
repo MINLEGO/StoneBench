@@ -1,0 +1,56 @@
+Disposable server data and logs: C:\Users\minle\.codex\worktrees\issue-11\StoneBench\app\controller\.runtime\tests-61f683954254469c9156a82188ff5aac
+Starting server 1: MCP 127.0.0.1:19265, Minecraft 127.0.0.1:26081
+Starting server 2: MCP 127.0.0.1:19266, Minecraft 127.0.0.1:26082
+Executing <Task pending name='Task-2' coro=<GeometryRuntimeIntegration.test_real_mcp_server_contract() running at C:\Users\minle\.codex\worktrees\issue-11\StoneBench\tests\geometry.py:27> cb=[_run_until_complete_cb() at C:\Users\minle\AppData\Local\Programs\Python\Python312\Lib\asyncio\base_events.py:181] created at C:\Users\minle\AppData\Local\Programs\Python\Python312\Lib\asyncio\runners.py:100> took 0.234 seconds
+Executing <Task pending name='Task-2' coro=<GeometryRuntimeIntegration.test_real_mcp_server_contract() running at C:\Users\minle\.codex\worktrees\issue-11\StoneBench\tests\geometry.py:27> cb=[_run_until_complete_cb() at C:\Users\minle\AppData\Local\Programs\Python\Python312\Lib\asyncio\base_events.py:181] created at C:\Users\minle\AppData\Local\Programs\Python\Python312\Lib\asyncio\runners.py:100> took 0.172 seconds
+Executing <Handle _ProactorReadPipeTransport._loop_reading(<_OverlappedF...events.py:506>) created at C:\Users\minle\AppData\Local\Programs\Python\Python312\Lib\asyncio\windows_events.py:93> took 0.125 seconds
+Executing <Task pending name='mcp.client.streamable_http.StreamableHTTPTransport.post_writer.<locals>.handle_request_async' coro=<TaskHandle._run_coro() running at C:\Users\minle\.codex\worktrees\issue-5\StoneBench\app\controller\.runtime\test-venv\Lib\site-packages\anyio\_core\_tasks.py:327> cb=[TaskGroup._spawn.<locals>.task_done() at C:\Users\minle\.codex\worktrees\issue-5\StoneBench\app\controller\.runtime\test-venv\Lib\site-packages\anyio\_backends\_asyncio.py:870] created at C:\Users\minle\.codex\worktrees\issue-5\StoneBench\app\controller\.runtime\test-venv\Lib\site-packages\anyio\_backends\_asyncio.py:944> took 0.141 seconds
+.
+----------------------------------------------------------------------
+Ran 1 test in 10.550s
+
+OK
+{
+  "status": "ok",
+  "journals": [
+    {
+      "attempt_id": "f6eb9686-6c13-46ad-8ab7-43a0c712cb46",
+      "operations": 24,
+      "simulation_ticks": 16,
+      "preparation_ticks": 9,
+      "world_time": 25,
+      "errors": [
+        {
+          "code": "invalid_arguments",
+          "ticks_executed": 0
+        },
+        {
+          "code": "invalid_arguments",
+          "ticks_executed": 0
+        }
+      ]
+    },
+    {
+      "attempt_id": "cb825290-4e8b-4d47-a484-b158ac0bc227",
+      "operations": 20,
+      "simulation_ticks": 0,
+      "preparation_ticks": 13,
+      "world_time": 13,
+      "errors": [
+        {
+          "code": "invalid_arguments",
+          "ticks_executed": 0
+        },
+        {
+          "code": "invalid_arguments",
+          "ticks_executed": 0
+        },
+        {
+          "code": "invalid_arguments",
+          "ticks_executed": 0
+        }
+      ]
+    }
+  ]
+}
+Integration suite finished; server logs and worlds remain under C:\Users\minle\.codex\worktrees\issue-11\StoneBench\app\controller\.runtime\tests-61f683954254469c9156a82188ff5aac

@@ -1,0 +1,55 @@
+{
+  "checked_files": [
+    {
+      "file": "app/controller/src/main/java/stonebench/Controller.java",
+      "replacement_characters": 0,
+      "encoding": "UTF-8"
+    },
+    {
+      "file": "app/controller/src/main/java/stonebench/McpHttp.java",
+      "replacement_characters": 0,
+      "encoding": "UTF-8"
+    },
+    {
+      "file": "app/controller/src/main/java/stonebench/RegularDoorGeometry.java",
+      "replacement_characters": 0,
+      "encoding": "UTF-8"
+    },
+    {
+      "file": "app/controller/src/main/java/stonebench/Rules.java",
+      "replacement_characters": 0,
+      "encoding": "UTF-8"
+    },
+    {
+      "file": "app/controller/src/test/java/stonebench/GeometryChecks.java",
+      "replacement_characters": 0,
+      "encoding": "UTF-8"
+    },
+    {
+      "file": "docs/controller.md",
+      "replacement_characters": 0,
+      "encoding": "UTF-8"
+    },
+    {
+      "file": "docs/evidence/issue-11/README.md",
+      "replacement_characters": 0,
+      "encoding": "UTF-8"
+    },
+    {
+      "file": "docs/geometry.md",
+      "replacement_characters": 0,
+      "encoding": "UTF-8"
+    },
+    {
+      "file": "docs/rules/regular-door.md",
+      "replacement_characters": 0,
+      "encoding": "UTF-8"
+    },
+    {
+      "file": "tests/geometry.py",
+      "replacement_characters": 0,
+      "encoding": "UTF-8"
+    }
+  ],
+  "exact_local_locator_occurrences": 2
+}
