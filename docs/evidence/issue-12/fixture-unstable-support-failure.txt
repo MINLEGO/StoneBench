@@ -1,0 +1,29 @@
+
+test_real_mcp_server_contract (__main__.VerificationRuntimeIntegration.test_real_mcp_server_contract) ... Executing <Task pending name='Task-2' coro=<VerificationRuntimeIntegration.test_real_mcp_server_contract() running at C:\Users\minle\.codex\worktrees\issue-12\StoneBench\tests\verification.py:17> cb=[_run_until_complete_cb() at C:\Users\minle\AppData\Local\Programs\Python\Python312\Lib\asyncio\base_events.py:181] created at C:\Users\minle\AppData\Local\Programs\Python\Python312\Lib\asyncio\runners.py:100> took 0.297 seconds
+Executing <Task pending name='Task-2' coro=<VerificationRuntimeIntegration.test_real_mcp_server_contract() running at C:\Users\minle\.codex\worktrees\issue-12\StoneBench\tests\verification.py:17> cb=[_run_until_complete_cb() at C:\Users\minle\AppData\Local\Programs\Python\Python312\Lib\asyncio\base_events.py:181] created at C:\Users\minle\AppData\Local\Programs\Python\Python312\Lib\asyncio\runners.py:100> took 0.187 seconds
+Executing <Task pending name='mcp.client.streamable_http.StreamableHTTPTransport.post_writer.<locals>.handle_request_async' coro=<TaskHandle._run_coro() running at C:\Users\minle\.codex\worktrees\issue-5\StoneBench\app\controller\.runtime\test-venv\Lib\site-packages\anyio\_core\_tasks.py:327> cb=[TaskGroup._spawn.<locals>.task_done() at C:\Users\minle\.codex\worktrees\issue-5\StoneBench\app\controller\.runtime\test-venv\Lib\site-packages\anyio\_backends\_asyncio.py:870] created at C:\Users\minle\.codex\worktrees\issue-5\StoneBench\app\controller\.runtime\test-venv\Lib\site-packages\anyio\_backends\_asyncio.py:944> took 0.110 seconds
+Executing <Task pending name='mcp.client.streamable_http.StreamableHTTPTransport.post_writer.<locals>.handle_request_async' coro=<TaskHandle._run_coro() running at C:\Users\minle\.codex\worktrees\issue-5\StoneBench\app\controller\.runtime\test-venv\Lib\site-packages\anyio\_core\_tasks.py:327> cb=[TaskGroup._spawn.<locals>.task_done() at C:\Users\minle\.codex\worktrees\issue-5\StoneBench\app\controller\.runtime\test-venv\Lib\site-packages\anyio\_backends\_asyncio.py:870] created at C:\Users\minle\.codex\worktrees\issue-5\StoneBench\app\controller\.runtime\test-venv\Lib\site-packages\anyio\_backends\_asyncio.py:944> took 0.329 seconds
+FAIL
+
+======================================================================
+FAIL: test_real_mcp_server_contract (__main__.VerificationRuntimeIntegration.test_real_mcp_server_contract)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\minle\AppData\Local\Programs\Python\Python312\Lib\asyncio\runners.py", line 118, in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\minle\AppData\Local\Programs\Python\Python312\Lib\asyncio\base_events.py", line 691, in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+  File "C:\Users\minle\.codex\worktrees\issue-12\StoneBench\tests\verification.py", line 67, in test_real_mcp_server_contract
+    self.assertEqual(report["stop_cause"], stop_cause, self.report_context(report))
+AssertionError: 'checkpoint_preconditions' != 'first_return_to_state0'
+- checkpoint_preconditions
++ first_return_to_state0
+ : {"request_id": "52f40153-8ccd-4f41-a233-5829dd7d57a4", "verdict": "failed", "cycles_executed": 0, "stop_cause": "checkpoint_preconditions", "first_difference": null, "infrastructure_error": null, "limits": {"per_transition_ticks": 36000, "derived_transition_ticks": 432000, "independent_global_tick_quota": null, "boot_watchdog_seconds": 180, "transition_process_watchdog_seconds": 2400}, "non_satisfied_criteria": [{"id": "encadrement", "status": "failed", "diagnostic": "Physical perimeter at fixed passage; collision faces covering the inward wall/floor/ceiling side prove enclosure. Unusual partial shapes are not forbidden, but need traversal evidence."}, {"id": "hallway_composition", "status": "not_verified", "diagnostic": "Optional quartz/air composition outside SUPER/FULL SEAMLESS; no strict air-id or wall-material requirement."}, {"id": "no_entities", "status": "failed", "diagnostic": "Entities within tracked construction bounds; absence is not a universal influence certificate."}, {"id": "record_reliability", "status": "not_verified", "diagnostic": "Community record rule outside alpha coverage."}, {"id": "record_isolation", "status": "not_verified", "diagnostic": "Community record rule outside alpha coverage."}, {"id": "record_seamless", "status": "not_verified", "diagnostic": "Community record rule outside alpha coverage."}], "copies": [{"mode": "repeater", "server_root": "C:\\Users\\minle\\.codex\\worktrees\\issue-12\\StoneBench\\app\\controller\\.runtime\\tests-1a53e71bcc9f477d826098663f627cfc\\server-1\\stonebench\\verifications\\52f40153-8ccd-4f41-a233-5829dd7d57a4\\repeater", "mcp_port": 19467, "pid": 23468, "restoration_status": "equal"}]}
+
+----------------------------------------------------------------------
+Ran 1 test in 39.095s
+
+FAILED (failures=1)
+

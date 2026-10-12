@@ -1,0 +1,1 @@
+{"status": "verified", "entries": 3350, "source_head": "cd24baee9c8708a89a0240a0ebc95e73e9836b8d", "copied_jars": 22, "bundle_sha256": "d3bed7f30e04a2d8daa42e30e41912338e2c76beb9be7576d356ca76682eb84d"}

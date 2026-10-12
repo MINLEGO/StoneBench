@@ -1,0 +1,50 @@
+
+test_real_mcp_server_contract (__main__.VerificationRuntimeIntegration.test_real_mcp_server_contract) ... Executing <Task pending name='Task-2' coro=<VerificationRuntimeIntegration.test_real_mcp_server_contract() running at C:\Users\minle\.codex\worktrees\issue-12\StoneBench\tests\verification.py:17> cb=[_run_until_complete_cb() at C:\Users\minle\AppData\Local\Programs\Python\Python312\Lib\asyncio\base_events.py:181] created at C:\Users\minle\AppData\Local\Programs\Python\Python312\Lib\asyncio\runners.py:100> took 0.235 seconds
+Executing <Task pending name='Task-2' coro=<VerificationRuntimeIntegration.test_real_mcp_server_contract() running at C:\Users\minle\.codex\worktrees\issue-12\StoneBench\tests\verification.py:17> cb=[_run_until_complete_cb() at C:\Users\minle\AppData\Local\Programs\Python\Python312\Lib\asyncio\base_events.py:181] created at C:\Users\minle\AppData\Local\Programs\Python\Python312\Lib\asyncio\runners.py:100> took 0.187 seconds
+Executing <Handle _ProactorReadPipeTransport._loop_reading(<_OverlappedF...events.py:506>) created at C:\Users\minle\AppData\Local\Programs\Python\Python312\Lib\asyncio\windows_events.py:93> took 0.141 seconds
+Executing <Handle _ProactorReadPipeTransport._loop_reading(<_OverlappedF...events.py:506>) created at C:\Users\minle\AppData\Local\Programs\Python\Python312\Lib\asyncio\proactor_events.py:322> took 0.265 seconds
+FAIL
+
+======================================================================
+FAIL: test_real_mcp_server_contract (__main__.VerificationRuntimeIntegration.test_real_mcp_server_contract)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\minle\AppData\Local\Programs\Python\Python312\Lib\asyncio\runners.py", line 118, in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\minle\AppData\Local\Programs\Python\Python312\Lib\asyncio\base_events.py", line 691, in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+  File "C:\Users\minle\.codex\worktrees\issue-12\StoneBench\tests\verification.py", line 45, in test_real_mcp_server_contract
+    self.assert_geometry_checkpoint_ready(closed)
+  File "C:\Users\minle\.codex\worktrees\issue-12\StoneBench\tests\verification.py", line 345, in assert_geometry_checkpoint_ready
+    self.assertEqual(statuses, {identifier: "satisfied" for identifier in required},
+AssertionError: {'frame_state': 'failed', 'regular_arrangement': 'failed',[131 chars]ied'} != {'frame_state': 'satisfied', 'regular_arrangement': 'satis[140 chars]ied'}
+  {'continuable': 'satisfied',
+-  'door_composition': 'failed',
+?                        - -
+
++  'door_composition': 'satisfied',
+?                       +++++
+
+   'encadrement': 'satisfied',
+-  'frame_state': 'failed',
+?                   - -
+
++  'frame_state': 'satisfied',
+?                  +++++
+
+   'input': 'satisfied',
+   'no_entities': 'satisfied',
+-  'regular_arrangement': 'failed'}
+?                           - -
+
++  'regular_arrangement': 'satisfied'}
+?                          +++++
+ : {"expected_state": "closed", "criteria": [{"id": "regular_arrangement", "status": "failed", "diagnostic": "Closed rectangular occupancy is required; an open snapshot cannot prove the closed arrangement. Rectangular task cross-section and declared frame layers; +Z task basis implemented. Depth is declared explicitly, not prescribed by an image."}, {"id": "frame_state", "status": "failed", "diagnostic": "Snapshot occupancy/collision pattern; this does not establish a stable state."}, {"id": "door_composition", "status": "failed", "diagnostic": "Quartz identity substitution is conclusive; opaque movable nongravity alternatives require behavioral substitution proof. Open geometry cannot infer closed door material."}, {"id": "encadrement", "status": "satisfied", "diagnostic": "Physical perimeter at fixed passage; collision faces covering the inward wall/floor/ceiling side prove enclosure. Unusual partial shapes are not forbidden, but need traversal evidence."}, {"id": "continuable", "status": "satisfied", "diagnostic": "No observed obstruction on fixed passage rays beyond frame layers; tracked static wiring region permits indefinite continuation beyond its extents. Transient completeness assessed separately."}, {"id": "input", "status": "satisfied", "diagnostic": "Live declaration is read from Inputs, never accepted as caller-supplied evidence; top/bottom placement is invalid."}, {"id": "no_entities", "status": "satisfied", "diagnostic": "Entities within tracked construction bounds; absence is not a universal influence certificate."}]}
+
+----------------------------------------------------------------------
+Ran 1 test in 5.313s
+
+FAILED (failures=1)
+
