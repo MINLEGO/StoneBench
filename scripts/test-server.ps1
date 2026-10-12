@@ -60,12 +60,17 @@ if ($LASTEXITCODE -ne 0 -or $pythonVersion -notmatch '^Python 3\.12\.') {
 }
 
 $serverCacheRoot = $null
+$cachedLoader = $null
 if ($ServerCacheSource) {
     $serverCacheRoot = [IO.Path]::GetFullPath($ServerCacheSource)
     foreach ($directory in @('libraries', 'versions')) {
         if (!(Test-Path -LiteralPath (Join-Path $serverCacheRoot $directory))) {
             throw "Server cache is missing $directory/: $serverCacheRoot"
         }
+    }
+    $cachedLoader = Join-Path $serverCacheRoot '.fabric\server\fabric-loader-server-0.19.5-minecraft-1.21.11.jar'
+    if (!(Test-Path -LiteralPath $cachedLoader -PathType Leaf)) {
+        throw "Server cache is missing the pinned generated Fabric launch jar: $cachedLoader"
     }
 }
 $launcher = Join-Path $runtime 'fabric-server-mc.1.21.11-loader.0.19.5-launcher.1.1.2.jar'
@@ -301,6 +306,24 @@ foreach ($server in $servers) {
     if ($serverCacheRoot) {
         foreach ($directory in @('libraries', 'versions')) {
             Copy-Item -LiteralPath (Join-Path $serverCacheRoot $directory) -Destination (Join-Path $server.Root $directory) -Recurse
+        }
+        $copiedLoader = Join-Path $server.Root '.fabric\server\fabric-loader-server-0.19.5-minecraft-1.21.11.jar'
+        Copy-Item -LiteralPath $cachedLoader -Destination $copiedLoader
+        if ((Get-FileHash -LiteralPath $cachedLoader -Algorithm SHA256).Hash -ne (Get-FileHash -LiteralPath $copiedLoader -Algorithm SHA256).Hash) {
+            throw 'Copied generated Fabric launch jar SHA-256 mismatch.'
+        }
+        foreach ($directory in @('remappedJars', 'processedMods')) {
+            $cachedDirectory = Join-Path $serverCacheRoot ".fabric\$directory"
+            if (Test-Path -LiteralPath $cachedDirectory -PathType Container) {
+                $copiedDirectory = Join-Path $server.Root ".fabric\$directory"
+                Copy-Item -LiteralPath $cachedDirectory -Destination $copiedDirectory -Recurse
+                foreach ($file in Get-ChildItem -LiteralPath $cachedDirectory -Recurse -File) {
+                    $copiedFile = Join-Path $copiedDirectory ([IO.Path]::GetRelativePath($cachedDirectory, $file.FullName))
+                    if ((Get-FileHash -LiteralPath $file.FullName -Algorithm SHA256).Hash -ne (Get-FileHash -LiteralPath $copiedFile -Algorithm SHA256).Hash) {
+                        throw 'Copied Fabric derived cache SHA-256 mismatch.'
+                    }
+                }
+            }
         }
     }
     [IO.File]::WriteAllText((Join-Path $server.Root 'eula.txt'), 'eula=true' + [Environment]::NewLine, [Text.UTF8Encoding]::new($false))

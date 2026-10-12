@@ -1,0 +1,6 @@
+Exception: C:\Users\minle\.codex\worktrees\issue-15\StoneBench\scripts\test-server.ps1:73
+Line |
+  73 |          throw "Server cache is missing the pinned generated Fabric la …
+     |          ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+     | Server cache is missing the pinned generated Fabric launch jar:
+     | C:\Users\minle\.codex\worktrees\issue-15\StoneBench\app\campaign\.runtime\incomplete-boot-cache\.fabric\server\fabric-loader-server-0.19.5-minecraft-1.21.11.jar

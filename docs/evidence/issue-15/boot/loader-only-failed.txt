@@ -1,0 +1,7 @@
+Disposable server data and logs: C:\Users\minle\.codex\worktrees\issue-15\StoneBench\app\controller\.runtime\tests-2301638c0a3f46828e591258d565d66d
+Starting server 1: MCP 127.0.0.1:19765, Minecraft 127.0.0.1:26581
+Exception: C:\Users\minle\.codex\worktrees\issue-15\StoneBench\scripts\test-server.ps1:172
+Line |
+ 172 |  … deadline) { throw "Server $($Server.Index) did not become ready withi …
+     |                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+     | Server 1 did not become ready within 180 seconds.

@@ -25,7 +25,12 @@
     {
       "path": "docs/campaign.md",
       "archived_sha256": "0e0e6c17c23ef2ef938a33661a64f6ad0ed22cb5f6b5c23a1faac8fb44c9a1c8",
-      "current_sha256": "21596a119524e90135be779436acfaddb81c8cb7dc364ed15306261227a2f451"
+      "current_sha256": "81f82f38440ae55bb3ce3072aaee39a9e0fcf93db8d0b119a9e368e93844c18a"
+    },
+    {
+      "path": "scripts/test-server.ps1",
+      "archived_sha256": "137c119ad4831e8122a4326fb6251633d491d0fd884e204217f1810e54620a72",
+      "current_sha256": "2f085f7a712f871231cfa2244949b7822143a4f1a2dfbcae3a6b6ea065c493db"
     },
     {
       "path": "tests/campaign.py",
@@ -41,7 +46,8 @@
   "current_added_sources": {
     "tests/campaign_completion.py": "26276a559b575b57700f5885d54fbc0e6942cb98df756383f77c7a661c97ddf2",
     "tests/campaign_revalidation.py": "84a042223e0d222968b6d8b353c59bc6af2e492b3766117f268cb6f4d1092ee8",
-    "tests/campaign_selection.py": "832c986ce82b0a7a58f7640e5301d1fce38a9dd72f892811c8440b821eb4b4f1"
+    "tests/campaign_selection.py": "832c986ce82b0a7a58f7640e5301d1fce38a9dd72f892811c8440b821eb4b4f1",
+    "tests/campaign_boot.py": "6c8a65f24109af11201b18e5708fe8021e44ca59f9b6628712d297f8cdd4c8dc"
   },
   "delta_validation": "numerical correction: tests/campaign.py; provider guards: offline provider-validation-check.py, tests/campaign_completion.py and tests/campaign_revalidation.py; one-task dispatch: tests/campaign_selection.py; no new real Minecraft rehearsal",
   "independent_attempts": 8,
