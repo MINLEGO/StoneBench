@@ -60,6 +60,20 @@ class NativeInspectTests(unittest.IsolatedAsyncioTestCase):
             self.assertTrue(attempt.ledger.calls[-1]["budget_exceeded_observed"])
             self.assertEqual(sum(row.total_tokens for row in log.stats.model_usage.values()),38000)
 
+    async def test_failed_provider_call_has_unavailable_usage(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            attempt = Attempt(Budget(30000, 1000, 1000, 4000, 500), Path(tmp)/"attempt")
+            def scripted(messages, tools, config):
+                raise RuntimeError("Controlled provider failure before usage")
+            task = Task(dataset=[Sample(input="Fail")], solver=react(submit=False,
+                model=budgeted_generation(attempt, GenerateConfig())), token_limit=30000)
+            log = (await eval_async(task,
+                model=get_model("stonebench-scripted/failure", script=scripted),
+                log_dir=str(Path(tmp)/"logs"), log_model_api=False, ctl_server=False))[0]
+            self.assertEqual(log.status, "error")
+            self.assertIsNone(attempt.ledger.total_tokens)
+            self.assertEqual(attempt.ledger.phase, "finalization")
+            self.assertIsNone(attempt.ledger.calls[-1]["usage"])
     async def test_missing_provider_usage_stays_missing(self):
         with tempfile.TemporaryDirectory() as tmp:
             attempt=Attempt(Budget(30000,1000,1000,4000,500),Path(tmp)/"attempt")

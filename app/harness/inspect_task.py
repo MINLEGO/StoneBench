@@ -229,6 +229,13 @@ def budgeted_generation(attempt: Attempt, config: GenerateConfig):
             attempt.event("generation_usage", **attempt.ledger.calls[-1], inspect_limit=exc.type,
                 completion_bound_exceeded_observed=usage is not None and usage.output_tokens > bound)
             raise
+        except BaseException as exc:
+            completed = [event.output for event in transcript().events[history_start:]
+                         if isinstance(event, ModelEvent) and event.output is not None]
+            usage = completed[-1].usage if completed else None
+            attempt.ledger.record(usage, time.monotonic() - started)
+            attempt.event("generation_failed", **attempt.ledger.calls[-1], failure_type=type(exc).__name__)
+            raise
         attempt.ledger.record(state.output.usage, time.monotonic() - started)
         attempt.event("generation_usage", **attempt.ledger.calls[-1], stop_reason=state.output.stop_reason,
                       completion_bound_exceeded_observed=state.output.usage is not None and state.output.usage.output_tokens > bound)

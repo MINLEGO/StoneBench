@@ -1,0 +1,313 @@
+{
+  "chosen_checkpoint_id": "c6bf1dcb-aa56-4e47-8ad4-f9b84c5b6853",
+  "best_conforming_checkpoint_id": "0698b5a7-baf0-454e-9e20-542faee830bd",
+  "latest_checkpoint_id": "d043b063-cb43-4666-8da5-51ec949a4c54",
+  "best_verdict": "conforms_to_alpha",
+  "scenarios": [
+    {
+      "scenario": "selected_older",
+      "selected": "c6bf1dcb-aa56-4e47-8ad4-f9b84c5b6853",
+      "phases": [
+        "construction",
+        "finalization",
+        "finalization",
+        "finalization",
+        "finalization",
+        "finalization",
+        "finalization",
+        "finalization",
+        "finalization",
+        "finalization",
+        "finalization",
+        "finalization",
+        "finalization",
+        "finalization",
+        "finalization",
+        "finalization",
+        "finalization",
+        "finalization",
+        "finalization",
+        "finalization",
+        "finalization",
+        "finalization",
+        "finalization",
+        "finalization",
+        "finalization",
+        "finalization"
+      ],
+      "inspect_usage": {
+        "stonebench-scripted/controlled-selected_older": {
+          "input_tokens": 259250,
+          "output_tokens": 3250,
+          "total_tokens": 262500,
+          "input_tokens_cache_write": null,
+          "input_tokens_cache_read": null,
+          "reasoning_tokens": 1900,
+          "total_cost": null
+        }
+      },
+      "ledger_total": 262500,
+      "known_subtotal": 262500,
+      "working_difference": null,
+      "source_operation_names": [
+        "describe_task",
+        "list_checkpoints",
+        "verification_snapshot",
+        "verification_status",
+        "verify_checkpoint"
+      ],
+      "status": "submitted",
+      "verdict": "failed",
+      "generation_calls": 26
+    },
+    {
+      "scenario": "selected_during_copy",
+      "selected": "d043b063-cb43-4666-8da5-51ec949a4c54",
+      "phases": [
+        "construction",
+        "finalization"
+      ],
+      "inspect_usage": {
+        "stonebench-scripted/controlled-selected_during_copy": {
+          "input_tokens": 258050,
+          "output_tokens": 2050,
+          "total_tokens": 260100,
+          "input_tokens_cache_write": null,
+          "input_tokens_cache_read": null,
+          "reasoning_tokens": 1900,
+          "total_cost": null
+        }
+      },
+      "ledger_total": 260100,
+      "known_subtotal": 260100,
+      "working_difference": null,
+      "source_operation_names": [
+        "describe_task",
+        "list_checkpoints",
+        "verification_snapshot",
+        "verification_status",
+        "verify_checkpoint"
+      ],
+      "status": "submitted",
+      "verdict": "conforms_to_alpha",
+      "generation_calls": 2
+    },
+    {
+      "scenario": "cancel_copy",
+      "selected": null,
+      "phases": [
+        "construction",
+        "finalization",
+        "finalization",
+        "finalization"
+      ],
+      "inspect_usage": {
+        "stonebench-scripted/controlled-cancel_copy": {
+          "input_tokens": 258150,
+          "output_tokens": 2150,
+          "total_tokens": 260300,
+          "input_tokens_cache_write": null,
+          "input_tokens_cache_read": null,
+          "reasoning_tokens": 1900,
+          "total_cost": null
+        }
+      },
+      "ledger_total": 260300,
+      "known_subtotal": 260300,
+      "working_difference": null,
+      "source_operation_names": [
+        "cancel_verification",
+        "describe_task",
+        "verification_snapshot",
+        "verification_status",
+        "verify_checkpoint"
+      ],
+      "status": "no_submission",
+      "verdict": null,
+      "generation_calls": 4
+    },
+    {
+      "scenario": "invalid_id",
+      "selected": null,
+      "phases": [
+        "construction",
+        "finalization",
+        "finalization"
+      ],
+      "inspect_usage": {
+        "stonebench-scripted/controlled-invalid_id": {
+          "input_tokens": 258100,
+          "output_tokens": 2100,
+          "total_tokens": 260200,
+          "input_tokens_cache_write": null,
+          "input_tokens_cache_read": null,
+          "reasoning_tokens": 1900,
+          "total_cost": null
+        }
+      },
+      "ledger_total": 260200,
+      "known_subtotal": 260200,
+      "working_difference": null,
+      "source_operation_names": [
+        "describe_task",
+        "list_checkpoints",
+        "verification_snapshot"
+      ],
+      "status": "no_submission",
+      "verdict": null,
+      "generation_calls": 3
+    },
+    {
+      "scenario": "no_submission",
+      "selected": null,
+      "phases": [
+        "construction",
+        "finalization"
+      ],
+      "inspect_usage": {
+        "stonebench-scripted/controlled-no_submission": {
+          "input_tokens": 258050,
+          "output_tokens": 2050,
+          "total_tokens": 260100,
+          "input_tokens_cache_write": null,
+          "input_tokens_cache_read": null,
+          "reasoning_tokens": 1900,
+          "total_cost": null
+        }
+      },
+      "ledger_total": 260100,
+      "known_subtotal": 260100,
+      "working_difference": null,
+      "source_operation_names": [
+        "describe_task",
+        "verification_snapshot"
+      ],
+      "status": "no_submission",
+      "verdict": null,
+      "generation_calls": 2
+    },
+    {
+      "scenario": "missing_usage",
+      "selected": null,
+      "phases": [
+        "construction",
+        "finalization",
+        "finalization"
+      ],
+      "inspect_usage": {
+        "stonebench-scripted/controlled-missing_usage": {
+          "input_tokens": 100,
+          "output_tokens": 100,
+          "total_tokens": 200,
+          "input_tokens_cache_write": null,
+          "input_tokens_cache_read": null,
+          "reasoning_tokens": null,
+          "total_cost": null
+        }
+      },
+      "ledger_total": null,
+      "known_subtotal": 200,
+      "working_difference": null,
+      "source_operation_names": [
+        "describe_task",
+        "list_checkpoints",
+        "verification_snapshot"
+      ],
+      "status": "no_submission",
+      "verdict": null,
+      "generation_calls": 3
+    },
+    {
+      "scenario": "long_reasoning",
+      "selected": null,
+      "phases": [
+        "construction",
+        "finalization"
+      ],
+      "inspect_usage": {
+        "stonebench-scripted/controlled-long_reasoning": {
+          "input_tokens": 260000,
+          "output_tokens": 52000,
+          "total_tokens": 312000,
+          "input_tokens_cache_write": null,
+          "input_tokens_cache_read": null,
+          "reasoning_tokens": 50900,
+          "total_cost": null
+        }
+      },
+      "ledger_total": 312000,
+      "known_subtotal": 312000,
+      "working_difference": null,
+      "source_operation_names": [
+        "describe_task",
+        "verification_snapshot"
+      ],
+      "status": "no_submission",
+      "verdict": null,
+      "generation_calls": 2
+    },
+    {
+      "scenario": "overshoot",
+      "selected": null,
+      "phases": [
+        "construction"
+      ],
+      "inspect_usage": {
+        "stonebench-scripted/controlled-overshoot": {
+          "input_tokens": 290000,
+          "output_tokens": 100000,
+          "total_tokens": 390000,
+          "input_tokens_cache_write": null,
+          "input_tokens_cache_read": null,
+          "reasoning_tokens": 99900,
+          "total_cost": null
+        }
+      },
+      "ledger_total": 390000,
+      "known_subtotal": 390000,
+      "working_difference": null,
+      "source_operation_names": [
+        "verification_snapshot"
+      ],
+      "status": "no_submission",
+      "verdict": null,
+      "generation_calls": 1
+    }
+  ],
+  "cold_initialize": {
+    "phases": [
+      "construction",
+      "finalization"
+    ],
+    "ledger_total": 260100,
+    "result": {
+      "status": "no_submission",
+      "checkpoint_id": null
+    }
+  },
+  "cancelled_copy": {
+    "request_id": "7d5487cf-3d94-4732-ae62-450b424caa88",
+    "verdict": "infrastructure_error"
+  },
+  "archive": {
+    "file": "inspect-mcp-baseline12.tar.xz",
+    "bytes": 16919644,
+    "sha256": "64a5a660d5f1a7734e4c506888387b17ec9badd8144baaf645d70a8da8056d4b",
+    "entries": 4457
+  },
+  "source_sha256": {
+    "app/harness/__init__.py": "ce4f35a5b16ddfb248433a9c1e1c5fec69290d863694a065dba9e9f8459bfc3d",
+    "app/harness/budget.py": "6de59af412b5096305894a5c776e0e4d6fab255e93937c09086f526d627979b1",
+    "app/harness/inspect_task.py": "044d5274dc7a4777bc22aff718606a8dd260de018ee48d725cb0867c790849d4",
+    "app/harness/scripted.py": "512e20c13ca115a2794d5dd5c1d81f4939a047fb6e6fd41ad1e23546d2b7c778",
+    "app/harness/requirements.txt": "d4d955bb2fd85b68090ce773a5ea809ea1421423c27ebe9bbd8ae010de9d6658",
+    "tests/harness_budget.py": "e0630b728f2d607f5349867e21b701f2a99ddd4517ae9262807fca372b5fcdb8",
+    "tests/harness_inspect.py": "e77c9428f4107082f2a910ba38d2e4b7c2ca8f262748b8a8cf42f3af419a1d33",
+    "tests/harness_native.py": "c87873e464d04ca0f91d544aa17a0abf5980c58e10ada234ec2d9b0309851c44"
+  },
+  "jar_sha256": {
+    "app/controller/.runtime/fabric-server-mc.1.21.11-loader.0.19.5-launcher.1.1.2.jar": "2b63d293be54c8f5484a242859cab841dcee38511e11b2f82e92211f19872d08",
+    "app/controller/build/libs/stonebench-controller-0.1.0.jar": "a427a921eac3dcc19dbc909da30235ce4e297ddfe4cc6e06e2ffdf1341af0198",
+    "app/controller/.runtime/tests-99e68ed38275445c8f3ec5f9df204852/server-1/mods/stonebench-controller.jar": "a427a921eac3dcc19dbc909da30235ce4e297ddfe4cc6e06e2ffdf1341af0198"
+  }
+}

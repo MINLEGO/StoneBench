@@ -1,0 +1,17 @@
+{
+  "source_sha256": {
+    "app/harness/__init__.py": "ce4f35a5b16ddfb248433a9c1e1c5fec69290d863694a065dba9e9f8459bfc3d",
+    "app/harness/budget.py": "6de59af412b5096305894a5c776e0e4d6fab255e93937c09086f526d627979b1",
+    "app/harness/inspect_task.py": "07b155f1c81a90e08c3e85fb8859653dcb688443a781790bdad4e5282b7461b8",
+    "app/harness/scripted.py": "512e20c13ca115a2794d5dd5c1d81f4939a047fb6e6fd41ad1e23546d2b7c778",
+    "app/harness/requirements.txt": "d4d955bb2fd85b68090ce773a5ea809ea1421423c27ebe9bbd8ae010de9d6658",
+    "tests/harness_budget.py": "e0630b728f2d607f5349867e21b701f2a99ddd4517ae9262807fca372b5fcdb8",
+    "tests/harness_inspect.py": "e77c9428f4107082f2a910ba38d2e4b7c2ca8f262748b8a8cf42f3af419a1d33",
+    "tests/harness_native.py": "2c45382b7d7a413362e1f982aadbcbe2a169514d2431880234413528a3a4df60"
+  },
+  "archive": {
+    "file": "harness-source-and-tests.zip",
+    "sha256": "65cd0774d9cbc89ff93de7eeece3d448a8e22e4a3c5f69bb659a0082eb1de1f9",
+    "bytes": 17921
+  }
+}

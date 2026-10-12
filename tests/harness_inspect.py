@@ -63,7 +63,7 @@ class HarnessRuntimeIntegration(verification.VerificationRuntimeIntegration):
                 recorded = attempt.ledger.total_tokens
                 if scenario == "missing_usage":
                     self.assertIsNone(recorded)
-                elif scenario != "overshoot":
+                else:
                     self.assertEqual(sum(row.total_tokens for row in usage.values()), recorded)
                 self.assertTrue(script.phases, scenario)
                 if scenario not in {"long_reasoning", "overshoot"}:
@@ -109,6 +109,20 @@ class HarnessRuntimeIntegration(verification.VerificationRuntimeIntegration):
                     "ledger_total": recorded, "known_subtotal": attempt.ledger.known_tokens,
                     "working_difference": None, "calls": attempt.ledger.calls,
                     "source_operation_names": sorted(set(item["operation"] for item in operations))})
+            # Exercise initialization through the harness on the untouched second server.
+            cold_task, cold = stonebench_task(integration.server_urls()[1],
+                Budget(300000, 4000, 4000, 20000, 2000), root / "cold_initialize")
+            cold_script = Scenario("no_submission", chosen, latest_id, self, cold)
+            cold_logs = await eval_async(cold_task,
+                model=get_model("stonebench-scripted/cold-initialize", script=cold_script),
+                log_dir=str(root / "inspect-logs"), log_format="json", log_model_api=False,
+                ctl_server=False, max_samples=1, max_tasks=1)
+            self.assertEqual(cold_logs[0].status, "success", str(cold_logs[0].error))
+            self.assertEqual(cold.report["status"], "no_submission")
+            self.assertIsNone(cold.selected)
+            evidence["cold_initialize"] = {"phases": cold_script.phases,
+                "ledger_total": cold.ledger.total_tokens, "result": cold.report,
+                "initialization": json.loads((cold.root / "tool-000001.json").read_text(encoding="utf-8"))}
             evidence.update(chosen_checkpoint_id=chosen, best_conforming_checkpoint_id=best_id, latest_checkpoint_id=latest_id,
                             best_verdict=best["verdict"])
         finally:
