@@ -23,6 +23,10 @@ def save(root, name, value):
     (root / name).write_text(encode(value), encoding="utf-8")
 
 
+def token_count(value):
+    return type(value) is int and value>=0
+
+
 def usable_output(message):
     content=message.get("content")
     if isinstance(content,str) and content.strip():
@@ -92,6 +96,11 @@ def resolve_provider_evidence(row):
         gaps.append("provider_cost_sources_disagree")
     if metadata.get("id") is not None and metadata["id"]!=row.get("response_id"):gaps.append("generation_identity_disagrees")
     usage=row.get("raw_provider_usage") or {}
+    for field,bound in (("native_tokens_prompt",usage.get("prompt_tokens")),
+        ("native_tokens_completion",usage.get("completion_tokens")),("native_tokens_reasoning",usage.get("completion_tokens"))):
+        value=metadata.get(field)
+        if value is not None and (not token_count(value) or (token_count(bound) and field=="native_tokens_reasoning" and value>bound)):
+            gaps.append("generation_native_token_usage_invalid")
     for field,raw in (("native_tokens_prompt","prompt_tokens"),("native_tokens_completion","completion_tokens")):
         if metadata.get(field) is not None and metadata[field]!=usage.get(raw):gaps.append("provider_usage_sources_disagree")
     reasoning=(usage.get("completion_tokens_details") or {}).get("reasoning_tokens")
@@ -130,10 +139,15 @@ async def validate_provider(rows):
                     row["metadata_error_type"]=type(exc).__name__
             gaps.extend(resolve_provider_evidence(row))
             usage=row["raw_provider_usage"] or {}
-            if any(not isinstance(usage.get(name),int) for name in ("prompt_tokens","completion_tokens","total_tokens")):
+            if any(not token_count(usage.get(name)) for name in ("prompt_tokens","completion_tokens","total_tokens")):
                 gaps.append("provider_token_usage_unavailable")
             elif usage["total_tokens"] != usage["prompt_tokens"]+usage["completion_tokens"]:
                 gaps.append("provider_token_usage_inconsistent")
+            for details,field,total in (("completion_tokens_details","reasoning_tokens","completion_tokens"),
+                ("prompt_tokens_details","cached_tokens","prompt_tokens"),("prompt_tokens_details","cache_write_tokens","prompt_tokens")):
+                value=(usage.get(details) or {}).get(field)
+                if value is not None and (not token_count(value) or not token_count(usage.get(total)) or value>usage[total]):
+                    gaps.append("provider_reasoning_or_cache_token_usage_invalid")
             if row["requested_max_tokens"] is None or (isinstance(usage.get("completion_tokens"),int) and usage["completion_tokens"]>row["requested_max_tokens"]):
                 gaps.append("completion_bound_unavailable_or_exceeded")
             if row.get("finish_reason")=="length" and not row.get("usable_visible_or_tool_output"):

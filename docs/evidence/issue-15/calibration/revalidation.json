@@ -236,5 +236,5 @@
   ],
   "prompt_and_exact_request_config_checked": true,
   "limitations": "Two small read-only tool responses. No long reasoning stress or door-solving performance proof. FP8 tag inferred from exact request allowlist plus selected provider, not independently returned by metadata.",
-  "validator_source_sha256": "f52112f10227b30048d8f04b51ccebd110dc43cd6f082432b8f32e896d0432a8"
+  "validator_source_sha256": "37c8e72959c53ee6c69ba5d53974cc5f4bd0779f185fd5bf29fb78a3b7c3f7a9"
 }

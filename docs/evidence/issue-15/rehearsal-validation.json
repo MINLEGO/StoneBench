@@ -20,7 +20,7 @@
     {
       "path": "app/campaign/run_attempt.py",
       "archived_sha256": "205b4a24da370c615edc0c4f96d1a1f1afe4614bacc33fd2bbcb2ce94ac62c61",
-      "current_sha256": "f52112f10227b30048d8f04b51ccebd110dc43cd6f082432b8f32e896d0432a8"
+      "current_sha256": "37c8e72959c53ee6c69ba5d53974cc5f4bd0779f185fd5bf29fb78a3b7c3f7a9"
     },
     {
       "path": "docs/campaign.md",
@@ -40,7 +40,7 @@
   ],
   "current_added_sources": {
     "tests/campaign_completion.py": "26276a559b575b57700f5885d54fbc0e6942cb98df756383f77c7a661c97ddf2",
-    "tests/campaign_revalidation.py": "04b4fd5fc03dd042629e58266e6b5d45f19e54cb33983f8386aacbb1ab4d0da1"
+    "tests/campaign_revalidation.py": "128dbeef4f9271052188fc346d3665a3ae1f1b9d467959e8c11244b687727904"
   },
   "delta_validation": "numerical correction: tests/campaign.py; provider guards: offline provider-validation-check.py and tests/campaign_completion.py; no new real Minecraft rehearsal",
   "independent_attempts": 8,
