@@ -1,0 +1,7 @@
+paid: starting 2x2-volume
+Archived 1 attempts: C:\Users\minle\AppData\Local\Temp\tmp1w0yh35q\output.tar.xz
+...
+----------------------------------------------------------------------
+Ran 3 tests in 1.260s
+
+OK

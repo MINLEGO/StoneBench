@@ -84,17 +84,20 @@ def main():
     parser.add_argument("--output",type=Path)
     parser.add_argument("--authorization",type=Path)
     parser.add_argument("--calibration",type=Path,help="Reviewed accepted calibration status.json for the exact plan")
+    parser.add_argument("--task",choices=TASKS,action="append",help="Paid task selection; repeat only for an explicitly authorized subset")
     parser.add_argument("--java",default=r"C:\Program Files\Java\jdk-21.0.12\bin\java.exe")
     parser.add_argument("--server-cache",default=r"C:\Users\minle\Documents\projets\StoneBench\app\prototype-transition\.runtime\server-cache")
     parser.add_argument("--mcp-port",type=int,default=19765)
     parser.add_argument("--game-port",type=int,default=26581)
     args=parser.parse_args()
+    if args.task and args.mode!="paid":parser.error("--task is only available for paid mode")
+    tasks=tuple(args.task) if args.task else TASKS
     if args.mode=="plan":
         print(json.dumps({**plan(),"plan_sha256":plan_hash()},indent=2));return
     if args.mode in {"paid","calibration"}:
         if args.authorization is None:
             parser.error("Paid inference requires --authorization for this exact plan and scope")
-        require_authorization(args.authorization,args.mode)
+        require_authorization(args.authorization,args.mode,task_ids=tasks if args.mode=="paid" else None)
     if args.mode=="paid":
         if args.calibration is None:
             parser.error("Paid campaign requires accepted --calibration status.json")
@@ -109,10 +112,12 @@ def main():
         "git_head":subprocess.check_output(["git","rev-parse","HEAD"],cwd=REPO,text=True).strip(),
         "packages":{item.metadata["Name"]:item.version for item in distributions()},
         "python":sys.version,"java_executable":args.java,"platform":sys.platform,
-        "tasks":[],"paid_inference":args.mode in {"paid","calibration"}}
+        "tasks":[],"selected_task_ids":list(tasks) if args.mode!="calibration" else list(TASKS[:1]),
+        "authorized_task_ids":list(tasks) if args.mode=="paid" else None,
+        "paid_inference":args.mode in {"paid","calibration"}}
     roots=[]
     failed=False
-    tasks=TASKS[:1] if args.mode=="calibration" else TASKS
+    tasks=TASKS[:1] if args.mode=="calibration" else tasks
     try:
         for task_id in tasks:
             # Independently created roots/processes; ports reused only after the

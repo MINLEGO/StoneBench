@@ -52,13 +52,23 @@ def plan_hash():
     return digest(json.dumps(plan(), sort_keys=True).encode())
 
 
-def require_authorization(path, mode):
+def require_authorization(path, mode, *, task_ids=None, task_id=None):
     approved = json.loads(Path(path).read_text(encoding="utf-8"))
     if approved.get("plan_sha256") != plan_hash() or approved.get("scope") != mode or approved.get("authorized_by_user") is not True:
         raise ValueError("Paid scope requires explicit user authorization of this exact plan hash")
     # Calibration cannot silently unlock the eight-task campaign.
     if mode not in {"calibration", "paid"}:
         raise ValueError("Unknown paid scope")
+    if mode=="paid":
+        allowed=approved.get("task_ids")
+        if not isinstance(allowed,list) or not allowed or any(not isinstance(item,str) or item not in TASKS for item in allowed) or len(set(allowed))!=len(allowed):
+            raise ValueError("Paid authorization requires an explicit unique task_ids subset")
+        if task_ids is not None and list(task_ids)!=allowed:
+            raise ValueError("Paid selection must exactly match authorized task_ids")
+        if task_id is not None and task_id not in allowed:
+            raise ValueError("Direct paid attempt task is outside authorized task_ids")
+        if task_ids is None and task_id is None:
+            raise ValueError("Paid authorization requires a concrete selected task")
 
 
 def load_secret(path=SECRET_FILE):

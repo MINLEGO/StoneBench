@@ -3,11 +3,11 @@ from pathlib import Path
 from unittest.mock import patch
 sys.path.insert(0,str(Path.cwd()))
 from app.campaign.launch import main
-from app.campaign.plan import plan_hash
+from app.campaign.plan import plan_hash,TASKS
 results=[]
 with tempfile.TemporaryDirectory() as tmp:
     tmp=Path(tmp);authorization=tmp/'fake-test-authorization.json'
-    authorization.write_text(json.dumps({'plan_sha256':plan_hash(),'scope':'paid','authorized_by_user':True}))
+    authorization.write_text(json.dumps({'plan_sha256':plan_hash(),'scope':'paid','authorized_by_user':True,'task_ids':list(TASKS)}))
     rejected=tmp/'rejected-calibration.json';rejected.write_text(json.dumps({'plan_sha256':plan_hash(),'mode':'calibration','calibration_validation':{'accepted':False}}))
     for label,args in [('no-authorization',[]),('no-calibration',['--authorization',str(authorization)]),('rejected-calibration',['--authorization',str(authorization),'--calibration',str(rejected)])]:
         output=tmp/label

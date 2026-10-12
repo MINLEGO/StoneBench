@@ -253,7 +253,7 @@ async def run():
     if mode not in {"rehearsal", "calibration", "paid"}:
         raise ValueError("Unknown campaign mode")
     if mode != "rehearsal":
-        require_authorization(os.environ["STONEBENCH_CAMPAIGN_AUTHORIZATION"],mode)
+        require_authorization(os.environ["STONEBENCH_CAMPAIGN_AUTHORIZATION"],mode,task_id=task_id)
     root = Path(os.environ["STONEBENCH_CAMPAIGN_ATTEMPT"])
     root.mkdir(parents=True, exist_ok=False)
     budget = CALIBRATION_BUDGET if mode == "calibration" else BUDGET

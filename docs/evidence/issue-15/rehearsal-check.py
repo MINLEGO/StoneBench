@@ -24,7 +24,7 @@ for name,expected in manifest['source_sha256'].items():
 assert {item['path'] for item in source_delta} == {'app/campaign/launch.py','app/campaign/plan.py',
     'app/campaign/run_attempt.py','docs/campaign.md','tests/campaign.py','tests/campaign_provider.py'}
 current_added_sources={name:hashlib.sha256(Path(name).read_bytes()).hexdigest()
-    for name in ('tests/campaign_completion.py','tests/campaign_revalidation.py')}
+    for name in ('tests/campaign_completion.py','tests/campaign_revalidation.py','tests/campaign_selection.py')}
 
 assert len(manifest['tasks'])==8
 ids=[];roots=[];catalogues=[];results=[];context=[]
@@ -67,7 +67,7 @@ for task_id,row in zip(TASKS,manifest['tasks']):
         'maximum_context_byte_estimate':max(event['context_estimate'] for event in forecasts)})
 assert len(set(ids))==len(set(roots))==8 and len(set(catalogues))==1
 output={'status':'passed','paid_inference_calls':0,'scope':'real Minecraft/Inspect/MCP infrastructure with scripted incomplete constructions, not provider calibration or door solving',
-    'plan_sha256':manifest['plan_sha256'],'current_plan_sha256':plan_hash(),'archived_source_bytes_match_manifest':True,'source_bytes_match_current':not source_delta,'source_delta':source_delta,'current_added_sources':current_added_sources,'delta_validation':'numerical correction: tests/campaign.py; provider guards: offline provider-validation-check.py and tests/campaign_completion.py; no new real Minecraft rehearsal','independent_attempts':8,'production_catalogue_identical':True,
+    'plan_sha256':manifest['plan_sha256'],'current_plan_sha256':plan_hash(),'archived_source_bytes_match_manifest':True,'source_bytes_match_current':not source_delta,'source_delta':source_delta,'current_added_sources':current_added_sources,'delta_validation':'numerical correction: tests/campaign.py; provider guards: offline provider-validation-check.py, tests/campaign_completion.py and tests/campaign_revalidation.py; one-task dispatch: tests/campaign_selection.py; no new real Minecraft rehearsal','independent_attempts':8,'production_catalogue_identical':True,
     'context_estimate_minimum':min(context),'context_estimate_maximum':max(context),'archive':check,'tasks':results}
 Path('docs/evidence/issue-15/rehearsal-validation.json').write_text(json.dumps(output,indent=2),encoding='utf-8')
 stream.close()
