@@ -1,0 +1,9 @@
+{
+  "status": "ok",
+  "verified_evidence_files": 4456,
+  "source_files": 8,
+  "scenarios": 8,
+  "archive_sha256": "64a5a660d5f1a7734e4c506888387b17ec9badd8144baaf645d70a8da8056d4b",
+  "source_archive_sha256": "65cd0774d9cbc89ff93de7eeece3d448a8e22e4a3c5f69bb659a0082eb1de1f9",
+  "secret_sentinel_absent": true
+}

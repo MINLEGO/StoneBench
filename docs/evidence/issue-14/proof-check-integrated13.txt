@@ -1,0 +1,13 @@
+{
+  "status": "ok",
+  "verified_evidence_files": 4542,
+  "source_files": 55,
+  "scenarios": 8,
+  "archive_sha256": "a037d08923598e9f572558d7e7eb51e45125deca785c069fbbd18ef24134d26d",
+  "jar_sha256": "8157df083019cab7f19238e53f6f0ffa49208d0b72f64b6a378fca7c000581d1",
+  "dynamic_volume": "indeterminate",
+  "observed_volume_upper_bound": 240,
+  "repeater_ticks": 6,
+  "direct_ticks": 4,
+  "secret_sentinel_absent": true
+}
