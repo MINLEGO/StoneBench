@@ -24,8 +24,10 @@ class CampaignTests(unittest.TestCase):
         self.assertEqual(BUDGET.reserve(12345),110649)
         forecast=plan()["forecast"]
         self.assertAlmostEqual(forecast["worst_split_campaign_usd"],BUDGET.total*8*.28/1000000)
+        self.assertAlmostEqual(forecast["conditional_calibration_plus_excess_usd"],
+            (400000+1114112)*.28/1000000)
         self.assertAlmostEqual(forecast["conditional_campaign_plus_excess_and_calibration_usd"],
-            4.48+8*1114112*.28/1000000+.112)
+            4.48+9*1114112*.28/1000000+.112)
         self.assertTrue(all(value>0 for value in asdict(BUDGET).values()))
 
     def test_exact_endpoint_allowlist(self):

@@ -43,7 +43,8 @@ def plan():
                 "calibration_worst_split_usd": .112,
                 "conditional_one_inflight_excess_tokens_per_attempt":1114112,
                 "conditional_campaign_plus_excess_usd":6.97561088,
-                "conditional_campaign_plus_excess_and_calibration_usd":7.08761088,
+                "conditional_calibration_plus_excess_usd":.42395136,
+                "conditional_campaign_plus_excess_and_calibration_usd":7.39956224,
                 "limitations": "Token total is an observed stop threshold, not a hard monetary cap. One in-flight request, hidden input overhead, retries and provider bound violations can exceed it; actual usage/cost fields remain authoritative."}}
 
 
