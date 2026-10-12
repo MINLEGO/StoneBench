@@ -70,7 +70,9 @@ class Ledger:
         self.calls.append({"phase": self.phase, "usage": values, "wall_seconds": wall_seconds,
                            "known_tokens_subtotal": self.known_tokens,
                            "budget_exceeded_observed": self.known_tokens > self.budget.total})
-        if self.usage_complete and self.known_tokens >= self.budget.total:
+        if not self.usage_complete:
+            self.finalize("usage_unavailable")
+        elif self.known_tokens >= self.budget.total:
             self.finalize("observed_budget_exhausted")
 
     def can_continue(self):

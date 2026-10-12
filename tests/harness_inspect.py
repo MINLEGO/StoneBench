@@ -8,7 +8,7 @@ import unittest
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from app.harness.budget import Budget
-from app.harness.inspect_task import stonebench_task
+from app.harness.inspect_task import stonebench_task, WRITE_TOOLS
 import app.harness.scripted
 from inspect_ai import eval_async
 from inspect_ai.model import ChatMessageAssistant, ChatCompletionChoice, ModelOutput, ModelUsage, get_model
@@ -46,11 +46,14 @@ class HarnessRuntimeIntegration(verification.VerificationRuntimeIntegration):
             root = Path(os.environ.get("STONEBENCH_HARNESS_EVIDENCE", "app/harness/.runtime/evidence"))
             root.mkdir(parents=True, exist_ok=True)
 
-            for scenario in ("selected_older", "invalid_id", "no_submission", "missing_usage", "long_reasoning", "overshoot"):
+            for scenario in ("selected_older", "selected_during_copy", "cancel_copy", "invalid_id", "no_submission", "missing_usage", "long_reasoning", "overshoot"):
+                server_root = Path(os.environ["STONEBENCH_SERVER_ROOTS"].split(";")[0])
+                journal = server_root / "stonebench/operations.jsonl"
+                journal_start = len(journal.read_text(encoding="utf-8").splitlines())
                 task, attempt = stonebench_task(url, Budget(300000, 4000, 4000, 20000, 2000, final_calls=120),
                     root / scenario, initialize=False)
                 script = Scenario(scenario, chosen, latest_id, self, attempt)
-                model = get_model("stonebench-scripted/controlled", script=script)
+                model = get_model(f"stonebench-scripted/controlled-{scenario}", script=script)
                 logs = await eval_async(task, model=model, log_dir=str(root / "inspect-logs"), log_format="json",
                                          log_model_api=False, ctl_server=False, max_samples=1, max_tasks=1)
                 log = logs[0]
@@ -76,15 +79,36 @@ class HarnessRuntimeIntegration(verification.VerificationRuntimeIntegration):
                     refused = [json.loads(line) for line in (attempt.root / "events.jsonl").read_text().splitlines() if '"tool_refused"' in line]
                     self.assertGreaterEqual(len(refused), 7, refused)
                     self.assertTrue(script.verification_finished)
+                    during = [json.loads(file.read_text(encoding="utf-8")) for file in attempt.root.glob("tool-*.json")]
+                    snapshots = [item for item in during if item.get("operation") == "verification_snapshot"]
+                    self.assertTrue(snapshots)
+                    for snapshot in snapshots:
+                        self.assertIsNone(verification.first_difference(baseline, self.frozen_snapshot(snapshot)))
+                elif scenario == "selected_during_copy":
+                    self.assertEqual(attempt.selected, latest_id)
+                    self.assertEqual(attempt.report["checkpoint_id"], latest_id)
+                    self.assertEqual(attempt.report["verification"]["checkpoint_id"], latest_id)
+                    self.assertEqual(attempt.report["verification"]["verdict"], "conforms_to_alpha")
                 else:
                     self.assertIsNone(attempt.selected)
                     self.assertEqual(attempt.report["status"], "no_submission")
+                if scenario == "cancel_copy":
+                    cancelled = await self.wait_for_verification(first, script.request_id)
+                    self.assertEqual(cancelled["verdict"], "infrastructure_error", self.report_context(cancelled))
+                    self.assertFalse(cancelled["conforms_to_alpha"])
+                    evidence["cancelled_copy"] = cancelled
                 after = await self.call(first, "verification_snapshot")
                 self.assertIsNone(verification.first_difference(baseline, self.frozen_snapshot(after)), scenario)
+                operations = [json.loads(line) for line in journal.read_text(encoding="utf-8").splitlines()[journal_start:]]
+                self.assertFalse(set(item["operation"] for item in operations) & WRITE_TOOLS, operations)
+                run = json.loads((attempt.root / "run.json").read_text(encoding="utf-8"))
+                self.assertIn("submit_checkpoint", {item["name"] for item in run["tool_catalogue"]})
+                self.assertFalse(any(item["name"].startswith("__test") for item in run["tool_catalogue"]))
                 evidence["scenarios"].append({"scenario": scenario, "selected": attempt.selected, "result": attempt.report,
                     "phases": script.phases, "inspect_usage": {key: value.model_dump() for key, value in usage.items()},
                     "ledger_total": recorded, "known_subtotal": attempt.ledger.known_tokens,
-                    "working_difference": None, "calls": attempt.ledger.calls})
+                    "working_difference": None, "calls": attempt.ledger.calls,
+                    "source_operation_names": sorted(set(item["operation"] for item in operations))})
             evidence.update(chosen_checkpoint_id=chosen, best_conforming_checkpoint_id=best_id, latest_checkpoint_id=latest_id,
                             best_verdict=best["verdict"])
         finally:
@@ -115,7 +139,7 @@ class Scenario:
         elif self.scenario == "selected_older":
             if self.index == 1:
                 self.test.assertEqual(phase, "finalization")
-                calls = [("modify_blocks", {"blocks": [{"x":1024,"y":79,"z":1024,"block":"minecraft:air"}]}),
+                calls = [("modify_blocks", {"blocks": [{"x":1024,"y":79,"z":1024,"block":"minecraft:air"}], "notify_neighbors":True}),
                     ("advance", {"ticks":1}), ("transition", {"max_ticks":20}),
                     ("act_input", {"ticks":1}), ("prepare_input", {"mode":"direct"}),
                     ("declare_input", {"device":"minecraft:lever", "position":{"x":1024,"y":80,"z":1024},"orientation":"west","input_block":{"x":1025,"y":80,"z":1024}}),
@@ -136,6 +160,18 @@ class Scenario:
                     if self.index == 2:
                         calls += [("verification_snapshot", {}), ("restore_checkpoint", {"checkpoint_id":self.latest}),
                                   ("modify_blocks", {}), ("__test_verification_mutate", {})]
+        elif self.scenario == "selected_during_copy":
+            if self.index == 1:
+                calls = [("verify_checkpoint", {"checkpoint_id": self.latest}),
+                         ("submit_checkpoint", {"checkpoint_id": self.latest})]
+        elif self.scenario == "cancel_copy":
+            if self.index == 1:
+                calls = [("verify_checkpoint", {"checkpoint_id": self.latest})]
+            elif self.index == 2:
+                retained = [json.loads(file.read_text(encoding="utf-8")) for file in sorted(self.attempt.root.glob("tool-*.json"))]
+                self.request_id = next(item["verification"]["request_id"] for item in reversed(retained) if item.get("verification",{}).get("request_id"))
+                calls = [("cancel_verification", {"request_id": self.request_id}),
+                         ("restore_checkpoint", {"checkpoint_id": self.latest})]
         elif self.scenario == "invalid_id" and self.index == 1:
             calls = [("submit_checkpoint", {"checkpoint_id":"00000000-0000-0000-0000-000000000000"})]
         elif self.scenario in {"missing_usage", "long_reasoning"} and self.index == 1:
@@ -143,10 +179,10 @@ class Scenario:
         usage = ModelUsage(input_tokens=50, output_tokens=50, total_tokens=100)
         if self.index == 0:
             usage = None if self.scenario == "missing_usage" else ModelUsage(input_tokens=258000, output_tokens=2000, total_tokens=260000, reasoning_tokens=1900)
-            if self.scenario == "long_reasoning":
-                usage = ModelUsage(input_tokens=230000, output_tokens=50000, total_tokens=280000, reasoning_tokens=49000)
             if self.scenario == "overshoot":
                 usage = ModelUsage(input_tokens=290000, output_tokens=100000, total_tokens=390000, reasoning_tokens=99900)
+        if self.scenario == "long_reasoning" and self.index == 1:
+            usage = ModelUsage(input_tokens=2000, output_tokens=50000, total_tokens=52000, reasoning_tokens=49000)
         self.index += 1
         return ModelOutput(model="stonebench-scripted/controlled", usage=usage, choices=[ChatCompletionChoice(
             message=ChatMessageAssistant(content="Scripted decision", tool_calls=[ToolCall(id=f"{self.index}-{i}", function=name, arguments=args) for i,(name,args) in enumerate(calls)] or None),

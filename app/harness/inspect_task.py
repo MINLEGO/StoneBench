@@ -10,6 +10,9 @@ import time
 from inspect_ai import Task
 from inspect_ai.agent import AgentState, agent, as_solver, react
 from inspect_ai.dataset import Sample
+from inspect_ai.event import ModelEvent
+from inspect_ai.log import transcript
+from inspect_ai.util import LimitExceededError
 from inspect_ai.model import ChatMessageUser, GenerateConfig, get_model
 from inspect_ai.scorer import Score, scorer
 from inspect_ai.solver import solver
@@ -61,6 +64,7 @@ class Attempt:
         self.sequence = 0
         self.report = None
         self.catalog = []
+        self.verification_jobs = set()
 
     def event(self, kind, **values):
         with (self.root / "events.jsonl").open("a", encoding="utf-8") as stream:
@@ -92,6 +96,10 @@ class Attempt:
             except Exception as exc:
                 self.event("tool_error", tool=name, error=str(exc), wall_seconds=time.monotonic() - started)
                 raise
+            if name == "verify_checkpoint" and value.get("status") == "ok":
+                job = value.get("verification", {})
+                if job.get("request_id"):
+                    self.verification_jobs.add(job["request_id"])
             self.event("tool_completed", tool=name, wall_seconds=time.monotonic() - started,
                        ticks_executed=value.get("ticks_executed"), status=value.get("status"),
                        operation_id=value.get("operation_id"), mutated=value.get("mutated"))
@@ -153,26 +161,44 @@ class Attempt:
             return execute
         return [submit_checkpoint(), read_harness_artifact()]
 
+    async def scoring_call(self, name, **arguments):
+        if name not in READ_TOOLS:
+            raise RuntimeError("Scorer cannot mutate the working world")
+        started = time.monotonic()
+        self.event("scoring_tool_call", tool=name, arguments=arguments)
+        response = payload(await self.tools[name](**arguments))
+        self.event("scoring_tool_completed", tool=name, status=response.get("status"),
+            ticks_executed=response.get("ticks_executed"), mutated=response.get("mutated"),
+            operation_id=response.get("operation_id"), wall_seconds=time.monotonic() - started)
+        return response
+
+    async def wait_job(self, request_id):
+        while True:
+            response = await self.scoring_call("verification_status", request_id=request_id)
+            if response.get("status") != "ok" or "verdict" in response.get("verification", {}):
+                return response
+            await asyncio.sleep(.25)
+
     async def verify_selected(self):
         if self.selected is None:
             return {"status": "no_submission", "checkpoint_id": None}
-        started = payload(await self.tools["verify_checkpoint"](checkpoint_id=self.selected))
+        # A submitted selection may arrive while the agent's independent copy still runs.
+        for request_id in self.verification_jobs:
+            await self.wait_job(request_id)
+        started = await self.scoring_call("verify_checkpoint", checkpoint_id=self.selected)
         self.retain("score_verify_checkpoint", started)
         if started.get("status") != "ok":
             return {"status": "verification_error", "checkpoint_id": self.selected, "diagnostic": started}
         request = started["verification"]["request_id"]
         # Existing supervisor enforces independent phase/liveness watchdogs; no global tick/time quota.
-        while True:
-            response = payload(await self.tools["verification_status"](request_id=request))
-            report = response.get("verification", {})
-            if response.get("status") != "ok":
-                return {"status": "verification_error", "checkpoint_id": self.selected, "diagnostic": response}
-            if "verdict" in report:
-                self.retain("score_verification_report", response)
-                if report.get("checkpoint_id") != self.selected:
-                    raise RuntimeError("Verifier returned a different checkpoint identity")
-                return {"status": "submitted", "checkpoint_id": self.selected, "verification": report}
-            await asyncio.sleep(.25)
+        response = await self.wait_job(request)
+        report = response.get("verification", {})
+        if response.get("status") != "ok":
+            return {"status": "verification_error", "checkpoint_id": self.selected, "diagnostic": response}
+        self.retain("score_verification_report", response)
+        if report.get("checkpoint_id") != self.selected:
+            raise RuntimeError("Verifier returned a different checkpoint identity")
+        return {"status": "submitted", "checkpoint_id": self.selected, "verification": report}
 
 
 @agent
@@ -190,8 +216,19 @@ def budgeted_generation(attempt: Attempt, config: GenerateConfig):
         bound = attempt.ledger.budget.final_completion if attempt.ledger.phase == "finalization" else attempt.ledger.budget.construction_output
         attempt.event("before_generation", **status, max_tokens=bound)
         started = time.monotonic()
-        state.output = await get_model().generate(state.messages, tools=tools,
-            config=config.model_copy(update={"max_tokens": bound, "parallel_tool_calls": False}))
+        history_start = len(transcript().events)
+        try:
+            state.output = await get_model().generate(state.messages, tools=tools,
+                config=config.model_copy(update={"max_tokens": bound, "parallel_tool_calls": False}))
+        except LimitExceededError as exc:
+            # Inspect records the completed ModelEvent before its token limit raises.
+            completed = [event.output for event in transcript().events[history_start:]
+                         if isinstance(event, ModelEvent) and event.output is not None]
+            usage = completed[-1].usage if completed else None
+            attempt.ledger.record(usage, time.monotonic() - started)
+            attempt.event("generation_usage", **attempt.ledger.calls[-1], inspect_limit=exc.type,
+                completion_bound_exceeded_observed=usage is not None and usage.output_tokens > bound)
+            raise
         attempt.ledger.record(state.output.usage, time.monotonic() - started)
         attempt.event("generation_usage", **attempt.ledger.calls[-1], stop_reason=state.output.stop_reason,
                       completion_bound_exceeded_observed=state.output.usage is not None and state.output.usage.output_tokens > bound)
@@ -223,18 +260,23 @@ def stonebench_task(mcp_url: str, budget: Budget, artifact_dir: Path, task_id="2
                     if started.get("status") != "ok":
                         raise RuntimeError("Cannot initialize StoneBench attempt")
                 tools = [attempt.wrap(item) for name, item in definitions.items() if name in READ_TOOLS | WRITE_TOOLS]
-                tools.extend(attempt.local_tools())
+                local = attempt.local_tools()
+                tools.extend(local)
+                attempt.catalog.extend({"name": ToolDef(item).name, "description": ToolDef(item).description,
+                    "parameters": ToolDef(item).parameters.model_dump(mode="json")} for item in local)
                 async def on_continue(agent_state):
                     return attempt.selected is None and attempt.ledger.can_continue() and bool(agent_state.output.message.tool_calls)
                 native = react(tools=tools, prompt=prompt, submit=False, model=budgeted_generation(attempt, config), on_continue=on_continue)
-                state = await as_solver(native)(state, generate)
-                state.metadata["stonebench"] = {"selected_checkpoint_id": attempt.selected,
-                    "total_tokens": attempt.ledger.total_tokens, "known_tokens_subtotal": attempt.ledger.known_tokens,
-                    "phase": attempt.ledger.phase, "calls": attempt.ledger.calls}
-                (attempt.root / "run.json").write_text(encode({"inspect_version": version("inspect_ai"), "mcp_version": version("mcp"),
-                    "prompt": prompt, "tool_catalogue": attempt.catalog, "budget": asdict(budget),
-                    "generation_config": config.model_dump(mode="json"), "model": str(get_model()),
-                    **state.metadata["stonebench"]}), encoding="utf-8")
+                try:
+                    state = await as_solver(native)(state, generate)
+                finally:
+                    state.metadata["stonebench"] = {"selected_checkpoint_id": attempt.selected,
+                        "total_tokens": attempt.ledger.total_tokens, "known_tokens_subtotal": attempt.ledger.known_tokens,
+                        "phase": attempt.ledger.phase, "calls": attempt.ledger.calls}
+                    (attempt.root / "run.json").write_text(encode({"inspect_version": version("inspect_ai"), "mcp_version": version("mcp"),
+                        "prompt": prompt, "tool_catalogue": attempt.catalog, "budget": asdict(budget),
+                        "generation_config": config.model_dump(mode="json"), "model": str(get_model()),
+                        **state.metadata["stonebench"]}), encoding="utf-8")
             return state
         return solve
 
@@ -243,7 +285,12 @@ def stonebench_task(mcp_url: str, budget: Budget, artifact_dir: Path, task_id="2
         async def score(state, target):
             async with server:
                 attempt.tools = {ToolDef(item).name: item for item in await server.tools() if ToolDef(item).name in READ_TOOLS | WRITE_TOOLS}
-                attempt.report = await attempt.verify_selected()
+                try:
+                    attempt.report = await attempt.verify_selected()
+                except Exception as exc:
+                    attempt.event("scoring_error", error=str(exc), checkpoint_id=attempt.selected)
+                    attempt.report = {"status": "verification_error", "checkpoint_id": attempt.selected,
+                                      "diagnostic": str(exc)}
             (attempt.root / "result.json").write_text(encode(attempt.report), encoding="utf-8")
             report = attempt.report.get("verification", {})
             return Score(value=int(report.get("conforms_to_alpha") is True), answer=attempt.selected,
