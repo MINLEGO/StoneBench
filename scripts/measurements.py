@@ -73,8 +73,10 @@ def measure(operation, samples, events, closed_geometry, final_geometry, input_d
     causal_positions = {position(e["position"]) for e in events if e["kind"] not in ("measurement_block", "piston_movement_sample")}
     causal_positions.add(support)
     observations = {}
+    last_sample_blocks = []
     mobile_positions = set()
     for sample in samples:
+        last_sample_blocks = sample["blocks"]
         for row in sample["blocks"]:
             detail = row.get("measurement")
             if detail is None and row["block"] != "minecraft:air":
@@ -123,6 +125,11 @@ def measure(operation, samples, events, closed_geometry, final_geometry, input_d
             movement["door_block"] = True
         else:
             movement["door_block"] = False
+    opened_pattern = final_geometry["expected_state"] == "open" and all(r["status"] == "satisfied" for r in final_geometry["criteria"] if r["id"] in ("frame_state", "continuable"))
+    opened_bounds = {(position(row), row["block"], tuple(row.get("measurement", {}).get("bounds", []))) for row in last_sample_blocks} if opened_pattern else set()
+    def fully_in_hallway(b):
+        xs, ys = [p[0] for p in frame], [p[1] for p in frame]
+        return bool(b and b[0] >= min(xs) and b[3] <= max(xs)+1 and b[1] >= min(ys) and b[4] <= max(ys)+1)
     # Roles follow the moved block. A piston head remains circuit even if it encloses the passage.
     exclusions, bounds, conditional_bounds, conditional_roles = [], [], [], []
     def include(row, origin_kind, at):
@@ -139,6 +146,10 @@ def measure(operation, samples, events, closed_geometry, final_geometry, input_d
             reason = "not_connected_to_input_in_complete_quiescent_protocol"
         elif composition_optional and point != support and point in door_positions and block in door_materials:
             reason = "door_material_not_required_by_open_composition"
+        elif point != support and fully_in_hallway(row.get("bounds")) and (point,block,tuple(row.get("bounds", []))) not in opened_bounds:
+            conditional_roles.append({"position": list(point), "block": block, "role": "hallway_contents", "reason": "excluded_except_open_state; intermediate_open_pattern_not_proven"})
+            conditional_bounds.append(row["bounds"])
+            return
         elif (point != support and roles.get(point, {}).get("role") == "physical_encadrement"
               and row.get("wiring_role") == "passive_material" and composition_optional):
             conditional_roles.append({"position": list(point), "block": block, "role": "physical_encadrement", "reason": "wiring_necessity_not_proven_by_snapshot"})
@@ -158,7 +169,11 @@ def measure(operation, samples, events, closed_geometry, final_geometry, input_d
         else:
             for sample in movement["samples"]:
                 if sample["bounds"]:
-                    bounds.append(sample["bounds"])
+                    if fully_in_hallway(sample["bounds"]) and (movement["destination"],movement["block"],tuple(sample["bounds"])) not in opened_bounds:
+                        conditional_bounds.append(sample["bounds"])
+                        conditional_roles.append({"position": list(movement["destination"]), "block": movement["block"], "role": "moving_hallway_contents", "reason": "nonopen_hallway_exclusion_state_not_proven"})
+                    else:
+                        bounds.append(sample["bounds"])
                 else:
                     gaps.append("moving_extent_missing")
     if not composition_optional:
@@ -171,7 +186,7 @@ def measure(operation, samples, events, closed_geometry, final_geometry, input_d
     lower = volume(bounds)
     observed = volume(bounds+conditional_bounds)
     if lower["dimensions"] != observed["dimensions"]:
-        gaps.append("conditional_enclosure_exclusion_changes_dimensions")
+        gaps.append("conditional_role_exclusion_changes_dimensions")
     dynamic = {"status": "indeterminate" if gaps else "measured", **observed, "unit": "block_volume",
                "gaps": gaps, "excluded": exclusions, "conditional_roles": conditional_roles,
                "minimum_envelope": lower["envelope"], "maximum_envelope": observed["envelope"],
@@ -184,7 +199,7 @@ def measure(operation, samples, events, closed_geometry, final_geometry, input_d
         dynamic["value"] = None
     interactions = [e for e in events if e["kind"] == "input_interaction"]
     signals = [e for e in events if e["kind"] == "input_signal_change"]
-    timing_gaps = [g for g in gaps if g not in ("open_composition_exclusion_not_established", "conditional_enclosure_exclusion_changes_dimensions")]
+    timing_gaps = [g for g in gaps if g not in ("open_composition_exclusion_not_established", "conditional_role_exclusion_changes_dimensions")]
     origin = interactions[0] if len(interactions) == 1 else None
     signal = signals[0] if signals else None
     if origin is None:
