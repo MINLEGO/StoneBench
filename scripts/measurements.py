@@ -228,7 +228,7 @@ def measure(operation, samples, events, closed_geometry, final_geometry, input_d
                 movement_gaps.append("received_piston_power_origin_missing")
             if rises:
                 rise = rises[-1][0]
-                falls = [edge for edge in history if not edge[1] and edge[0] >= rise]
+                falls = [edge for edge in history if not edge[1] and edge[2]["operation_order"] > rises[-1][2]["operation_order"]]
                 if falls:
                     pulse = falls[0][0]-rise
                     if pulse <= 2:
