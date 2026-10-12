@@ -228,6 +228,8 @@ def measure(operation, samples, events, closed_geometry, final_geometry, input_d
         pertinent = (any(intersects_hallway(s["bounds"]) for s in movement["samples"]) if opening else movement["door_block"])
         movement["pertinent_to_door_time"] = pertinent
         if pertinent:
+            if opening and not movement["door_block"]:
+                movement_gaps.append("non_door_movement_hallway_pattern_effect_not_established")
             relevant.append(movement)
             timing_gaps.extend(movement_gaps)
     frame_status = next(r["status"] for r in final_geometry["criteria"] if r["id"] == "frame_state")
