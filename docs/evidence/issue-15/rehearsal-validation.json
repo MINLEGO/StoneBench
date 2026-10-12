@@ -3,7 +3,40 @@
   "paid_inference_calls": 0,
   "scope": "real Minecraft/Inspect/MCP infrastructure with scripted incomplete constructions, not provider calibration or door solving",
   "plan_sha256": "32f24a0d40364e6382fb5db5aff45ecabe884a6d642f2cac3532bd8a04e8b8ee",
-  "source_bytes_match_delivered": true,
+  "current_plan_sha256": "8758eb0f4d8b2a14c321bf161685103d4e0e88b135fada97b04abe293da2fc21",
+  "archived_source_bytes_match_manifest": true,
+  "source_bytes_match_current": false,
+  "source_delta": [
+    {
+      "path": "app/campaign/launch.py",
+      "archived_sha256": "25404844b5d1c7430c3e6be3e2364d4eb01fc0243305dfefabfc8b7e5922f41f",
+      "current_sha256": "37638fa3224b291514a1f3d41ea024c2689ed6702b4607b15f7ab191e5858ad2"
+    },
+    {
+      "path": "app/campaign/plan.py",
+      "archived_sha256": "86b68d41636cb47c0d30d16806868e1459e569d009dda0febbcff04b0620b2af",
+      "current_sha256": "85212dfda40a1ae697bba2b8d510eef28be0c1fc5fd966a32fd92f3afc7e62bc"
+    },
+    {
+      "path": "app/campaign/run_attempt.py",
+      "archived_sha256": "205b4a24da370c615edc0c4f96d1a1f1afe4614bacc33fd2bbcb2ce94ac62c61",
+      "current_sha256": "5443424760094a41272345796b8a01ffd8ce6d04dd2114d2699ccd58757f6616"
+    },
+    {
+      "path": "docs/campaign.md",
+      "archived_sha256": "0e0e6c17c23ef2ef938a33661a64f6ad0ed22cb5f6b5c23a1faac8fb44c9a1c8",
+      "current_sha256": "8d3cd05ff8d2e752a8184af5df93c51ce1294f336938afc16fcd3ccb409f7c4a"
+    },
+    {
+      "path": "tests/campaign.py",
+      "archived_sha256": "2ed5b98cae4c28d0cc3d7a0a55fda8323a13282c3ce516d2ea3cde0cac5f5376",
+      "current_sha256": "0c455f03df787f7a8a8de3c4acf1ce20465f7d0d4e8452cf64cb06ee2fdc7a6d"
+    }
+  ],
+  "current_added_sources": {
+    "tests/campaign_completion.py": "26276a559b575b57700f5885d54fbc0e6942cb98df756383f77c7a661c97ddf2"
+  },
+  "delta_validation": "numerical correction: tests/campaign.py; provider guards: offline provider-validation-check.py and tests/campaign_completion.py; no new real Minecraft rehearsal",
   "independent_attempts": 8,
   "production_catalogue_identical": true,
   "context_estimate_minimum": 28575,
