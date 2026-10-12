@@ -1,0 +1,13 @@
+test_boolean_and_integer_are_different_types (__main__.VerificationProtocolTests.test_boolean_and_integer_are_different_types) ... ok
+test_construction_omits_only_empty_air_sampling_records (__main__.VerificationProtocolTests.test_construction_omits_only_empty_air_sampling_records) ... ok
+test_influence_requires_relevant_memory_and_observation_coverage (__main__.VerificationProtocolTests.test_influence_requires_relevant_memory_and_observation_coverage) ... ok
+test_mandatory_indeterminate_vetoes_compliance_and_verdict (__main__.VerificationProtocolTests.test_mandatory_indeterminate_vetoes_compliance_and_verdict) ... ok
+test_open_failure_cannot_be_masked_by_closed_frame_evidence (__main__.VerificationProtocolTests.test_open_failure_cannot_be_masked_by_closed_frame_evidence) ... ok
+test_ordered_inventory_and_nbt_lists_are_not_normalized (__main__.VerificationProtocolTests.test_ordered_inventory_and_nbt_lists_are_not_normalized) ... ok
+test_runtime_internal_fields_remain_part_of_construction (__main__.VerificationProtocolTests.test_runtime_internal_fields_remain_part_of_construction) ... ok
+test_verdict_keeps_infrastructure_failure_distinct_and_highest_priority (__main__.VerificationProtocolTests.test_verdict_keeps_infrastructure_failure_distinct_and_highest_priority) ... ok
+
+----------------------------------------------------------------------
+Ran 8 tests in 0.001s
+
+OK

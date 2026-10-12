@@ -71,8 +71,9 @@ public final class McpHttp implements AutoCloseable {
         finally {exchange.close();if(responseWritten && restoreResponseId!=null) Controller.restoreResponseSent(restoreResponseId);}
     }
     private static Set<String> names() {
-        Set<String> names=new LinkedHashSet<>(List.of("start_attempt","describe_task","read_blocks","read_region","read_artifact","compare_traces","describe_blocks","modify_blocks","advance","transition","declare_input","prepare_input","act_input","describe_rules","check_geometry","create_checkpoint","list_checkpoints","restore_checkpoint"));
-        if(Controller.TEST) names.addAll(List.of("__test_release_chunks","__test_restore_chunks","__test_place_block","__test_fail_next_lot","__test_default_wire","__test_outside_influence","__test_water_source","__test_transition_fixture","__test_transition_toggle","__test_transition_external_tick","__test_geometry_entity","__test_checkpoint_fixture","__test_checkpoint_toggle","__test_checkpoint_snapshot","__test_checkpoint_compare"));return names;
+        Set<String> names=new LinkedHashSet<>(List.of("start_attempt","describe_task","read_blocks","read_region","read_artifact","compare_traces","describe_blocks","modify_blocks","advance","transition","declare_input","prepare_input","act_input","describe_rules","check_geometry","create_checkpoint","list_checkpoints","restore_checkpoint","verify_checkpoint","verification_snapshot"));
+        names.addAll(List.of("verification_status","cancel_verification"));
+        if(Controller.TEST) names.addAll(List.of("__test_release_chunks","__test_restore_chunks","__test_place_block","__test_fail_next_lot","__test_default_wire","__test_outside_influence","__test_water_source","__test_transition_fixture","__test_transition_toggle","__test_transition_external_tick","__test_geometry_entity","__test_checkpoint_fixture","__test_checkpoint_toggle","__test_checkpoint_snapshot","__test_checkpoint_compare","__test_verification_fixture","__test_verification_config","__test_verification_mutate"));return names;
     }
     private static JsonObject property(String type) {JsonObject p=new JsonObject();p.addProperty("type",type);return p;}
     private static JsonObject integer(int min,int max) {JsonObject p=property("integer");p.addProperty("minimum",min);p.addProperty("maximum",max);return p;}
@@ -89,6 +90,10 @@ public final class McpHttp implements AutoCloseable {
         for(String name:names()) {
             JsonObject tool=new JsonObject(),schema=property("object"),properties=new JsonObject();JsonArray required=new JsonArray();
             tool.addProperty("name",name);tool.addProperty("description",switch(name) {
+                case "verification_snapshot"->"Read complete raw state, construction partition, clocks and declared adapter without advancing time.";
+                case "verification_status"->"Read an asynchronous verification job progress or immutable final report by request_id; no game ticks.";
+                case "cancel_verification"->"Cancel an asynchronous job; the owning supervisor stops only its copy processes and preserves evidence.";
+                case "verify_checkpoint"->"Start an independent-copy verification job and return request_id immediately; poll verification_status for the final report.";
                 case "start_attempt"->"Initialize one fresh isolated regular DOOR attempt; budget in tokens is supplied by the caller.";
                 case "describe_task"->"Describe immutable task, effective clock, environment and chunk readiness.";
                 case "read_blocks"->"Read 1..256 actual block states in prepared chunks; larger reads must be split.";
@@ -111,13 +116,16 @@ public final class McpHttp implements AutoCloseable {
             switch(name) {
                 case "start_attempt"->{properties.add("task_id",property("string"));JsonObject budget=integer(1,Integer.MAX_VALUE);JsonArray budgetTypes=new JsonArray();budgetTypes.add("integer");budgetTypes.add("null");budget.add("type",budgetTypes);properties.add("budget_tokens",budget);required.add("task_id");}
                 case "advance", "act_input"->{properties.add("ticks",integer(1,6000));properties.add("trace",property("boolean"));required.add("ticks");}
-                case "transition"->{properties.add("max_ticks",integer(1,Rest.MAX_TICKS));properties.add("trace",property("boolean"));}
+                case "transition"->{properties.add("interact",property("boolean"));properties.add("max_ticks",integer(1,Rest.MAX_TICKS));properties.add("trace",property("boolean"));}
                 case "check_geometry"->{JsonObject state=property("string");JsonArray choices=new JsonArray();choices.add("open");choices.add("closed");state.add("enum",choices);properties.add("expected_state",state);properties.add("frame_min_z",integer(-30000000,30000000));properties.add("frame_max_z",integer(-30000000,30000000));required.add("expected_state");}
                 case "__test_geometry_entity"->{properties.add("present",property("boolean"));required.add("present");}
-                case "__test_transition_fixture"->{properties.add("scenario",property("string"));required.add("scenario");}
+                case "__test_verification_mutate"->{for(String key:List.of("scenario","mode","boundary")){properties.add(key,property("string"));required.add(key);}properties.add("cycle",integer(1,5));required.add("cycle");}
+                case "__test_transition_fixture", "__test_verification_fixture", "__test_verification_config"->{properties.add("scenario",property("string"));required.add("scenario");}
                 case "read_region"->{JsonObject position=property("object"),coords=new JsonObject();JsonArray axes=new JsonArray();for(String axis:List.of("x","y","z")) {coords.add(axis,property("integer"));axes.add(axis);}position.add("properties",coords);position.add("required",axes);position.addProperty("additionalProperties",false);properties.add("min",position);properties.add("max",position.deepCopy());required.add("min");required.add("max");}
                 case "read_artifact"->{properties.add("artifact_id",property("string"));properties.add("offset",integer(0,Integer.MAX_VALUE));properties.add("limit",integer(1,256));for(String key:List.of("artifact_id","offset","limit")) required.add(key);}
                 case "compare_traces"->{properties.add("left",property("string"));properties.add("right",property("string"));required.add("left");required.add("right");}
+                case "verify_checkpoint"->{properties.add("checkpoint_id",property("string"));required.add("checkpoint_id");properties.add("frame_min_z",integer(-30000000,30000000));properties.add("frame_max_z",integer(-30000000,30000000));}
+                case "verification_status", "cancel_verification"->{properties.add("request_id",property("string"));required.add("request_id");}
                 case "restore_checkpoint"->{properties.add("checkpoint_id",property("string"));required.add("checkpoint_id");}
                 case "__test_checkpoint_compare"->{properties.add("checkpoint_id",property("string"));properties.add("count",integer(1,64));required.add("checkpoint_id");required.add("count");}
                 case "read_blocks"->{JsonObject positions=property("array"),position=property("object"),coords=new JsonObject();for(String axis:List.of("x","y","z")) coords.add(axis,property("integer"));position.add("properties",coords);JsonArray axes=new JsonArray();axes.add("x");axes.add("y");axes.add("z");position.add("required",axes);positions.add("items",position);positions.addProperty("minItems",1);positions.addProperty("maxItems",256);properties.add("positions",positions);required.add("positions");}

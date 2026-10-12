@@ -130,7 +130,7 @@ function Start-Server($Server) {
     $info.RedirectStandardOutput = $true
     $info.RedirectStandardError = $true
     $serverArguments = if ($UseCheckpointSupervisor) {
-        @((Join-Path $repoRoot 'scripts\checkpoint_server.py'), '--server-root', $Server.Root, '--java', $javaExe, '--port', "$($Server.McpPort)", '--execution', $TickExecution, '--test')
+        @((Join-Path $repoRoot 'scripts\checkpoint_server.py'), '--server-root', $Server.Root, '--java', $javaExe, '--port', "$($Server.McpPort)", '--execution', $TickExecution, '--test', '--verification-mcp-port', "$($BaseMcpPort + 2 + ($Server.Index - 1) * 4)", '--verification-game-port', "$($BaseGamePort + 2 + ($Server.Index - 1) * 4)")
     } else { @(
         '-Xms256M',
         '-Xmx1G',
@@ -305,11 +305,13 @@ foreach ($server in $servers) {
     [IO.File]::WriteAllText((Join-Path $server.Root 'server.properties'), $properties, [Text.UTF8Encoding]::new($false))
 }
 
+$oldRoots = $env:STONEBENCH_SERVER_ROOTS
 $oldPorts = $env:STONEBENCH_MCP_PORTS
 $oldTestPhase = $env:STONEBENCH_TEST_PHASE
 $oldRecoveryFile = $env:STONEBENCH_RECOVERY_FILE
 try {
     Write-Host "Disposable server data and logs: $testRoot"
+    $env:STONEBENCH_SERVER_ROOTS = ($servers.Root -join ';')
     $env:STONEBENCH_MCP_PORTS = ($servers.McpPort -join ',')
     if ($restartIntegration) {
         $env:STONEBENCH_TEST_PHASE = 'seed'
@@ -342,6 +344,7 @@ try {
         Invoke-TestSuite $restartIntegration
     }
 } finally {
+    $env:STONEBENCH_SERVER_ROOTS = $oldRoots
     $env:STONEBENCH_MCP_PORTS = $oldPorts
     $env:STONEBENCH_TEST_PHASE = $oldTestPhase
     $env:STONEBENCH_RECOVERY_FILE = $oldRecoveryFile

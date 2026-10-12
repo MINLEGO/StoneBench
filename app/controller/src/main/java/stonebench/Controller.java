@@ -143,6 +143,7 @@ public final class Controller implements ModInitializer {
         }
         // Prevent ordinary console tick commands from changing the benchmark clock.
         if (active==null) freeze();
+        if(Verification.running()){freeze();try {Verification.poll(Controller::checkpointSnapshot);}catch(IOException e){throw new IllegalStateException("Verification result archive failed",e);}}
         if (active!=null && active.phase.equals("simulation") && !ready()) {
             fail("infrastructure","chunks_unavailable","Relevant chunks lost block/entity ticking readiness");
         }
@@ -198,10 +199,13 @@ public final class Controller implements ModInitializer {
         Set<String> allowed=switch(active.tool) {
             case "start_attempt" -> Set.of("task_id","budget_tokens");
             case "advance", "act_input" -> Set.of("ticks","trace");
-            case "transition" -> Set.of("max_ticks","trace");
+            case "transition" -> Set.of("max_ticks","trace","interact");
+            case "verify_checkpoint" -> Set.of("checkpoint_id","frame_min_z","frame_max_z");
+            case "verification_status", "cancel_verification" -> Set.of("request_id");
             case "check_geometry" -> Set.of("expected_state","frame_min_z","frame_max_z");
             case "__test_geometry_entity" -> Set.of("present");
-            case "__test_transition_fixture" -> Set.of("scenario");
+            case "__test_transition_fixture", "__test_verification_fixture", "__test_verification_config" -> Set.of("scenario");
+            case "__test_verification_mutate" -> Set.of("scenario","cycle","mode","boundary");
             case "declare_input" -> Set.of("device","position","orientation","input_block");
             case "prepare_input" -> Set.of("mode");
             case "read_blocks" -> Set.of("positions");
@@ -216,11 +220,20 @@ public final class Controller implements ModInitializer {
         };
         if(!allowed.containsAll(active.args.keySet())) throw new IllegalArgumentException("Unexpected argument");
         if (!server.isOnThread()) throw new IllegalStateException("Operation outside server thread");
+        if(Verification.running() && !Set.of("verification_status","cancel_verification","verification_snapshot","describe_task","describe_rules","describe_blocks","list_checkpoints","read_artifact","compare_traces").contains(active.tool))throw new IllegalArgumentException("Verification owns frozen working state; cancel or await its completion before mutation, simulation or expanding observation coverage");
         if((restorePending || restoreFailed) && !Set.of("describe_task","list_checkpoints","restore_checkpoint","read_artifact","compare_traces").contains(active.tool)) throw new IllegalArgumentException("Restore pending or divergent: reconnect/inspect restoration or restore a valid checkpoint before simulation");
-        boolean evidenceRead=Set.of("read_artifact","compare_traces","list_checkpoints","restore_checkpoint","describe_task").contains(active.tool);
+        boolean evidenceRead=Set.of("read_artifact","compare_traces","list_checkpoints","restore_checkpoint","describe_task","verification_status").contains(active.tool);
         if (!active.tool.equals("start_attempt") && task==null && !(artifactRecovery && evidenceRead)) throw new IllegalArgumentException("start_attempt is required; recovered attempts permit immutable evidence reads only");
         if(artifactRecovery) active.phase="artifact_recovery";
         switch(active.tool) {
+            case "verify_checkpoint" -> {
+                if(!Boolean.getBoolean("stonebench.verificationSupervisor")) throw new IllegalArgumentException("verify_checkpoint requires the owning verification supervisor");
+                JsonObject frame=active.args.deepCopy();frame.remove("checkpoint_id");frame.addProperty("expected_state","closed");RegularDoorGeometry.frame(task,frame);
+                succeed(Verification.start(active.args,attempt,checkpointSnapshot()));
+            }
+            case "verification_status" -> succeed(Verification.status(active.args));
+            case "cancel_verification" -> succeed(Verification.cancel(active.args));
+            case "verification_snapshot" -> {JsonObject result=new JsonObject();result.add("checkpoint_state",checkpointSnapshot());result.add("construction",Inputs.construction(Observation.raw(world())));result.add("input",Inputs.declared());succeed(result);}
             case "create_checkpoint" -> {
                 if(server.getPlayerManager().getCurrentPlayerCount()!=0) throw new IllegalArgumentException("Checkpoint requires no players");
                 if(!ready()) throw new IllegalStateException("Chunks unavailable");
@@ -237,6 +250,13 @@ public final class Controller implements ModInitializer {
                     if(!id.equals(Task.string(request,"checkpoint_id"))) throw new IllegalArgumentException("Different restore already pending");
                 } else request=Checkpoints.requestRestore(id,Path.of(""),attempt);
                 restorePending=true;active.mutated=true;JsonObject result=new JsonObject();result.add("restore",request);succeed(result);
+            }
+            case "__test_verification_config" -> {requireTest();succeed(Verification.testConfig(active.args));}
+            case "__test_verification_mutate" -> {requireTest();active.initial=Observation.raw(world());active.startWorldTime=world().getTime();active.startTimeOfDay=world().getTimeOfDay();active.startSimulationIndex=simulationTicks;Observation.begin(simulationTicks,0,"verification_fault_between_ticks");active.mutated=true;Checkpoints.invalidateRest();JsonObject result=VerificationFixtures.mutate(world(),Task.string(active.args,"scenario"),Task.integer(active.args,"cycle",1,5),Task.string(active.args,"mode"),Task.string(active.args,"boundary"));for(var e:observedResult().entrySet())result.add(e.getKey(),e.getValue());succeed(result);}
+            case "__test_verification_fixture" -> {
+                requireTest();String scenario=Task.string(active.args,"scenario");
+                Set<ChunkPos> chunks=new LinkedHashSet<>();for(int x=63;x<=65;x++)for(int z=63;z<=65;z++)chunks.add(new ChunkPos(x,z));
+                prepareChunks(chunks,()->{active.initial=Observation.raw(world());active.startWorldTime=world().getTime();active.startTimeOfDay=world().getTimeOfDay();active.startSimulationIndex=simulationTicks;Observation.begin(simulationTicks,0,"verification_fixture_between_ticks");active.mutated=true;Checkpoints.invalidateRest();JsonObject result=VerificationFixtures.prepare(world(),scenario);for(var e:observedResult().entrySet())result.add(e.getKey(),e.getValue());succeed(result);});
             }
             case "__test_checkpoint_fixture", "__test_checkpoint_toggle" -> {
                 requireTest();Runnable fixture=()->{
@@ -316,7 +336,8 @@ public final class Controller implements ModInitializer {
                 if (!ready()) {fail("infrastructure","chunks_unavailable","Simulation requires block and block-entity ticking readiness");return;}
                 if(server.getPlayerManager().getCurrentPlayerCount()!=0) {fail("infrastructure","players_present","Dedicated attempts cannot contain players");return;}
                 active.initial=Observation.raw(world());active.startWorldTime=world().getTime();active.startTimeOfDay=world().getTimeOfDay();active.startSimulationIndex=simulationTicks;
-                if(active.tool.equals("act_input")) Inputs.arm(world());
+                if(active.args.has("interact") && (!active.args.get("interact").isJsonPrimitive() || !active.args.get("interact").getAsJsonPrimitive().isBoolean())) throw new IllegalArgumentException("interact must be boolean");
+                if(active.tool.equals("act_input") || active.tool.equals("transition") && active.args.has("interact") && active.args.get("interact").getAsBoolean()) Inputs.arm(world());
                 if(active.tool.equals("transition")) {active.transition=new Transition(active.initial,active.requested,RestInputs.positions(),RestInputs::expected);active.deadline=System.nanoTime()+Transition.PROCESS_TIMEOUT_SECONDS*1_000_000_000L;}
                 active.phase="simulation";Observation.begin(simulationTicks+1,1,"before_world_time");active.mutated=true;
                 active.simulationStartedNanos=System.nanoTime();
