@@ -17,10 +17,13 @@ def sha(path):
 def git(*args):
     return subprocess.check_output(['git',*args],cwd=ROOT,text=True).strip()
 
-logs=['.runtime-build13-final.txt','.runtime-minecraft13-final.txt','.runtime-sprint13-final.txt','.runtime-rules13-final.txt','.runtime-protocol13-final.txt','.runtime-storage13-final.txt']
+logs=['.runtime-build13-final.txt','.runtime-minecraft13-review.txt','.runtime-sprint13-final.txt','.runtime-rules13-review.txt','.runtime-protocol13-final.txt','.runtime-storage13-final.txt']
+def logpath(name):
+    current=ROOT/name
+    return current if current.exists() else ROOT/'app/controller/.runtime/history13'/name
 roots=[]
 for name in logs[1:3]:
-    text=(ROOT/name).read_text(encoding='utf-8-sig')
+    text=logpath(name).read_text(encoding='utf-8-sig')
     assert 'Integration suite finished' in text, name+' did not pass all launcher checks'
     root=Path(re.search(r'Disposable server data and logs: (.+)',text).group(1).strip())
     assert root.is_relative_to(ROOT/'app/controller/.runtime'),root
@@ -42,8 +45,8 @@ for path in source_files:
     manifest['sources'][relative]={'sha256':sha(path),'git_blob':git('hash-object',str(path))}
     add(path,'source/'+relative)
 add(jar,'build/stonebench-controller-0.1.0.jar')
-for name in logs:add(ROOT/name,'logs/'+name.removeprefix('.runtime-'))
-for name in ['measurements-sprint.json']:
+for name in logs:add(logpath(name),'logs/'+name.removeprefix('.runtime-'))
+for name in ['measurements-reviewed.json','measurements-sprint.json']:
     add(ROOT/'app/controller/.runtime'/name,'summaries/'+name)
 for index,root in enumerate(roots):
     for server in root.glob('server-*'):

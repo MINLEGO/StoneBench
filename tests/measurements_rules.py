@@ -3,7 +3,7 @@ import sys
 from pathlib import Path
 import unittest
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]/"scripts"))
-from measurements import volume, summarize, movement_end
+from measurements import volume, summarize, movement_end, measure
 
 class MeasurementRulesChecks(unittest.TestCase):
     def test_cumulative_axes_not_endpoint_max_or_block_count(self):
@@ -32,6 +32,32 @@ class MeasurementRulesChecks(unittest.TestCase):
         self.assertEqual(report["dynamic_volume"]["status"],"indeterminate")
         self.assertIsNone(report["dynamic_volume"]["value"])
         self.assertIn("conditional_exclusion_changes_cumulative_dimensions",report["dynamic_volume"]["gaps"])
+
+    def test_notification_or_read_does_not_prove_wiring_membership(self):
+        # A 1-cube declared input and a redundant stone at x6 have possible
+        # widths 1..7. A notification cannot choose the exact width 7.
+        # Event schema/source matches native artifact 0b257c92-f6ce-41ed-bafa-f4d330a500f5
+        # from the archived server-2 observer fixture; coordinates are translated.
+        operation={"initial":{"world_time":0,"state":{}}, "transition":{"status":"terminated","recognition_tick":1,"last_movement_tick":0}, "ticks_executed":1,"execution":{"wall_seconds":0.01}}
+        geometry={"expected_state":"closed","measurement_roles":[{"x":0,"y":2,"z":0,"role":"frame_interior","block":"minecraft:quartz_block"}],"criteria":[{"id":"hallway_composition","mandatory":False,"status":"not_verified"},{"id":"frame_state","status":"satisfied"}]}
+        declaration={"input_block":{"x":0,"y":0,"z":0},"adapter_positions":[],"mode":"repeater"}
+        clock={"world_time":0,"simulation_index":0,"tick_index":0,"phase":"tick","operation_order":1}
+        origin={**clock,"kind":"input_interaction","position":declaration["input_block"],"detail":{}}
+        for kind in ("neighbor_update","neighbor_state_update","block_state_read"):
+            for role,block in (("passive_material","minecraft:stone"),("component","minecraft:repeater")):
+                with self.subTest(kind=kind,role=role):
+                    rows=[]
+                    for x,name,wiring_role in ((0,"minecraft:stone","passive_material"),(6,block,role)):
+                        detail={"x":x,"y":0,"z":0,"block":name,"wiring_role":wiring_role,"bounds":[x,0,0,x+1,1,1]}
+                        rows.append({**detail,"measurement":detail})
+                    notified={**clock,"kind":kind,"position":{"x":6,"y":0,"z":0},"detail":{"source":"minecraft:repeater"}}
+                    metric=measure(operation,[{"world_time":0,"blocks":rows}],[origin,notified],geometry,geometry,declaration,True,{"restorable_observed_scope":True,"uncovered_components":[]})["dynamic_volume"]
+                    self.assertEqual(metric["status"],"indeterminate")
+                    self.assertIsNone(metric["value"])
+                    self.assertEqual(metric["observed_value"],7)
+                    self.assertEqual(metric["minimum_envelope"],[0,0,0,1,1,1])
+                    self.assertEqual(metric["maximum_envelope"],[0,0,0,7,1,1])
+                    self.assertIn("conditional_role_exclusion_changes_dimensions",metric["gaps"])
 
     def test_source_defined_ends_use_movement_start(self):
         self.assertEqual(movement_end(11,"standard_extension"),13)

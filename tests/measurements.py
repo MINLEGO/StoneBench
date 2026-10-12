@@ -19,16 +19,19 @@ class MeasurementsRuntimeIntegration(verification.VerificationRuntimeIntegration
             report = await self.verify(session,checkpoint["checkpoint_id"],"none")
             self.assertEqual(report["verdict"],"conforms_to_alpha",self.report_context(report))
             metrics = report["measurements"]
-            self.assertEqual(metrics["dynamic_volume"]["status"],"measured",metrics)
-            # Input-connected fixture circuit spans x1018..1032, y79..83, z1022..1025:
-            # 15*5*4=300. Isolated comparator chest/stone are outside the input-connected wiring.
-            self.assertEqual(metrics["dynamic_volume"]["dimensions"],[15,5,4],metrics["dynamic_volume"])
-            self.assertEqual(metrics["dynamic_volume"]["value"],300)
+            self.assertEqual(metrics["dynamic_volume"]["status"],"indeterminate",metrics)
+            # Input-connected fixture circuit spans x1018..1033, y79..83, z1022..1025:
+            # 16*5*4=320. Isolated comparator chest/stone are outside the input-connected wiring.
+            self.assertEqual(metrics["dynamic_volume"]["dimensions"],[16,5,4],metrics["dynamic_volume"])
+            self.assertIsNone(metrics["dynamic_volume"]["value"])
+            self.assertEqual(metrics["dynamic_volume"]["observed_value"],320)
+            self.assertTrue(any(r["position"] == [1033,81,1025] and r["reason"] == "observed_input_connection_does_not_prove_wiring_necessity"
+                for e in metrics["transitions"] for r in e["dynamic_volume"]["conditional_roles"]),metrics)
             self.assertEqual(metrics["record_eligibility"],"not_verified")
             self.assertNotIn("score",metrics)
             self.assertEqual(metrics["opening_time"]["value"],6)
             self.assertEqual(metrics["closing_time"]["value"],6)
-            self.assertEqual(metrics["dynamic_volume"]["minimum_envelope"],metrics["dynamic_volume"]["maximum_envelope"])
+            self.assertNotEqual(metrics["dynamic_volume"]["minimum_envelope"],metrics["dynamic_volume"]["maximum_envelope"])
             for entry in metrics["transitions"]:
                 kind = "opening_time" if entry["state"] == "open" else "closing_time"
                 time = entry[kind]
@@ -49,7 +52,7 @@ class MeasurementsRuntimeIntegration(verification.VerificationRuntimeIntegration
             self.assertEqual(self.frozen_snapshot(before),self.frozen_snapshot(after))
             pulse = await self.transient_pulse(self.sessions[1])
             await self.cancel_worker_during_boot(session,checkpoint["checkpoint_id"])
-            evidence={"pulse":pulse, "report":report,"working_snapshot_preserved":True,"fixture_expectation":{"dimensions":[15,5,4],"volume":300}}
+            evidence={"pulse":pulse, "report":report,"working_snapshot_preserved":True,"fixture_expectation":{"dimensions":[16,5,4],"volume":320}}
         finally:
             if os.environ.get("STONEBENCH_MEASUREMENTS_EVIDENCE"):
                 Path(os.environ["STONEBENCH_MEASUREMENTS_EVIDENCE"]).write_text(json.dumps(evidence,indent=2),encoding="utf-8")
@@ -66,6 +69,9 @@ class MeasurementsRuntimeIntegration(verification.VerificationRuntimeIntegration
             {"x":1030,"y":81,"z":1025,"block":"minecraft:redstone_wire"},
             {"x":1031,"y":81,"z":1025,"block":"minecraft:repeater","parameters":{"facing":"west","delay":"4"}},
             {"x":1032,"y":81,"z":1025,"block":"minecraft:sticky_piston","parameters":{"facing":"up"}},
+            # Redundant stone beside the piston is notified, never actuates the door.
+            # Its outer x extent must remain conditional rather than exact wiring.
+            {"x":1033,"y":81,"z":1025,"block":"minecraft:stone"},
         ]
         self.assert_ok(await self.call(session,"modify_blocks",{"blocks":blocks,"notify_neighbors":True}))
         settled=await self.call(session,"transition",{"max_ticks":36000,"trace":True})
@@ -110,9 +116,10 @@ class MeasurementsRuntimeIntegration(verification.VerificationRuntimeIntegration
         samples=[{"world_time":row["world_time"],"blocks":artifact(root,row["state"]["blocks"])} for row in samples]
         events=artifact(root,operation["intratick_events"])
         measured=measure(operation,samples,events,geometry,final,snapshot["input"],trace_complete(root,operation),manifest["provenance"]["memory_coverage"])
-        self.assertEqual(measured["dynamic_volume"]["status"],"measured",measured["dynamic_volume"])
+        self.assertEqual(measured["dynamic_volume"]["status"],"indeterminate",measured["dynamic_volume"])
         self.assertEqual(measured["dynamic_volume"]["dimensions"],[5,2,1],measured["dynamic_volume"])
-        self.assertEqual(measured["dynamic_volume"]["value"],10)
+        self.assertIsNone(measured["dynamic_volume"]["value"])
+        self.assertEqual(measured["dynamic_volume"]["observed_value"],10)
         endpoints=[]
         adapters={tuple(p[k] for k in ("x","y","z")) for p in snapshot["input"]["adapter_positions"]}
         for row in (samples[0],samples[-1]):

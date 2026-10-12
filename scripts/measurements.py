@@ -150,10 +150,14 @@ def measure(operation, samples, events, closed_geometry, final_geometry, input_d
             conditional_roles.append({"position": list(point), "block": block, "role": "hallway_contents", "reason": "excluded_except_open_state; intermediate_open_pattern_not_proven"})
             conditional_bounds.append(row["bounds"])
             return
-        elif (point != support and roles.get(point, {}).get("role") == "physical_encadrement"
-              and row.get("wiring_role") == "passive_material" and composition_optional):
-            conditional_roles.append({"position": list(point), "block": block, "role": "physical_encadrement", "reason": "wiring_necessity_not_proven_by_snapshot"})
+        elif point != support:
+            # Vanilla reads/notifications/mutations establish observation, not
+            # the counterfactual necessity required by the wiring definition.
+            conditional_roles.append({"position": list(point), "block": block,
+                "role": row.get("wiring_role", "unknown"),
+                "reason": "observed_input_connection_does_not_prove_wiring_necessity"})
             if row.get("bounds"): conditional_bounds.append(row["bounds"])
+            else: gaps.append("nonair_extent_missing:" + block)
             return
         if reason:
             exclusions.append({"position": list(point), "block": block, "reason": reason, "sample": origin_kind, "world_time": at})
@@ -173,7 +177,8 @@ def measure(operation, samples, events, closed_geometry, final_geometry, input_d
                         conditional_bounds.append(sample["bounds"])
                         conditional_roles.append({"position": list(movement["destination"]), "block": movement["block"], "role": "moving_hallway_contents", "reason": "nonopen_hallway_exclusion_state_not_proven"})
                     else:
-                        bounds.append(sample["bounds"])
+                        conditional_bounds.append(sample["bounds"])
+                        conditional_roles.append({"position": list(movement["destination"]), "block": movement["block"], "role": "observed_mobile_component", "reason": "movement_does_not_prove_wiring_necessity"})
                 else:
                     gaps.append("moving_extent_missing")
     if not composition_optional:
@@ -192,7 +197,7 @@ def measure(operation, samples, events, closed_geometry, final_geometry, input_d
                "minimum_envelope": lower["envelope"], "maximum_envelope": observed["envelope"],
                "envelope_status": "exact" if lower["envelope"] == observed["envelope"] else "bounded",
                "sources": sources(23868,24437,24616,30714,31084,31137,31171),
-               "connection_policy": "Quiescent initial queues, complete vanilla read/write/event causal cone from one input, covered checkpoint memory. Untouched disconnected controls are excluded only in this bounded observed protocol.",
+               "connection_policy": "The complete quiescent input trace bounds observed connection, not counterfactual wiring necessity. Only the declared input block is certain membership; other observed components/materials/movements remain conditional. Untouched controls remain outside the covered observed cone.",
                "sample_policy": "Cumulative physical bounds over initial, all real tick states, effective writes and piston positions before/after advancement and forced finish."}
     if gaps:
         dynamic["observed_value"] = dynamic["value"]
