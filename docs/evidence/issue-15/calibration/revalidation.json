@@ -98,6 +98,7 @@
       "generation_metadata": {
         "id": "gen-1791795598-tihCijiobt3VzJHqh78y",
         "provider_name": "Makora",
+        "model": "xiaomi/mimo-v2.6-flash-20260921",
         "total_cost": 0.00043358,
         "tokens_prompt": null,
         "tokens_completion": null,
@@ -197,6 +198,7 @@
       "generation_metadata": {
         "id": "gen-1791795599-MW8pxmzCZwe5EpZ1HamF",
         "provider_name": "Makora",
+        "model": "xiaomi/mimo-v2.6-flash-20260921",
         "total_cost": 0.00087776,
         "tokens_prompt": null,
         "tokens_completion": null,
@@ -236,5 +238,5 @@
   ],
   "prompt_and_exact_request_config_checked": true,
   "limitations": "Two small read-only tool responses. No long reasoning stress or door-solving performance proof. FP8 tag inferred from exact request allowlist plus selected provider, not independently returned by metadata.",
-  "validator_source_sha256": "37c8e72959c53ee6c69ba5d53974cc5f4bd0779f185fd5bf29fb78a3b7c3f7a9"
+  "validator_source_sha256": "58a3f1012eacd869c62442f5d0ec2fbe729843b3b72638140f8d446087376129"
 }

@@ -1,5 +1,8 @@
-...
+.Executing <Task finished name='Task-7' coro=<RevalidationTests.test_bool_negative_and_excess_detail_counts_rejected_without_get() done, defined at C:\Users\minle\.codex\worktrees\issue-15\StoneBench\tests\campaign_revalidation.py:46> result=None created at C:\Users\minle\AppData\Local\Programs\Python\Python312\Lib\asyncio\runners.py:100> took 0.266 seconds
+.Executing <Task finished name='Task-12' coro=<RevalidationTests.test_invalid_direct_binding_and_conflicting_get_rejected() done, defined at C:\Users\minle\.codex\worktrees\issue-15\StoneBench\tests\campaign_revalidation.py:29> result=None created at C:\Users\minle\AppData\Local\Programs\Python\Python312\Lib\asyncio\runners.py:100> took 0.172 seconds
+.Executing <Task finished name='Task-17' coro=<RevalidationTests.test_valid_get_cannot_override_wrong_request_without_routing() done, defined at C:\Users\minle\.codex\worktrees\issue-15\StoneBench\tests\campaign_revalidation.py:67> result=None created at C:\Users\minle\AppData\Local\Programs\Python\Python312\Lib\asyncio\runners.py:100> took 0.110 seconds
+.
 ----------------------------------------------------------------------
-Ran 3 tests in 0.212s
+Ran 4 tests in 1.497s
 
 OK

@@ -68,7 +68,7 @@ def provider_records(log):
     return rows
 
 
-def resolve_provider_evidence(row):
+def resolve_provider_evidence(row,mode="paid"):
     """Documented response metadata/cost or later GET; reject conflicting sources."""
     gaps=[]
     if not isinstance(row.get("response_id"),str) or not row["response_id"].strip():
@@ -77,6 +77,13 @@ def resolve_provider_evidence(row):
     routing=row.get("routing_metadata") or {}
     selected=[item for item in routing.get("endpoints",{}).get("available",[]) if item.get("selected") is True]
     slug=MODEL.removeprefix("openrouter/")
+    request_bound=row.get("requested_model")==slug and row.get("requested_provider")==PROVIDER
+    if not request_bound:gaps.append("requested_model_or_provider_outside_plan")
+    reasoning=row.get("requested_reasoning") or {}
+    if reasoning!={"enabled":True} or reasoning.get("enabled") is not True:gaps.append("requested_reasoning_outside_plan")
+    allowed_caps={CALIBRATION_BUDGET.final_completion} if mode=="calibration" else {BUDGET.construction_output,BUDGET.final_completion}
+    if not token_count(row.get("requested_max_tokens")) or row["requested_max_tokens"] not in allowed_caps:
+        gaps.append("requested_completion_bound_outside_plan")
     direct=None
     if routing:
         if (routing.get("strategy")=="direct" and routing.get("requested")==slug and len(selected)==1
@@ -86,6 +93,11 @@ def resolve_provider_evidence(row):
             direct=selected[0]["provider"]
         else:gaps.append("direct_response_routing_invalid_or_request_unbound")
     provider=metadata.get("provider_name")
+    served_model=metadata.get("model")
+    if served_model is not None and (not isinstance(served_model,str) or not (served_model==slug or served_model.startswith(slug+"-"))):
+        gaps.append("generation_model_outside_requested_model")
+    if served_model is not None and direct is not None and served_model!=selected[0].get("model"):
+        gaps.append("provider_model_sources_disagree")
     if metadata and provider not in {"Makora","Xiaomi"}:gaps.append("provider_identity_unavailable_or_unexpected")
     if provider is not None and direct is not None and provider!=direct:gaps.append("provider_sources_disagree")
     cost=(row.get("raw_provider_usage") or {}).get("cost")
@@ -112,12 +124,12 @@ def resolve_provider_evidence(row):
         "cost":fetched_cost if metadata else cost,
         "provider_source":"generation_get" if metadata else "direct_response_bound_to_exact_request",
         "cost_source":"generation_get" if metadata else "response_usage_cost",
-        "endpoint_tag":"makora/fp8" if (provider or direct)=="Makora" else "xiaomi/fp8" if (provider or direct)=="Xiaomi" else None,
-        "endpoint_tag_is_inferred_from_exact_request_allowlist":True}
+        "endpoint_tag":("makora/fp8" if (provider or direct)=="Makora" else "xiaomi/fp8" if (provider or direct)=="Xiaomi" else None) if request_bound else None,
+        "endpoint_tag_is_inferred_from_exact_request_allowlist":request_bound}
     return gaps
 
 
-async def validate_provider(rows):
+async def validate_provider(rows,mode="paid"):
     """One metadata read per completed generation; not another inference request."""
     import httpx
     gaps=[]
@@ -132,12 +144,12 @@ async def validate_provider(rows):
                     row["metadata_http_status"]=response.status_code
                     response.raise_for_status()
                     data=response.json()["data"]
-                    row["generation_metadata"]={name:data.get(name) for name in ("id","provider_name","total_cost",
+                    row["generation_metadata"]={name:data.get(name) for name in ("id","provider_name","model","total_cost",
                         "tokens_prompt","tokens_completion","native_tokens_prompt","native_tokens_completion",
                         "native_tokens_reasoning","cache_discount","finish_reason")}
                 except Exception as exc:
                     row["metadata_error_type"]=type(exc).__name__
-            gaps.extend(resolve_provider_evidence(row))
+            gaps.extend(resolve_provider_evidence(row,mode))
             usage=row["raw_provider_usage"] or {}
             if any(not token_count(usage.get(name)) for name in ("prompt_tokens","completion_tokens","total_tokens")):
                 gaps.append("provider_token_usage_unavailable")
@@ -303,7 +315,7 @@ async def run():
         status["provider_records"] = provider_records(log)
         status["tool_catalogue_sha256"] = digest(encode(catalogue).encode())
         if mode != "rehearsal":
-            status["provider_validation"] = await validate_provider(status["provider_records"])
+            status["provider_validation"] = await validate_provider(status["provider_records"],mode)
             if mode == "calibration":
                 contexts=[json.loads(line) for line in (attempt.root/"events.jsonl").read_text(encoding="utf-8").splitlines()
                     if json.loads(line)["kind"]=="before_generation"]

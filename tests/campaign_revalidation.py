@@ -9,7 +9,7 @@ from app.campaign.run_attempt import validate_provider
 FIXTURES=Path(__file__).resolve().parents[1]/"docs/evidence/issue-15/calibration"
 
 class RevalidationTests(unittest.IsolatedAsyncioTestCase):
-    async def check_rows(self,rows,fetched=None):
+    async def check_rows(self,rows,fetched=None,mode="paid"):
         real_client=httpx.AsyncClient
         def response(request):
             self.assertEqual(request.method,"GET")
@@ -17,7 +17,7 @@ class RevalidationTests(unittest.IsolatedAsyncioTestCase):
             return httpx.Response(200,json={"data":fetched[request.url.params["id"]]})
         with patch.dict(os.environ,{"OPENROUTER_API_KEY":"offline-sentinel"}),patch("httpx.AsyncClient",
             side_effect=lambda **kwargs:real_client(transport=httpx.MockTransport(response),**kwargs)):
-            return await validate_provider(rows)
+            return await validate_provider(rows,mode)
 
     async def test_actual_direct_response_and_later_get_agree(self):
         rows=json.loads((FIXTURES/"response-fixtures.json").read_text())
@@ -63,5 +63,20 @@ class RevalidationTests(unittest.IsolatedAsyncioTestCase):
                 fetched[rows[0]["response_id"]][field]=value
                 with self.subTest(native=field,value=value):
                     self.assertFalse((await self.check_rows(rows,fetched))["accepted"])
+
+    async def test_valid_get_cannot_override_wrong_request_without_routing(self):
+        base=json.loads((FIXTURES/"response-fixtures.json").read_text())
+        fetched={r["id"]:r["data"].copy() for r in json.loads((FIXTURES/"generation-reread.json").read_text())}
+        for row in base:row["routing_metadata"]=None
+        self.assertTrue((await self.check_rows(copy.deepcopy(base),fetched))["accepted"])
+        for field,value in (("requested_model","other/model"),("requested_provider",{"order":["other/fp16"],"allow_fallbacks":True}),
+            ("requested_reasoning",{"enabled":False}),("requested_max_tokens",131072)):
+            rows=copy.deepcopy(base);rows[0][field]=value
+            with self.subTest(request=field):self.assertFalse((await self.check_rows(rows,fetched))["accepted"])
+        wrong_model=copy.deepcopy(fetched);wrong_model[base[0]["response_id"]]["model"]="other/model"
+        self.assertFalse((await self.check_rows(copy.deepcopy(base),wrong_model))["accepted"])
+        construction=copy.deepcopy(base);construction[0]["requested_max_tokens"]=32768
+        self.assertTrue((await self.check_rows(copy.deepcopy(construction),fetched,"paid"))["accepted"])
+        self.assertFalse((await self.check_rows(construction,fetched,"calibration"))["accepted"])
 
 if __name__=="__main__":unittest.main()

@@ -49,6 +49,7 @@ class ProviderTests(unittest.IsolatedAsyncioTestCase):
                     self.assertFalse(usable_output(message))
                     rows=[{"response_id":"gen-offline-length","raw_provider_usage":{"prompt_tokens":200,
                         "completion_tokens":100,"total_tokens":300},"requested_max_tokens":65536,
+                        "requested_model":"xiaomi/mimo-v2.6-flash","requested_provider":PROVIDER,"requested_reasoning":{"enabled":True},
                         "finish_reason":"length","usable_visible_or_tool_output":usable_output(message)}]
                 else:
                     self.assertEqual(logs[0].status,"success",logs[0].error)

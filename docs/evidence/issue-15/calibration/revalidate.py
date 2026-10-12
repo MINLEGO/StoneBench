@@ -48,7 +48,7 @@ async def main():
         return httpx.Response(200,json={'data':fetched[request.url.params['id']]})
     with patch.dict(os.environ,{'OPENROUTER_API_KEY':'offline-sentinel'}),patch('httpx.AsyncClient',
         side_effect=lambda **kwargs:real_client(transport=httpx.MockTransport(response),**kwargs)):
-        provider=await validate_provider(rows)
+        provider=await validate_provider(rows,"calibration")
     calibration=validate_calibration(provider,run['calls'],True,run['known_tokens_subtotal'],contexts,CALIBRATION_BUDGET)
     assert calibration['accepted']
     comparison=[{'context_estimate_bytes':estimate['context_estimate'],'actual_input_tokens':call['usage']['input_tokens'],
