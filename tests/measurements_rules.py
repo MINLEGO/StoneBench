@@ -26,6 +26,13 @@ class MeasurementRulesChecks(unittest.TestCase):
         self.assertEqual(report["dynamic_volume"]["value"],25)
         self.assertEqual(report["opening_time"]["value"],6)
         self.assertNotIn("score",report)
+    def test_conditional_exclusion_is_rechecked_across_cycle_axes(self):
+        row={"mode":"repeater","dynamic_volume":{"envelope":[0,0,0,5,5,1],"minimum_envelope":[0,0,0,4,5,1],"gaps":[]}}
+        report=summarize([row],True)
+        self.assertEqual(report["dynamic_volume"]["status"],"indeterminate")
+        self.assertIsNone(report["dynamic_volume"]["value"])
+        self.assertIn("conditional_exclusion_changes_cumulative_dimensions",report["dynamic_volume"]["gaps"])
+
     def test_source_defined_ends_use_movement_start(self):
         self.assertEqual(movement_end(11,"standard_extension"),13)
         self.assertEqual(movement_end(11,"standard_retraction"),13)

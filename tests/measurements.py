@@ -48,6 +48,7 @@ class MeasurementsRuntimeIntegration(verification.VerificationRuntimeIntegration
             after = await self.call(session,"verification_snapshot")
             self.assertEqual(self.frozen_snapshot(before),self.frozen_snapshot(after))
             pulse = await self.transient_pulse(self.sessions[1])
+            await self.cancel_worker_during_boot(session,checkpoint["checkpoint_id"])
             evidence={"pulse":pulse, "report":report,"working_snapshot_preserved":True,"fixture_expectation":{"dimensions":[15,5,4],"volume":300}}
         finally:
             if os.environ.get("STONEBENCH_MEASUREMENTS_EVIDENCE"):
