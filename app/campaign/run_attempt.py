@@ -22,6 +22,24 @@ def save(root, name, value):
     (root / name).write_text(encode(value), encoding="utf-8")
 
 
+def usable_output(message):
+    content=message.get("content")
+    if isinstance(content,str) and content.strip():
+        return True
+    if isinstance(content,list) and any(isinstance(part,dict) and part.get("type")=="text"
+        and isinstance(part.get("text"),str) and part["text"].strip() for part in content):
+        return True
+    for tool in message.get("tool_calls") or []:
+        if not isinstance(tool,dict) or tool.get("type")!="function":continue
+        function=tool.get("function") or {}
+        if not isinstance(function,dict) or not isinstance(function.get("name"),str) or not function["name"].strip():continue
+        try:
+            if isinstance(json.loads(function.get("arguments","")),dict):return True
+        except (TypeError,ValueError):
+            pass
+    return False
+
+
 def provider_records(log):
     rows=[]
     for sample in log.samples or []:
@@ -37,7 +55,7 @@ def provider_records(log):
                 "raw_provider_usage":usage or None,"provider_reported_cost":usage.get("cost"),
                 "requested_max_tokens":request.get("max_tokens",request.get("max_completion_tokens")),
                 "finish_reason":choice.get("finish_reason"),
-                "usable_visible_or_tool_output":bool(message.get("content") or message.get("tool_calls")),
+                "usable_visible_or_tool_output":usable_output(message),
                 "inspect_usage_cost_is_not_route_exact":True})
     return rows
 

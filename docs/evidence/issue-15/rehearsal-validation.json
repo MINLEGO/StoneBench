@@ -20,7 +20,7 @@
     {
       "path": "app/campaign/run_attempt.py",
       "archived_sha256": "205b4a24da370c615edc0c4f96d1a1f1afe4614bacc33fd2bbcb2ce94ac62c61",
-      "current_sha256": "5443424760094a41272345796b8a01ffd8ce6d04dd2114d2699ccd58757f6616"
+      "current_sha256": "068e25ba8448475806a22fc3ee7fc6fb43a5f255667f73b1b3b488e6d141d0c1"
     },
     {
       "path": "docs/campaign.md",
@@ -31,6 +31,11 @@
       "path": "tests/campaign.py",
       "archived_sha256": "2ed5b98cae4c28d0cc3d7a0a55fda8323a13282c3ce516d2ea3cde0cac5f5376",
       "current_sha256": "0c455f03df787f7a8a8de3c4acf1ce20465f7d0d4e8452cf64cb06ee2fdc7a6d"
+    },
+    {
+      "path": "tests/campaign_provider.py",
+      "archived_sha256": "03ba72f2f3fe30c59f9949d4a0fa139fcdb155214c03624f516457be740ca991",
+      "current_sha256": "01e1c5e00f614390970675cf6b3bbc530437bf2dfa5b92051ebf9117b557af6b"
     }
   ],
   "current_added_sources": {
