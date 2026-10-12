@@ -34,6 +34,7 @@ class HarnessRuntimeIntegration(verification.VerificationRuntimeIntegration):
             best_id = conformant["checkpoint_id"]
             best = await self.verify(first, best_id, "none")
             self.assertEqual(best["verdict"], "conforms_to_alpha", self.report_context(best))
+            self.assert_separate_metrics(best["measurements"])
             self.assert_ok(await self.call(first, "transition", {"max_ticks": 20, "trace": True}))
             latest = await self.call(first, "create_checkpoint")
             self.assert_ok(latest)
@@ -89,6 +90,9 @@ class HarnessRuntimeIntegration(verification.VerificationRuntimeIntegration):
                     self.assertEqual(attempt.report["checkpoint_id"], latest_id)
                     self.assertEqual(attempt.report["verification"]["checkpoint_id"], latest_id)
                     self.assertEqual(attempt.report["verification"]["verdict"], "conforms_to_alpha")
+                    metrics = attempt.report["verification"]["measurements"]
+                    self.assert_separate_metrics(metrics)
+                    self.assertEqual(log.samples[0].scores["selected_checkpoint"].metadata["verification"]["measurements"], metrics)
                 else:
                     self.assertIsNone(attempt.selected)
                     self.assertEqual(attempt.report["status"], "no_submission")
@@ -130,6 +134,30 @@ class HarnessRuntimeIntegration(verification.VerificationRuntimeIntegration):
             output.parent.mkdir(parents=True, exist_ok=True)
             output.write_text(json.dumps(evidence, indent=2), encoding="utf-8")
             await self.stack.aclose()
+    def assert_separate_metrics(self, metrics):
+        dynamic = metrics["dynamic_volume"]
+        self.assertEqual(dynamic["status"], "indeterminate")
+        self.assertIsNone(dynamic["value"])
+        self.assertNotEqual(dynamic["minimum_envelope"], dynamic["maximum_envelope"])
+        self.assertTrue(dynamic["gaps"])
+        self.assertGreater(dynamic["observed_value"], 0)
+        self.assertNotIn("score", metrics)
+        self.assertEqual(metrics["opening_time"]["value"], 6)
+        self.assertEqual(metrics["closing_time"]["value"], 6)
+        self.assertEqual(metrics["record_eligibility"], "not_verified")
+        self.assertEqual({row["mode"] for row in metrics["transitions"]}, {"repeater", "direct"})
+        for row in metrics["transitions"]:
+            timing = row["opening_time" if row["state"] == "open" else "closing_time"]
+            self.assertEqual(timing["status"], "measured")
+            self.assertEqual(timing["unit"], "game_ticks")
+            self.assertEqual(timing["value"], 6 if row["mode"] == "repeater" else 4)
+            self.assertEqual(timing["adaptation_ticks"], 2 if row["mode"] == "repeater" else 0)
+            self.assertEqual(timing["door_response_ticks"], 4)
+            self.assertEqual(timing["value"], timing["completion_world_time"] - timing["interaction"]["world_time"])
+            self.assertIsNotNone(timing["signal_at_input_block"])
+            self.assertIsNotNone(timing["rest_recognition"])
+            self.assertTrue(row["movements"])
+            self.assertFalse(row["objectives_combined"])
 
 
 class Scenario:

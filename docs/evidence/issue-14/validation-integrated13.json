@@ -1,0 +1,580 @@
+{
+  "chosen_checkpoint_id": "a1abc085-4454-43ec-a90f-624f958051a8",
+  "best_conforming_checkpoint_id": "1ac0dd1d-5584-4a5b-9d91-581bef4c7d12",
+  "latest_checkpoint_id": "34cf01e9-1dc0-49eb-8c69-f14f24725ed9",
+  "best_verdict": "conforms_to_alpha",
+  "scenarios": [
+    {
+      "scenario": "selected_older",
+      "selected": "a1abc085-4454-43ec-a90f-624f958051a8",
+      "phases": [
+        "construction",
+        "finalization",
+        "finalization",
+        "finalization",
+        "finalization",
+        "finalization",
+        "finalization",
+        "finalization",
+        "finalization",
+        "finalization",
+        "finalization",
+        "finalization",
+        "finalization",
+        "finalization",
+        "finalization",
+        "finalization",
+        "finalization",
+        "finalization",
+        "finalization",
+        "finalization",
+        "finalization",
+        "finalization",
+        "finalization",
+        "finalization",
+        "finalization",
+        "finalization",
+        "finalization",
+        "finalization",
+        "finalization",
+        "finalization",
+        "finalization",
+        "finalization",
+        "finalization",
+        "finalization",
+        "finalization",
+        "finalization",
+        "finalization",
+        "finalization",
+        "finalization",
+        "finalization",
+        "finalization",
+        "finalization",
+        "finalization",
+        "finalization",
+        "finalization",
+        "finalization"
+      ],
+      "inspect_usage": {
+        "stonebench-scripted/controlled-selected_older": {
+          "input_tokens": 260250,
+          "output_tokens": 4250,
+          "total_tokens": 264500,
+          "input_tokens_cache_write": null,
+          "input_tokens_cache_read": null,
+          "reasoning_tokens": 1900,
+          "total_cost": null
+        }
+      },
+      "ledger_total": 264500,
+      "known_subtotal": 264500,
+      "working_difference": null,
+      "source_operation_names": [
+        "describe_task",
+        "list_checkpoints",
+        "verification_snapshot",
+        "verification_status",
+        "verify_checkpoint"
+      ],
+      "status": "submitted",
+      "verdict": "failed",
+      "generation_calls": 46,
+      "measurement_summary": {
+        "dynamic_volume": {
+          "status": "indeterminate",
+          "envelope": null,
+          "dimensions": null,
+          "value": null,
+          "gaps": [],
+          "minimum_envelope": null,
+          "maximum_envelope": null,
+          "sources": [
+            {
+              "authority": "community",
+              "source": "https://docs.google.com/document/d/1kDNXIvQ8uAMU5qRFXIk6nLxbVliIjcMu1MjHjLJrRH4/edit",
+              "revision_id": "AHj4eMT_keZ9k_mo9La-s7C1bFHDqp8qAcERIYP8JSNCf922quSNhQQ0ICk0WEgJCGqRKxiqzo8qUe4DNy7-4Q",
+              "native_cache_sha256": "e4a01f6d47956291bb9952392e3cf8216f2dc3c4537a81aaea0ccaf73e44eb68",
+              "locator_type": "native_character_index",
+              "locator": "23868"
+            }
+          ],
+          "observed_value": null
+        },
+        "opening_time": {
+          "status": "indeterminate",
+          "value": null,
+          "unit": "game_ticks",
+          "aggregation": "slowest_observed_repeater_cycle",
+          "sources": [
+            {
+              "authority": "community",
+              "source": "https://docs.google.com/document/d/1kDNXIvQ8uAMU5qRFXIk6nLxbVliIjcMu1MjHjLJrRH4/edit",
+              "revision_id": "AHj4eMT_keZ9k_mo9La-s7C1bFHDqp8qAcERIYP8JSNCf922quSNhQQ0ICk0WEgJCGqRKxiqzo8qUe4DNy7-4Q",
+              "native_cache_sha256": "e4a01f6d47956291bb9952392e3cf8216f2dc3c4537a81aaea0ccaf73e44eb68",
+              "locator_type": "native_character_index",
+              "locator": "27197"
+            },
+            {
+              "authority": "community",
+              "source": "https://docs.google.com/document/d/1kDNXIvQ8uAMU5qRFXIk6nLxbVliIjcMu1MjHjLJrRH4/edit",
+              "revision_id": "AHj4eMT_keZ9k_mo9La-s7C1bFHDqp8qAcERIYP8JSNCf922quSNhQQ0ICk0WEgJCGqRKxiqzo8qUe4DNy7-4Q",
+              "native_cache_sha256": "e4a01f6d47956291bb9952392e3cf8216f2dc3c4537a81aaea0ccaf73e44eb68",
+              "locator_type": "native_character_index",
+              "locator": "27327"
+            }
+          ]
+        },
+        "closing_time": {
+          "status": "indeterminate",
+          "value": null,
+          "unit": "game_ticks",
+          "aggregation": "slowest_observed_repeater_cycle",
+          "sources": [
+            {
+              "authority": "community",
+              "source": "https://docs.google.com/document/d/1kDNXIvQ8uAMU5qRFXIk6nLxbVliIjcMu1MjHjLJrRH4/edit",
+              "revision_id": "AHj4eMT_keZ9k_mo9La-s7C1bFHDqp8qAcERIYP8JSNCf922quSNhQQ0ICk0WEgJCGqRKxiqzo8qUe4DNy7-4Q",
+              "native_cache_sha256": "e4a01f6d47956291bb9952392e3cf8216f2dc3c4537a81aaea0ccaf73e44eb68",
+              "locator_type": "native_character_index",
+              "locator": "27197"
+            },
+            {
+              "authority": "community",
+              "source": "https://docs.google.com/document/d/1kDNXIvQ8uAMU5qRFXIk6nLxbVliIjcMu1MjHjLJrRH4/edit",
+              "revision_id": "AHj4eMT_keZ9k_mo9La-s7C1bFHDqp8qAcERIYP8JSNCf922quSNhQQ0ICk0WEgJCGqRKxiqzo8qUe4DNy7-4Q",
+              "native_cache_sha256": "e4a01f6d47956291bb9952392e3cf8216f2dc3c4537a81aaea0ccaf73e44eb68",
+              "locator_type": "native_character_index",
+              "locator": "27327"
+            }
+          ]
+        },
+        "record_eligibility": "not_verified",
+        "objective_policy": "Separate volume and opening-time objectives; no fused score."
+      },
+      "timings": []
+    },
+    {
+      "scenario": "selected_during_copy",
+      "selected": "34cf01e9-1dc0-49eb-8c69-f14f24725ed9",
+      "phases": [
+        "construction",
+        "finalization"
+      ],
+      "inspect_usage": {
+        "stonebench-scripted/controlled-selected_during_copy": {
+          "input_tokens": 258050,
+          "output_tokens": 2050,
+          "total_tokens": 260100,
+          "input_tokens_cache_write": null,
+          "input_tokens_cache_read": null,
+          "reasoning_tokens": 1900,
+          "total_cost": null
+        }
+      },
+      "ledger_total": 260100,
+      "known_subtotal": 260100,
+      "working_difference": null,
+      "source_operation_names": [
+        "describe_task",
+        "list_checkpoints",
+        "verification_snapshot",
+        "verification_status",
+        "verify_checkpoint"
+      ],
+      "status": "submitted",
+      "verdict": "conforms_to_alpha",
+      "generation_calls": 2,
+      "measurement_summary": {
+        "dynamic_volume": {
+          "status": "indeterminate",
+          "envelope": [
+            1018.0,
+            79.0,
+            1022.0,
+            1030.0,
+            83.125,
+            1026.0
+          ],
+          "dimensions": [
+            12,
+            5,
+            4
+          ],
+          "value": null,
+          "gaps": [
+            "conditional_role_exclusion_changes_dimensions",
+            "conditional_exclusion_changes_cumulative_dimensions"
+          ],
+          "minimum_envelope": [
+            1018.0,
+            81.0,
+            1024.0,
+            1019.0,
+            82.0,
+            1025.0
+          ],
+          "maximum_envelope": [
+            1018.0,
+            79.0,
+            1022.0,
+            1030.0,
+            83.125,
+            1026.0
+          ],
+          "sources": [
+            {
+              "authority": "community",
+              "source": "https://docs.google.com/document/d/1kDNXIvQ8uAMU5qRFXIk6nLxbVliIjcMu1MjHjLJrRH4/edit",
+              "revision_id": "AHj4eMT_keZ9k_mo9La-s7C1bFHDqp8qAcERIYP8JSNCf922quSNhQQ0ICk0WEgJCGqRKxiqzo8qUe4DNy7-4Q",
+              "native_cache_sha256": "e4a01f6d47956291bb9952392e3cf8216f2dc3c4537a81aaea0ccaf73e44eb68",
+              "locator_type": "native_character_index",
+              "locator": "23868"
+            }
+          ],
+          "observed_value": 240
+        },
+        "opening_time": {
+          "status": "measured",
+          "value": 6,
+          "unit": "game_ticks",
+          "aggregation": "slowest_observed_repeater_cycle",
+          "sources": [
+            {
+              "authority": "community",
+              "source": "https://docs.google.com/document/d/1kDNXIvQ8uAMU5qRFXIk6nLxbVliIjcMu1MjHjLJrRH4/edit",
+              "revision_id": "AHj4eMT_keZ9k_mo9La-s7C1bFHDqp8qAcERIYP8JSNCf922quSNhQQ0ICk0WEgJCGqRKxiqzo8qUe4DNy7-4Q",
+              "native_cache_sha256": "e4a01f6d47956291bb9952392e3cf8216f2dc3c4537a81aaea0ccaf73e44eb68",
+              "locator_type": "native_character_index",
+              "locator": "27197"
+            },
+            {
+              "authority": "community",
+              "source": "https://docs.google.com/document/d/1kDNXIvQ8uAMU5qRFXIk6nLxbVliIjcMu1MjHjLJrRH4/edit",
+              "revision_id": "AHj4eMT_keZ9k_mo9La-s7C1bFHDqp8qAcERIYP8JSNCf922quSNhQQ0ICk0WEgJCGqRKxiqzo8qUe4DNy7-4Q",
+              "native_cache_sha256": "e4a01f6d47956291bb9952392e3cf8216f2dc3c4537a81aaea0ccaf73e44eb68",
+              "locator_type": "native_character_index",
+              "locator": "27327"
+            }
+          ]
+        },
+        "closing_time": {
+          "status": "measured",
+          "value": 6,
+          "unit": "game_ticks",
+          "aggregation": "slowest_observed_repeater_cycle",
+          "sources": [
+            {
+              "authority": "community",
+              "source": "https://docs.google.com/document/d/1kDNXIvQ8uAMU5qRFXIk6nLxbVliIjcMu1MjHjLJrRH4/edit",
+              "revision_id": "AHj4eMT_keZ9k_mo9La-s7C1bFHDqp8qAcERIYP8JSNCf922quSNhQQ0ICk0WEgJCGqRKxiqzo8qUe4DNy7-4Q",
+              "native_cache_sha256": "e4a01f6d47956291bb9952392e3cf8216f2dc3c4537a81aaea0ccaf73e44eb68",
+              "locator_type": "native_character_index",
+              "locator": "27197"
+            },
+            {
+              "authority": "community",
+              "source": "https://docs.google.com/document/d/1kDNXIvQ8uAMU5qRFXIk6nLxbVliIjcMu1MjHjLJrRH4/edit",
+              "revision_id": "AHj4eMT_keZ9k_mo9La-s7C1bFHDqp8qAcERIYP8JSNCf922quSNhQQ0ICk0WEgJCGqRKxiqzo8qUe4DNy7-4Q",
+              "native_cache_sha256": "e4a01f6d47956291bb9952392e3cf8216f2dc3c4537a81aaea0ccaf73e44eb68",
+              "locator_type": "native_character_index",
+              "locator": "27327"
+            }
+          ]
+        },
+        "record_eligibility": "not_verified",
+        "objective_policy": "Separate volume and opening-time objectives; no fused score."
+      },
+      "timings": [
+        {
+          "mode": "repeater",
+          "state": "open",
+          "value": 6,
+          "objectives_combined": false
+        },
+        {
+          "mode": "repeater",
+          "state": "closed",
+          "value": 6,
+          "objectives_combined": false
+        },
+        {
+          "mode": "direct",
+          "state": "open",
+          "value": 4,
+          "objectives_combined": false
+        },
+        {
+          "mode": "direct",
+          "state": "closed",
+          "value": 4,
+          "objectives_combined": false
+        }
+      ]
+    },
+    {
+      "scenario": "cancel_copy",
+      "selected": null,
+      "phases": [
+        "construction",
+        "finalization",
+        "finalization",
+        "finalization"
+      ],
+      "inspect_usage": {
+        "stonebench-scripted/controlled-cancel_copy": {
+          "input_tokens": 258150,
+          "output_tokens": 2150,
+          "total_tokens": 260300,
+          "input_tokens_cache_write": null,
+          "input_tokens_cache_read": null,
+          "reasoning_tokens": 1900,
+          "total_cost": null
+        }
+      },
+      "ledger_total": 260300,
+      "known_subtotal": 260300,
+      "working_difference": null,
+      "source_operation_names": [
+        "cancel_verification",
+        "describe_task",
+        "verification_snapshot",
+        "verification_status",
+        "verify_checkpoint"
+      ],
+      "status": "no_submission",
+      "verdict": null,
+      "generation_calls": 4
+    },
+    {
+      "scenario": "invalid_id",
+      "selected": null,
+      "phases": [
+        "construction",
+        "finalization",
+        "finalization"
+      ],
+      "inspect_usage": {
+        "stonebench-scripted/controlled-invalid_id": {
+          "input_tokens": 258100,
+          "output_tokens": 2100,
+          "total_tokens": 260200,
+          "input_tokens_cache_write": null,
+          "input_tokens_cache_read": null,
+          "reasoning_tokens": 1900,
+          "total_cost": null
+        }
+      },
+      "ledger_total": 260200,
+      "known_subtotal": 260200,
+      "working_difference": null,
+      "source_operation_names": [
+        "describe_task",
+        "list_checkpoints",
+        "verification_snapshot"
+      ],
+      "status": "no_submission",
+      "verdict": null,
+      "generation_calls": 3
+    },
+    {
+      "scenario": "no_submission",
+      "selected": null,
+      "phases": [
+        "construction",
+        "finalization"
+      ],
+      "inspect_usage": {
+        "stonebench-scripted/controlled-no_submission": {
+          "input_tokens": 258050,
+          "output_tokens": 2050,
+          "total_tokens": 260100,
+          "input_tokens_cache_write": null,
+          "input_tokens_cache_read": null,
+          "reasoning_tokens": 1900,
+          "total_cost": null
+        }
+      },
+      "ledger_total": 260100,
+      "known_subtotal": 260100,
+      "working_difference": null,
+      "source_operation_names": [
+        "describe_task",
+        "verification_snapshot"
+      ],
+      "status": "no_submission",
+      "verdict": null,
+      "generation_calls": 2
+    },
+    {
+      "scenario": "missing_usage",
+      "selected": null,
+      "phases": [
+        "construction",
+        "finalization",
+        "finalization"
+      ],
+      "inspect_usage": {
+        "stonebench-scripted/controlled-missing_usage": {
+          "input_tokens": 100,
+          "output_tokens": 100,
+          "total_tokens": 200,
+          "input_tokens_cache_write": null,
+          "input_tokens_cache_read": null,
+          "reasoning_tokens": null,
+          "total_cost": null
+        }
+      },
+      "ledger_total": null,
+      "known_subtotal": 200,
+      "working_difference": null,
+      "source_operation_names": [
+        "describe_task",
+        "list_checkpoints",
+        "verification_snapshot"
+      ],
+      "status": "no_submission",
+      "verdict": null,
+      "generation_calls": 3
+    },
+    {
+      "scenario": "long_reasoning",
+      "selected": null,
+      "phases": [
+        "construction",
+        "finalization"
+      ],
+      "inspect_usage": {
+        "stonebench-scripted/controlled-long_reasoning": {
+          "input_tokens": 260000,
+          "output_tokens": 52000,
+          "total_tokens": 312000,
+          "input_tokens_cache_write": null,
+          "input_tokens_cache_read": null,
+          "reasoning_tokens": 50900,
+          "total_cost": null
+        }
+      },
+      "ledger_total": 312000,
+      "known_subtotal": 312000,
+      "working_difference": null,
+      "source_operation_names": [
+        "describe_task",
+        "verification_snapshot"
+      ],
+      "status": "no_submission",
+      "verdict": null,
+      "generation_calls": 2
+    },
+    {
+      "scenario": "overshoot",
+      "selected": null,
+      "phases": [
+        "construction"
+      ],
+      "inspect_usage": {
+        "stonebench-scripted/controlled-overshoot": {
+          "input_tokens": 290000,
+          "output_tokens": 100000,
+          "total_tokens": 390000,
+          "input_tokens_cache_write": null,
+          "input_tokens_cache_read": null,
+          "reasoning_tokens": 99900,
+          "total_cost": null
+        }
+      },
+      "ledger_total": 390000,
+      "known_subtotal": 390000,
+      "working_difference": null,
+      "source_operation_names": [
+        "verification_snapshot"
+      ],
+      "status": "no_submission",
+      "verdict": null,
+      "generation_calls": 1
+    }
+  ],
+  "cold_initialize": {
+    "phases": [
+      "construction",
+      "finalization"
+    ],
+    "ledger_total": 260100,
+    "result": {
+      "status": "no_submission",
+      "checkpoint_id": null
+    }
+  },
+  "cancelled_copy": {
+    "request_id": "4afd0877-e99e-4f1e-bcc2-a34da6b603cb",
+    "verdict": "infrastructure_error"
+  },
+  "archive": {
+    "file": "inspect-mcp-integrated13.tar.xz",
+    "bytes": 20241016,
+    "sha256": "a037d08923598e9f572558d7e7eb51e45125deca785c069fbbd18ef24134d26d",
+    "entries": 4543
+  },
+  "source_sha256": {
+    "app/harness/__init__.py": "ce4f35a5b16ddfb248433a9c1e1c5fec69290d863694a065dba9e9f8459bfc3d",
+    "app/harness/budget.py": "6de59af412b5096305894a5c776e0e4d6fab255e93937c09086f526d627979b1",
+    "app/harness/inspect_task.py": "07b155f1c81a90e08c3e85fb8859653dcb688443a781790bdad4e5282b7461b8",
+    "app/harness/scripted.py": "512e20c13ca115a2794d5dd5c1d81f4939a047fb6e6fd41ad1e23546d2b7c778",
+    "app/harness/requirements.txt": "d4d955bb2fd85b68090ce773a5ea809ea1421423c27ebe9bbd8ae010de9d6658",
+    "tests/harness_budget.py": "e0630b728f2d607f5349867e21b701f2a99ddd4517ae9262807fca372b5fcdb8",
+    "tests/harness_inspect.py": "7b8e78d9c6e19524ca6a5cc6d2bf8b3d9043c705e108ebb5d459c7701eed8a95",
+    "tests/harness_native.py": "2c45382b7d7a413362e1f982aadbcbe2a169514d2431880234413528a3a4df60",
+    "app/controller/src/main/java/stonebench/Artifacts.java": "842ec58b4adef6fb883d83aad12ba9aec7912dbb6f90aa94819203164ca55aad",
+    "app/controller/src/main/java/stonebench/BlockCatalog.java": "1bf6001a850260a21d83b0723975219dd771dbf19a75fe7eef939933cdc7fa36",
+    "app/controller/src/main/java/stonebench/CheckpointComparison.java": "421f420a8986493e18b8c4b0c1d32072672213eb7b12761597a1ef3f394cbc46",
+    "app/controller/src/main/java/stonebench/CheckpointFixtures.java": "06744413d893d7179599ca8540d386b30c7a373bfc8b70f661eb9df10bcc686d",
+    "app/controller/src/main/java/stonebench/Checkpoints.java": "e53e1fcf41cccc7bdc5677d0335ab7a3daaeeb8dd3dd76d34a45373e6e3d5006",
+    "app/controller/src/main/java/stonebench/CheckpointStorage.java": "5dd3a638840fba544e9a72405922f8b0545bb0d489680f40fb73d5c2c43d1fb0",
+    "app/controller/src/main/java/stonebench/Construction.java": "313425141a23802a40cf39230a0ff26adda109652391e9b86adac67fecbaf3a8",
+    "app/controller/src/main/java/stonebench/Controller.java": "0c5fd505812dff6a3c5a7ac50861a565c4ad59702174f15d0bbd282644e9263a",
+    "app/controller/src/main/java/stonebench/Inputs.java": "11b598faa2b8e4f7b976f01a58513f3f55cfdaf7180a606f79b754657da881cb",
+    "app/controller/src/main/java/stonebench/McpHttp.java": "558f2d5e350f6d3d6e8ae47bd40f96406982a4a93704659fdf2522cff5624e3f",
+    "app/controller/src/main/java/stonebench/Measurement.java": "efe60bdbebbf6657ef81e996fcb173d9402719c694d96d73ac201590e0b2ae96",
+    "app/controller/src/main/java/stonebench/mixin/ConstructionCallbacksMixin.java": "31f59c88c129ed0ec7cf26f4d5681cee70baf261da5ba2f754ccc65dc2f007df",
+    "app/controller/src/main/java/stonebench/mixin/ConstructionNotificationsMixin.java": "33b37f08c0e2ba05677d390c36993b3e664f48cfa7edddb817c5487f934345ff",
+    "app/controller/src/main/java/stonebench/mixin/InputTimeMixin.java": "ba925d01b12b67fa078e6028c6740a3044a42b9f02ef3cec96f44cc48adbf3a7",
+    "app/controller/src/main/java/stonebench/mixin/InputWritesMixin.java": "fdf62a5433791c96abead28bedfcf3fac0d151bff4eb3df818dc6baa1d1f954f",
+    "app/controller/src/main/java/stonebench/mixin/MeasurementPistonMixin.java": "be523efcd7fc466a0acbae2eb8e6f468581591933d2657142762e81583ef911e",
+    "app/controller/src/main/java/stonebench/mixin/MeasurementPowerMixin.java": "8d2dabf2a8ba3e2eb9d58f552267e0a53a96405e59cdfdbe7160f7b4e8fe044a",
+    "app/controller/src/main/java/stonebench/mixin/ObservationEventsMixin.java": "9929a76426e1ff5e2f3c6977d698dcb2296aa296f510b83033b5aa0f0bec6283",
+    "app/controller/src/main/java/stonebench/mixin/ObservationHopperAccess.java": "af283a8c05af5cc9d34b60acefc90abd792c8f10dcc5ce308d94e692e861c733",
+    "app/controller/src/main/java/stonebench/mixin/ObservationPistonAccess.java": "df5796221b1edf074b56d5fd532346d6f550d82f7460d2b42e39122bd73d0e68",
+    "app/controller/src/main/java/stonebench/mixin/ObservationReadsMixin.java": "e7087f02debe60858ad637319092b3877efb5a730fed273960ccdde07ad3062f",
+    "app/controller/src/main/java/stonebench/mixin/ObservationSchedulerAccess.java": "c5943e8cfcb4d6331dd695ab30f315529d952bab9cba84926fa53f463a2335c3",
+    "app/controller/src/main/java/stonebench/mixin/ObservationSchedulingMixin.java": "d5a97e00364c907d4883c87c8d0f1ab8f0013184f8ef6839917de5842ce1f2e3",
+    "app/controller/src/main/java/stonebench/mixin/ObservationWorldAccess.java": "91c8b25085a0953ef745eb6065e58c3739ad5442a0573053a1a6879120698afb",
+    "app/controller/src/main/java/stonebench/mixin/ObservationWritesMixin.java": "57edc1ed5b77638478b1ed48639034a2a3e765e2419651ac4632deb0ce7221f3",
+    "app/controller/src/main/java/stonebench/mixin/PlacementPreviewMixin.java": "291074675093b430139dc58ed87cd7cd8d540966905bdc5afcd2f801db403823",
+    "app/controller/src/main/java/stonebench/mixin/RestHopperFixtureAccess.java": "e712e1b57838f228c2e4a7578cedfdad8cbcfa1e09dbbe9399d04191d92bc5e4",
+    "app/controller/src/main/java/stonebench/mixin/ServerMixin.java": "71ecd5db087ca588e50685f6d48202f38ad9efe35f89936446186cf785dfbab5",
+    "app/controller/src/main/java/stonebench/mixin/TickManagerAccess.java": "06bfaf86ddf411e77a92a1852ded0ce752a1fdb2a20c3d2883ce6f7edf291659",
+    "app/controller/src/main/java/stonebench/Observation.java": "63fab1e5a12f3254db4cc4c14f24073c43c5dd7f4c07e19439931b16091dba0f",
+    "app/controller/src/main/java/stonebench/ObservationComparison.java": "75bd86501886d5302f399e96f530c89fff720380ef0dcacd5d5061d6ee7fccd8",
+    "app/controller/src/main/java/stonebench/RegularDoorGeometry.java": "e4748f5535b2b8e4da9df193c26981e3788019ce392e0ff8cfb2406b170d43b1",
+    "app/controller/src/main/java/stonebench/Rest.java": "1e6b025c5152153a8d26d15634f2285344a4478279ba21f834d9fb1e427d19f7",
+    "app/controller/src/main/java/stonebench/RestInputs.java": "c71f47d5a18ec05db7d27d5a0de5fb26b5340aed0a8cde74592bae8317491187",
+    "app/controller/src/main/java/stonebench/Rules.java": "0137aef748eba2915c406d64dc64c7a6771825e8abfb360f7850fab4fafb0310",
+    "app/controller/src/main/java/stonebench/Task.java": "d1202f7ba4922b97c5b5ab75bd2ab036ad7905137da84bcb7882215bce01cc5c",
+    "app/controller/src/main/java/stonebench/TraceComparison.java": "dc45736caa5ceb699640c8c4273267b9333459cb520ec8ebc94b59640566e0d9",
+    "app/controller/src/main/java/stonebench/Transition.java": "cfe5c3aa3604467c7d6819bc9f9a2659a9b0aa6dde5d13178a16176cd99557d0",
+    "app/controller/src/main/java/stonebench/TransitionFixtures.java": "42524799e8c6c46d714f30ea8a1939c39fc07f2959c9cf2bf7e6f421ec032d62",
+    "app/controller/src/main/java/stonebench/TypedNbt.java": "7dbc3453619233e539d47dd07436fd7ca7be6a291898ecbdda9859ae509dc058",
+    "app/controller/src/main/java/stonebench/Verification.java": "8da8b97072b3f49f940e89b1a36e22faa617bafbccfda917bc90c6b1d0be5a37",
+    "app/controller/src/main/java/stonebench/VerificationFixtures.java": "0d855e472b7f227cf0ea4c668df7b62b1b3bc1adc812d7f45878642962c98043",
+    "app/controller/src/main/resources/fabric.mod.json": "64f8230c92332e884fc1f441903c960096b56117365a22a40613c29a71718d17",
+    "app/controller/src/main/resources/stonebench.mixins.json": "ec05525b52c8b0ce4ca0f18c43f0729e23e7e1d9f07194ccb79cc3bb7b478189",
+    "app/controller/build.gradle": "7ca915a5aa5c826bc3408e3b6ce5fa9c5c3c0729e152cf3f11c0484a47f6b42c",
+    "scripts/verification_worker.py": "7f0c320b363a419b87d2edf2f6e32f04264f4a23bf7c7b1f4db5f3b991f5f54d",
+    "scripts/measurements.py": "db0fbd8e98f6aaf7604836ccfb5131cd30ccd6744a518ea5341bd7eb2a501de9"
+  },
+  "jar_sha256": {
+    "app/controller/build/libs/stonebench-controller-0.1.0.jar": "8157df083019cab7f19238e53f6f0ffa49208d0b72f64b6a378fca7c000581d1",
+    "app/controller/.runtime/tests-f3240f8cd14c43efac318c6d2e1f4877/server-1/mods/stonebench-controller.jar": "8157df083019cab7f19238e53f6f0ffa49208d0b72f64b6a378fca7c000581d1"
+  },
+  "server_root": "C:\\Users\\minle\\.codex\\worktrees\\issue-14\\StoneBench\\app\\controller\\.runtime\\tests-f3240f8cd14c43efac318c6d2e1f4877",
+  "baseline_controller_commit": "19135a2b2a338dfc678df76a7e501b4a1f756e68"
+}
