@@ -43,7 +43,7 @@ for path in source_files:
     add(path,'source/'+relative)
 add(jar,'build/stonebench-controller-0.1.0.jar')
 for name in logs:add(ROOT/name,'logs/'+name.removeprefix('.runtime-'))
-for name in ['measurements-final.json','measurements-sprint.json']:
+for name in ['measurements-sprint.json']:
     add(ROOT/'app/controller/.runtime'/name,'summaries/'+name)
 for index,root in enumerate(roots):
     for server in root.glob('server-*'):
