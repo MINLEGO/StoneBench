@@ -93,7 +93,7 @@ final class BlockCatalog {
     static JsonObject read(ServerWorld world,BlockPos pos) {
         JsonObject row=Task.position(pos.getX(),pos.getY(),pos.getZ());BlockState state=world.getBlockState(pos);
         row.addProperty("state",state.toString());row.addProperty("block",Registries.BLOCK.getId(state.getBlock()).toString());
-        JsonObject parameters=new JsonObject();for(var pair:state.getEntries().entrySet()) parameters.addProperty(pair.getKey().getName(),name(pair.getKey(),pair.getValue()));row.add("parameters",parameters);
+        JsonObject parameters=new JsonObject();for(var pair:state.getEntries().entrySet()) parameters.addProperty(pair.getKey().getName(),name(pair.getKey(),pair.getValue()));row.add("parameters",parameters);row.add("measurement",Measurement.block(world,pos,state));
         JsonArray inventory=new JsonArray();if(world.getBlockEntity(pos) instanceof Inventory inv) for(int slot=0;slot<inv.size();slot++) {
             ItemStack stack=inv.getStack(slot);if(stack.isEmpty()) continue;JsonObject item=new JsonObject();item.addProperty("slot",slot);item.addProperty("item",Registries.ITEM.getId(stack.getItem()).toString());item.addProperty("count",stack.getCount());inventory.add(item);
         }
@@ -116,3 +116,4 @@ final class BlockCatalog {
         return row;
     }
 }
+
