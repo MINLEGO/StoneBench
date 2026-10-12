@@ -65,6 +65,7 @@ def measure(operation, samples, events, closed_geometry, final_geometry, input_d
     adapters = {position(r) for r in input_declaration["adapter_positions"]}
     support = position(input_declaration["input_block"])
     frame = {p for p,r in roles.items() if r["role"] == "frame_interior"}
+    door_materials = {r["block"] for r in roles.values() if r["role"] == "frame_interior" and r.get("block") not in (None,"minecraft:air","minecraft:piston_head","minecraft:moving_piston","minecraft:piston","minecraft:sticky_piston")}
     # The alpha regular category imposes no quartz/air hallway composition requirement.
     optional = next((r for r in closed_geometry["criteria"] if r["id"] == "hallway_composition"), {})
     composition_optional = optional.get("mandatory") is False and optional.get("status") == "not_verified"
@@ -136,7 +137,7 @@ def measure(operation, samples, events, closed_geometry, final_geometry, input_d
             reason = "validated_external_adapter"
         elif point not in causal_positions:
             reason = "not_connected_to_input_in_complete_quiescent_protocol"
-        elif composition_optional and point in door_positions and block == "minecraft:quartz_block":
+        elif composition_optional and point != support and point in door_positions and block in door_materials:
             reason = "door_material_not_required_by_open_composition"
         elif (point != support and roles.get(point, {}).get("role") == "physical_encadrement"
               and row.get("wiring_role") == "passive_material" and composition_optional):
@@ -152,7 +153,7 @@ def measure(operation, samples, events, closed_geometry, final_geometry, input_d
     for row, origin_kind, at in observations.values():
         include(row, origin_kind, at)
     for movement in movements:
-        if composition_optional and movement["door_block"] and movement["block"] == "minecraft:quartz_block":
+        if composition_optional and movement["door_block"] and movement["block"] in door_materials:
             exclusions.append({"position": list(movement["origin"]), "block": movement["block"], "reason": "moving_door_material_not_required_by_open_composition"})
         else:
             for sample in movement["samples"]:

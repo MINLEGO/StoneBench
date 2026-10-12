@@ -9,7 +9,7 @@ The source is the locally frozen native Door Rules revision `AHj4eMT_keZ9k_mo9La
 | Cumulative volume | 23868 | Union of all wiring extents through states and movements. Ceil each axis length, then multiply. Union is also taken across executed cycles; never a block count or maximum endpoint volume. |
 | Wiring | 31084, 31137, 31171 | Arrangement connected to one input, whose removal prevents functioning. Disconnected comparison-control blocks are not silently called circuit. |
 | Frame | 30166; Dummies 9641 | Abstract closed-door hallway cross-section. Physical walls/floor/ceiling form a separate actual perimeter; perimeter position alone permits no circuit exclusion. |
-| Door / hallway materials | 24437, 24616, 29882 | Follow the observed door role across movement. Plain regular alpha has no mandatory open quartz/air composition; canonical door quartz is excluded on that role, not because all quartz is exempt. |
+| Door / hallway materials | 24437, 24616, 29882 | Follow the observed door role across movement. Plain regular alpha has no mandatory open quartz/air composition; observed door material is excluded on that role, not on a quartz-id whitelist. Non-quartz functional substitution remains a separate mandatory conformity gap. |
 | Input | 30714 | Validated device/external adapter are separate. The support/input block remains wiring, including when it lies on a geometric perimeter. |
 | Normal extension | 26998 | End = movement **start + 2 game ticks**. |
 | Normal retraction | 27128 | End = movement **start + 2 game ticks**. |
