@@ -71,6 +71,8 @@ async def validate_provider(rows):
                 gaps.append("provider_token_usage_inconsistent")
             if row["requested_max_tokens"] is None or (isinstance(usage.get("completion_tokens"),int) and usage["completion_tokens"]>row["requested_max_tokens"]):
                 gaps.append("completion_bound_unavailable_or_exceeded")
+            if row.get("finish_reason")=="length" and not row.get("usable_visible_or_tool_output"):
+                gaps.append("reasoning_exhausted_completion_without_usable_response")
     return {"accepted":not gaps,"gaps":sorted(set(gaps)),"scope":"observed_requests_not_universal_provider_guarantee"}
 
 
@@ -216,8 +218,6 @@ async def run():
                 if len(attempt.ledger.calls)>2:checks["gaps"].append("more_than_two_calibration_calls")
                 if not attempt.ledger.usage_complete:checks["gaps"].append("missing_usage")
                 if attempt.ledger.known_tokens>budget.total:checks["gaps"].append("calibration_total_exceeded")
-                if any(row["finish_reason"]=="length" and not row["usable_visible_or_tool_output"] for row in status["provider_records"]):
-                    checks["gaps"].append("reasoning_exhausted_completion_without_usable_response")
                 for estimate,reported in zip(contexts,attempt.ledger.calls):
                     actual=(reported["usage"] or {}).get("input_tokens")
                     if actual is None or actual>estimate["context_estimate"]+budget.margin:
@@ -241,6 +241,8 @@ async def run():
         save(root,"status.json",status)
         if log.status != "success":
             raise RuntimeError("Inspect attempt failed; retained status has diagnostics")
+        if mode != "rehearsal" and status.get("calibration_validation",status["provider_validation"])["accepted"] is not True:
+            raise RuntimeError("Provider validation rejected; retained status has diagnostics")
     except BaseException as exc:
         status["failure_type"] = type(exc).__name__
         # Provider exception bodies can echo request context; do not persist arbitrary repr.

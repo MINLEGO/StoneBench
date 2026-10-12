@@ -17,7 +17,7 @@ SOURCE_FILES = ("app/controller/build.gradle", "app/controller/gradle.properties
                 "app/campaign/requirements.txt",
                 "docs/cadrage-alpha.md", "docs/controller.md", "docs/harness.md", "docs/measurements.md",
                 "docs/verification.md", "docs/rules/regular-door.md", "docs/campaign.md", "tests/campaign.py",
-                "tests/verify_journals.py")
+                "tests/campaign_completion.py", "tests/verify_journals.py")
 
 
 def source_files():
@@ -164,9 +164,10 @@ def main():
             if returncode:
                 failed=True
                 # Independent failures remain auditable and do not skip later tasks.
-            if args.mode=="paid" and (status.get("total_tokens") is None or status.get("provider_validation",{}).get("accepted") is not True):
+            validation=status.get("calibration_validation" if args.mode=="calibration" else "provider_validation",{})
+            if args.mode in {"calibration","paid"} and (status.get("total_tokens") is None or validation.get("accepted") is not True):
                 failed=True
-                provenance["campaign_stop"]="provider_usage_or_route_unavailable"
+                provenance["campaign_stop"]="provider_usage_or_validation_rejected"
                 break
             if snapshot_source_drift(frozen):
                 raise RuntimeError("Source changed during campaign; comparable environment revoked")

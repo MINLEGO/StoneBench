@@ -5,6 +5,11 @@
     "gaps": [],
     "scope": "observed_requests_not_universal_provider_guarantee"
   },
+  "usable_length_accepted": {
+    "accepted": true,
+    "gaps": [],
+    "scope": "observed_requests_not_universal_provider_guarantee"
+  },
   "negative": [
     {
       "name": "wrong-provider",
@@ -43,6 +48,14 @@
       "accepted": false,
       "gaps": [
         "completion_bound_unavailable_or_exceeded"
+      ],
+      "scope": "observed_requests_not_universal_provider_guarantee"
+    },
+    {
+      "name": "length-without-visible-or-tool-output",
+      "accepted": false,
+      "gaps": [
+        "reasoning_exhausted_completion_without_usable_response"
       ],
       "scope": "observed_requests_not_universal_provider_guarantee"
     }

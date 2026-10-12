@@ -1,0 +1,9 @@
+calibration: starting 2x2-volume
+Archived 1 attempts: C:\Users\minle\AppData\Local\Temp\tmp3ghe3qyr\archive.tar.xz
+paid: starting 2x2-volume
+Archived 1 attempts: C:\Users\minle\AppData\Local\Temp\tmpw7n5ch82\archive.tar.xz
+..
+----------------------------------------------------------------------
+Ran 2 tests in 0.186s
+
+OK
