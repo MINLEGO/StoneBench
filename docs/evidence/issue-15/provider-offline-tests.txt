@@ -1,4 +1,4 @@
-[10/12/26 10:52:07] WARNING  Executing <Task pending        base_events.py:1994
+[10/12/26 11:15:32] WARNING  Executing <Task pending        base_events.py:1994
                              name='inspect_ai._eval.eval.ev
                              al_async.<locals>.run'
                              coro=<TaskHandle._run_coro()
@@ -19,14 +19,41 @@
                              s\issue-15\StoneBench\app\camp
                              aign\.runtime\venv\Lib\site-pa
                              ckages\anyio\_backends\_asynci
-                             o.py:944> took 0.468 seconds
+                             o.py:944> took 0.782 seconds
 Running 1 tasks...
+                    WARNING  Executing <Task pending        base_events.py:1994
+                             name='inspect_ai._eval.eval.ev
+                             al_async.<locals>.run'
+                             coro=<TaskHandle._run_coro()
+                             running at
+                             C:\Users\minle\.codex\worktree
+                             s\issue-15\StoneBench\app\camp
+                             aign\.runtime\venv\Lib\site-pa
+                             ckages\anyio\_core\_tasks.py:3
+                             27> wait_for=<Future pending
+                             cb=[Task.task_wakeup()]
+                             created at
+                             C:\Users\minle\AppData\Local\P
+                             rograms\Python\Python312\Lib\a
+                             syncio\base_events.py:448>
+                             cb=[TaskGroup._spawn.<locals>.
+                             task_done() at
+                             C:\Users\minle\.codex\worktree
+                             s\issue-15\StoneBench\app\camp
+                             aign\.runtime\venv\Lib\site-pa
+                             ckages\anyio\_backends\_asynci
+                             o.py:870] created at
+                             C:\Users\minle\.codex\worktree
+                             s\issue-15\StoneBench\app\camp
+                             aign\.runtime\venv\Lib\site-pa
+                             ckages\anyio\_backends\_asynci
+                             o.py:944> took 0.125 seconds
 ---------------------------------------------------------
 task (1 sample): stonebench-scripted/guard
 log_model_api: False, dataset: (samples)
 ---------------------------------------------------------
 
-[10/12/26 10:52:08] WARNING  Executing <Task pending        base_events.py:1994
+[10/12/26 11:15:36] WARNING  Executing <Task pending        base_events.py:1994
                              name='inspect_ai._eval.task.sc
                              heduler.SampleScheduler.run.<l
                              ocals>.run_one'
@@ -53,8 +80,31 @@ log_model_api: False, dataset: (samples)
                              s\issue-15\StoneBench\app\camp
                              aign\.runtime\venv\Lib\site-pa
                              ckages\anyio\_backends\_asynci
-                             o.py:944> took 0.609 seconds
-C:\Users\minle\.codex\worktrees\issue-15\StoneBench\app\campaign\.runtime\venv\Lib\site-packages\anyio\streams\memory.py:190: ResourceWarning: Unclosed <MemoryObjectReceiveStream at 1b3962589b0>
+                             o.py:944> took 3.969 seconds
+[10/12/26 11:15:37] WARNING  Executing <Task pending        base_events.py:1994
+                             name='inspect_ai._eval.task.sc
+                             heduler.SampleScheduler.run.<l
+                             ocals>.run_one'
+                             coro=<TaskHandle._run_coro()
+                             running at
+                             C:\Users\minle\.codex\worktree
+                             s\issue-15\StoneBench\app\camp
+                             aign\.runtime\venv\Lib\site-pa
+                             ckages\anyio\_core\_tasks.py:3
+                             27>
+                             cb=[TaskGroup._spawn.<locals>.
+                             task_done() at
+                             C:\Users\minle\.codex\worktree
+                             s\issue-15\StoneBench\app\camp
+                             aign\.runtime\venv\Lib\site-pa
+                             ckages\anyio\_backends\_asynci
+                             o.py:870] created at
+                             C:\Users\minle\.codex\worktree
+                             s\issue-15\StoneBench\app\camp
+                             aign\.runtime\venv\Lib\site-pa
+                             ckages\anyio\_backends\_asynci
+                             o.py:944> took 0.172 seconds
+C:\Users\minle\.codex\worktrees\issue-15\StoneBench\app\campaign\.runtime\venv\Lib\site-packages\anyio\streams\memory.py:190: ResourceWarning: Unclosed <MemoryObjectReceiveStream at 24476ae8b60>
   warnings.warn(
 ResourceWarning: Enable tracemalloc to get the object allocation traceback
 react        | Steps:   1/1 100% | Samples:   0/  1 | stonebench-scripted:  0/20 | HTTP retries: 0
@@ -136,10 +186,10 @@ ToolError: Serialized context exceeds campaign client byte guard; no provider
 request sent
 Task interrupted (no samples completed before interruption)
 Log:
-..\..\..\..\AppData\Local\Temp\tmp_apmwilx\logs\2026-10-12T08-52-07-00-00_task�
+..\..\..\..\AppData\Local\Temp\tmpmmithaka\logs\2026-10-12T09-15-32-00-00_task�
 ---------------------------------------------------------
 
-                    WARNING  Executing <Task finished       base_events.py:1994
+[10/12/26 11:15:38] WARNING  Executing <Task finished       base_events.py:1994
                              name='inspect_ai._eval.eval.ev
                              al_async.<locals>.run'
                              coro=<TaskHandle._run_coro()
@@ -153,7 +203,32 @@ Log:
                              s\issue-15\StoneBench\app\camp
                              aign\.runtime\venv\Lib\site-pa
                              ckages\anyio\_backends\_asynci
-                             o.py:944> took 0.172 seconds
+                             o.py:944> took 0.609 seconds
+                    WARNING  Executing <Task pending        base_events.py:1994
+                             name='Task-8'
+                             coro=<ProviderTests.test_exact
+                             _wire_route_reasoning_usage_an
+                             d_secret_redaction() running
+                             at
+                             C:\Users\minle\.codex\worktree
+                             s\issue-15\StoneBench\tests\ca
+                             mpaign_provider.py:102>
+                             wait_for=<Future pending
+                             cb=[Task.task_wakeup()]
+                             created at
+                             C:\Users\minle\AppData\Local\P
+                             rograms\Python\Python312\Lib\a
+                             syncio\base_events.py:448>
+                             cb=[_run_until_complete_cb()
+                             at
+                             C:\Users\minle\AppData\Local\P
+                             rograms\Python\Python312\Lib\a
+                             syncio\base_events.py:181]
+                             created at
+                             C:\Users\minle\AppData\Local\P
+                             rograms\Python\Python312\Lib\a
+                             syncio\runners.py:100> took
+                             0.125 seconds
 Running 1 tasks...
                     WARNING  Executing <Task pending        base_events.py:1994
                              name='inspect_ai._eval.eval.ev
@@ -181,7 +256,7 @@ Running 1 tasks...
                              s\issue-15\StoneBench\app\camp
                              aign\.runtime\venv\Lib\site-pa
                              ckages\anyio\_backends\_asynci
-                             o.py:944> took 0.204 seconds
+                             o.py:944> took 0.438 seconds
 ---------------------------------------------------------
 task (1 sample): openrouter/xiaomi/mimo-v2.6-flash
 max_retries: 0, max_tokens: 65536, extra_headers: {...}, retry_on_error: 0,
@@ -190,7 +265,7 @@ log_model_api: True, dataset: (samples)
 
 .C:\Users\minle\.codex\worktrees\issue-15\StoneBench\app\campaign\.runtime\venv\Lib\site-packages\inspect_ai\model\_retry.py:110: DeprecationWarning: The 'initial' parameter is deprecated, use 'multiplier' instead
   else wait_exponential_jitter(initial=3, max=(30 * 60), jitter=3)
-[10/12/26 10:52:09] WARNING  Executing <Task pending        base_events.py:1994
+[10/12/26 11:15:40] WARNING  Executing <Task pending        base_events.py:1994
                              name='inspect_ai._eval.task.ru
                              n._task_run_sample_attempt.<lo
                              cals>.run'
@@ -221,7 +296,7 @@ log_model_api: True, dataset: (samples)
                              s\issue-15\StoneBench\app\camp
                              aign\.runtime\venv\Lib\site-pa
                              ckages\anyio\_backends\_asynci
-                             o.py:944> took 0.453 seconds
+                             o.py:944> took 0.968 seconds
 generate     | Steps:   1/1 100% | Samples:   1/  1 | openrouter:  0/20 | HTTP retries: 0
 
 ---------------------------------------------------------
@@ -229,18 +304,18 @@ task (1 sample): openrouter/xiaomi/mimo-v2.6-flash
 max_retries: 0, max_tokens: 65536, extra_headers: {...}, retry_on_error: 0,
 log_model_api: True, dataset: (samples)
 
-total time:                             0:00:01
+total time:                             0:00:02
 openrouter/xiaomi/mimo-v2.6-flash       300 tokens [I: 200, O: 100, R: 90]
 
 Log:
-..\..\..\..\AppData\Local\Temp\tmpzxnmgt5o\2026-10-12T08-52-08-00-00_task_mmXn�
+..\..\..\..\AppData\Local\Temp\tmpzwk6d5nc\2026-10-12T09-15-38-00-00_task_PxrS�
 ---------------------------------------------------------
 
-.C:\Users\minle\.codex\worktrees\issue-15\StoneBench\app\campaign\.runtime\venv\Lib\site-packages\anyio\streams\memory.py:190: ResourceWarning: Unclosed <MemoryObjectReceiveStream at 1b3963f2db0>
+.C:\Users\minle\.codex\worktrees\issue-15\StoneBench\app\campaign\.runtime\venv\Lib\site-packages\anyio\streams\memory.py:190: ResourceWarning: Unclosed <MemoryObjectReceiveStream at 24476c7ecf0>
   warnings.warn(
 ResourceWarning: Enable tracemalloc to get the object allocation traceback
 Running 1 tasks...
-[10/12/26 10:52:10] WARNING  Executing <Task pending        base_events.py:1994
+[10/12/26 11:15:41] WARNING  Executing <Task pending        base_events.py:1994
                              name='inspect_ai._eval.eval.ev
                              al_async.<locals>.run'
                              coro=<TaskHandle._run_coro()
@@ -266,7 +341,7 @@ Running 1 tasks...
                              s\issue-15\StoneBench\app\camp
                              aign\.runtime\venv\Lib\site-pa
                              ckages\anyio\_backends\_asynci
-                             o.py:944> took 0.188 seconds
+                             o.py:944> took 0.406 seconds
 ---------------------------------------------------------
 task (1 sample): openrouter/xiaomi/mimo-v2.6-flash
 max_retries: 0, max_tokens: 65536, retry_on_error: 0, log_model_api: True,
@@ -284,14 +359,14 @@ total time:                                  0:00:00
 openrouter/xiaomi/mimo-v2.6-flash            300 tokens [I: 200, O: 100]
 
 Log:
-..\..\..\..\AppData\Local\Temp\tmpeczagaas\2026-10-12T08-52-10-00-00_task_Qk7k�
+..\..\..\..\AppData\Local\Temp\tmpi2v87k6v\2026-10-12T09-15-41-00-00_task_SFKo�
 ---------------------------------------------------------
 
-C:\Users\minle\.codex\worktrees\issue-15\StoneBench\app\campaign\.runtime\venv\Lib\site-packages\anyio\streams\memory.py:190: ResourceWarning: Unclosed <MemoryObjectReceiveStream at 1b396618da0>
+C:\Users\minle\.codex\worktrees\issue-15\StoneBench\app\campaign\.runtime\venv\Lib\site-packages\anyio\streams\memory.py:190: ResourceWarning: Unclosed <MemoryObjectReceiveStream at 24476ead9d0>
   warnings.warn(
 ResourceWarning: Enable tracemalloc to get the object allocation traceback
 Running 1 tasks...
-                    WARNING  Executing <Task pending        base_events.py:1994
+[10/12/26 11:15:42] WARNING  Executing <Task pending        base_events.py:1994
                              name='inspect_ai._eval.eval.ev
                              al_async.<locals>.run'
                              coro=<TaskHandle._run_coro()
@@ -317,7 +392,7 @@ Running 1 tasks...
                              s\issue-15\StoneBench\app\camp
                              aign\.runtime\venv\Lib\site-pa
                              ckages\anyio\_backends\_asynci
-                             o.py:944> took 0.204 seconds
+                             o.py:944> took 0.438 seconds
 ---------------------------------------------------------
 task (1 sample): openrouter/xiaomi/mimo-v2.6-flash
 max_retries: 0, max_tokens: 65536, retry_on_error: 0, log_model_api: True,
@@ -349,10 +424,32 @@ C:\Users\minle\.codex\worktrees\issue-15\StoneBench\app\campaign\.runtime\venv\L
                              s\issue-15\StoneBench\app\camp
                              aign\.runtime\venv\Lib\site-pa
                              ckages\anyio\_backends\_asynci
-                             o.py:944> took 0.156 seconds
-C:\Users\minle\.codex\worktrees\issue-15\StoneBench\app\campaign\.runtime\venv\Lib\site-packages\anyio\streams\memory.py:190: ResourceWarning: Unclosed <MemoryObjectReceiveStream at 1b39661b8f0>
+                             o.py:944> took 0.296 seconds
+C:\Users\minle\.codex\worktrees\issue-15\StoneBench\app\campaign\.runtime\venv\Lib\site-packages\anyio\streams\memory.py:190: ResourceWarning: Unclosed <MemoryObjectReceiveStream at 24476cecb30>
   warnings.warn(
 ResourceWarning: Enable tracemalloc to get the object allocation traceback
+[10/12/26 11:15:43] WARNING  Executing <Task pending        base_events.py:1994
+                             name='inspect_ai._eval.run._ru
+                             n_task.<locals>.run'
+                             coro=<TaskHandle._run_coro()
+                             running at
+                             C:\Users\minle\.codex\worktree
+                             s\issue-15\StoneBench\app\camp
+                             aign\.runtime\venv\Lib\site-pa
+                             ckages\anyio\_core\_tasks.py:3
+                             27>
+                             cb=[TaskGroup._spawn.<locals>.
+                             task_done() at
+                             C:\Users\minle\.codex\worktree
+                             s\issue-15\StoneBench\app\camp
+                             aign\.runtime\venv\Lib\site-pa
+                             ckages\anyio\_backends\_asynci
+                             o.py:870] created at
+                             C:\Users\minle\.codex\worktree
+                             s\issue-15\StoneBench\app\camp
+                             aign\.runtime\venv\Lib\site-pa
+                             ckages\anyio\_backends\_asynci
+                             o.py:944> took 0.141 seconds
 generate     | Steps:   1/1 100% | Samples:   0/  1 | openrouter:  0/20 | HTTP retries: 0
 
 ---------------------------------------------------------
@@ -504,10 +601,10 @@ task (1 sample): openrouter/xiaomi/mimo-v2.6-flash
 TypeError: expected string or bytes-like object, got 'list'
 Task interrupted (no samples completed before interruption)
 Log:
-..\..\..\..\AppData\Local\Temp\tmpyqnkkylf\2026-10-12T08-52-10-00-00_task_YuY2�
+..\..\..\..\AppData\Local\Temp\tmp4xyw0kyq\2026-10-12T09-15-42-00-00_task_A9jV�
 ---------------------------------------------------------
 
-[10/12/26 10:52:11] WARNING  Executing <Task finished       base_events.py:1994
+                    WARNING  Executing <Task finished       base_events.py:1994
                              name='inspect_ai._eval.eval.ev
                              al_async.<locals>.run'
                              coro=<TaskHandle._run_coro()
@@ -521,9 +618,9 @@ Log:
                              s\issue-15\StoneBench\app\camp
                              aign\.runtime\venv\Lib\site-pa
                              ckages\anyio\_backends\_asynci
-                             o.py:944> took 0.250 seconds
+                             o.py:944> took 0.500 seconds
 Running 1 tasks...
-                    WARNING  Executing <Task pending        base_events.py:1994
+[10/12/26 11:15:44] WARNING  Executing <Task pending        base_events.py:1994
                              name='inspect_ai._eval.eval.ev
                              al_async.<locals>.run'
                              coro=<TaskHandle._run_coro()
@@ -549,7 +646,7 @@ Running 1 tasks...
                              s\issue-15\StoneBench\app\camp
                              aign\.runtime\venv\Lib\site-pa
                              ckages\anyio\_backends\_asynci
-                             o.py:944> took 0.187 seconds
+                             o.py:944> took 0.406 seconds
 ---------------------------------------------------------
 task (1 sample): openrouter/xiaomi/mimo-v2.6-flash
 max_retries: 0, max_tokens: 65536, retry_on_error: 0, log_model_api: True,
@@ -567,11 +664,11 @@ total time:                                  0:00:00
 openrouter/xiaomi/mimo-v2.6-flash            300 tokens [I: 200, O: 100]
 
 Log:
-..\..\..\..\AppData\Local\Temp\tmp9wuvxxxq\2026-10-12T08-52-11-00-00_task_aGhG�
+..\..\..\..\AppData\Local\Temp\tmp_j70faa5\2026-10-12T09-15-44-00-00_task_43Hs�
 ---------------------------------------------------------
 
 .
 ----------------------------------------------------------------------
-Ran 3 tests in 4.765s
+Ran 3 tests in 13.244s
 
 OK

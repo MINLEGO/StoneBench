@@ -17,7 +17,7 @@ SOURCE_FILES = ("app/controller/build.gradle", "app/controller/gradle.properties
                 "app/campaign/requirements.txt",
                 "docs/cadrage-alpha.md", "docs/controller.md", "docs/harness.md", "docs/measurements.md",
                 "docs/verification.md", "docs/rules/regular-door.md", "docs/campaign.md", "tests/campaign.py",
-                "tests/campaign_completion.py", "tests/verify_journals.py")
+                "tests/campaign_completion.py", "tests/campaign_revalidation.py", "tests/verify_journals.py")
 
 
 def source_files():

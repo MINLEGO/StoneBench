@@ -4,6 +4,7 @@ from contextlib import AsyncExitStack
 from dataclasses import asdict
 from importlib.metadata import version
 import json
+import math
 import os
 from pathlib import Path
 import sys
@@ -49,15 +50,62 @@ def provider_records(log):
             response=event.call.response if event.call and event.call.response else {}
             usage=response.get("usage") or {}
             request=event.call.request if event.call else {}
+            extra=request.get("extra_body") or {}
             choice=(response.get("choices") or [{}])[0]
             message=choice.get("message") or {}
             rows.append({"response_id":response.get("id"),"routing_metadata":response.get("openrouter_metadata"),
                 "raw_provider_usage":usage or None,"provider_reported_cost":usage.get("cost"),
+                "requested_model":request.get("model"),"requested_provider":request.get("provider",extra.get("provider")),
+                "requested_reasoning":request.get("reasoning",extra.get("reasoning")),
                 "requested_max_tokens":request.get("max_tokens",request.get("max_completion_tokens")),
                 "finish_reason":choice.get("finish_reason"),
                 "usable_visible_or_tool_output":usable_output(message),
                 "inspect_usage_cost_is_not_route_exact":True})
     return rows
+
+
+def resolve_provider_evidence(row):
+    """Documented response metadata/cost or later GET; reject conflicting sources."""
+    gaps=[]
+    if not isinstance(row.get("response_id"),str) or not row["response_id"].strip():
+        gaps.append("generation_identity_unavailable")
+    metadata=row.get("generation_metadata") or {}
+    routing=row.get("routing_metadata") or {}
+    selected=[item for item in routing.get("endpoints",{}).get("available",[]) if item.get("selected") is True]
+    slug=MODEL.removeprefix("openrouter/")
+    direct=None
+    if routing:
+        if (routing.get("strategy")=="direct" and routing.get("requested")==slug and len(selected)==1
+            and selected[0].get("provider") in {"Makora","Xiaomi"}
+            and (selected[0].get("model")==slug or selected[0].get("model","").startswith(slug+"-"))
+            and row.get("requested_model")==slug and row.get("requested_provider")==PROVIDER):
+            direct=selected[0]["provider"]
+        else:gaps.append("direct_response_routing_invalid_or_request_unbound")
+    provider=metadata.get("provider_name")
+    if metadata and provider not in {"Makora","Xiaomi"}:gaps.append("provider_identity_unavailable_or_unexpected")
+    if provider is not None and direct is not None and provider!=direct:gaps.append("provider_sources_disagree")
+    cost=(row.get("raw_provider_usage") or {}).get("cost")
+    numeric=lambda value:isinstance(value,(int,float)) and not isinstance(value,bool) and math.isfinite(value) and value>=0
+    fetched_cost=metadata.get("total_cost")
+    if metadata and not numeric(fetched_cost):gaps.append("provider_cost_unavailable")
+    if numeric(fetched_cost) and numeric(cost) and not math.isclose(fetched_cost,cost,rel_tol=1e-9,abs_tol=1e-12):
+        gaps.append("provider_cost_sources_disagree")
+    if metadata.get("id") is not None and metadata["id"]!=row.get("response_id"):gaps.append("generation_identity_disagrees")
+    usage=row.get("raw_provider_usage") or {}
+    for field,raw in (("native_tokens_prompt","prompt_tokens"),("native_tokens_completion","completion_tokens")):
+        if metadata.get(field) is not None and metadata[field]!=usage.get(raw):gaps.append("provider_usage_sources_disagree")
+    reasoning=(usage.get("completion_tokens_details") or {}).get("reasoning_tokens")
+    if metadata.get("native_tokens_reasoning") is not None and reasoning is not None and metadata["native_tokens_reasoning"]!=reasoning:
+        gaps.append("provider_reasoning_sources_disagree")
+    if not metadata and direct is None:gaps.append("provider_identity_unavailable_or_unexpected")
+    if not metadata and not numeric(cost):gaps.append("provider_cost_unavailable")
+    row["resolved_provider_evidence"]={"provider":provider if metadata else direct,
+        "cost":fetched_cost if metadata else cost,
+        "provider_source":"generation_get" if metadata else "direct_response_bound_to_exact_request",
+        "cost_source":"generation_get" if metadata else "response_usage_cost",
+        "endpoint_tag":"makora/fp8" if (provider or direct)=="Makora" else "xiaomi/fp8" if (provider or direct)=="Xiaomi" else None,
+        "endpoint_tag_is_inferred_from_exact_request_allowlist":True}
+    return gaps
 
 
 async def validate_provider(rows):
@@ -72,6 +120,7 @@ async def validate_provider(rows):
                 try:
                     response=await client.get("https://openrouter.ai/api/v1/generation",
                         params={"id":row["response_id"]},headers={"Authorization":"Bearer "+os.environ["OPENROUTER_API_KEY"]})
+                    row["metadata_http_status"]=response.status_code
                     response.raise_for_status()
                     data=response.json()["data"]
                     row["generation_metadata"]={name:data.get(name) for name in ("id","provider_name","total_cost",
@@ -79,9 +128,7 @@ async def validate_provider(rows):
                         "native_tokens_reasoning","cache_discount","finish_reason")}
                 except Exception as exc:
                     row["metadata_error_type"]=type(exc).__name__
-            metadata=row["generation_metadata"] or {}
-            if metadata.get("provider_name") not in {"Makora","Xiaomi"}:gaps.append("provider_identity_unavailable_or_unexpected")
-            if not isinstance(metadata.get("total_cost"),(int,float)):gaps.append("provider_cost_unavailable")
+            gaps.extend(resolve_provider_evidence(row))
             usage=row["raw_provider_usage"] or {}
             if any(not isinstance(usage.get(name),int) for name in ("prompt_tokens","completion_tokens","total_tokens")):
                 gaps.append("provider_token_usage_unavailable")
@@ -92,6 +139,20 @@ async def validate_provider(rows):
             if row.get("finish_reason")=="length" and not row.get("usable_visible_or_tool_output"):
                 gaps.append("reasoning_exhausted_completion_without_usable_response")
     return {"accepted":not gaps,"gaps":sorted(set(gaps)),"scope":"observed_requests_not_universal_provider_guarantee"}
+
+
+def validate_calibration(provider_validation,calls,usage_complete,known_tokens,contexts,budget):
+    checks={**provider_validation,"gaps":list(provider_validation["gaps"])}
+    if len(calls)>2:checks["gaps"].append("more_than_two_calibration_calls")
+    if not usage_complete:checks["gaps"].append("missing_usage")
+    if known_tokens>budget.total:checks["gaps"].append("calibration_total_exceeded")
+    if len(contexts)!=len(calls):checks["gaps"].append("context_forecasts_missing")
+    for estimate,reported in zip(contexts,calls):
+        actual=(reported["usage"] or {}).get("input_tokens")
+        if actual is None or actual>estimate["context_estimate"]+budget.margin:
+            checks["gaps"].append("input_context_forecast_not_covered_by_margin")
+    checks["accepted"]=not checks["gaps"]
+    return checks
 
 
 async def call(tools, name, **args):
@@ -230,18 +291,10 @@ async def run():
         if mode != "rehearsal":
             status["provider_validation"] = await validate_provider(status["provider_records"])
             if mode == "calibration":
-                checks=status["provider_validation"].copy()
                 contexts=[json.loads(line) for line in (attempt.root/"events.jsonl").read_text(encoding="utf-8").splitlines()
                     if json.loads(line)["kind"]=="before_generation"]
-                if len(attempt.ledger.calls)>2:checks["gaps"].append("more_than_two_calibration_calls")
-                if not attempt.ledger.usage_complete:checks["gaps"].append("missing_usage")
-                if attempt.ledger.known_tokens>budget.total:checks["gaps"].append("calibration_total_exceeded")
-                for estimate,reported in zip(contexts,attempt.ledger.calls):
-                    actual=(reported["usage"] or {}).get("input_tokens")
-                    if actual is None or actual>estimate["context_estimate"]+budget.margin:
-                        checks["gaps"].append("input_context_forecast_not_covered_by_margin")
-                checks["accepted"]=not checks["gaps"]
-                status["calibration_validation"]=checks
+                status["calibration_validation"]=validate_calibration(status["provider_validation"],attempt.ledger.calls,
+                    attempt.ledger.usage_complete,attempt.ledger.known_tokens,contexts,budget)
         if mode == "rehearsal":
             if log.status != "success" or (task_id == "5x5-speed" and attempt.report["status"] != "no_submission"):
                 raise RuntimeError("Rehearsal native Inspect result failed")

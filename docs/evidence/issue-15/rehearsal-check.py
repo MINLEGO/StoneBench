@@ -23,7 +23,8 @@ for name,expected in manifest['source_sha256'].items():
     if actual!=expected:source_delta.append({'path':name,'archived_sha256':expected,'current_sha256':actual})
 assert {item['path'] for item in source_delta} == {'app/campaign/launch.py','app/campaign/plan.py',
     'app/campaign/run_attempt.py','docs/campaign.md','tests/campaign.py','tests/campaign_provider.py'}
-current_added_sources={'tests/campaign_completion.py':hashlib.sha256(Path('tests/campaign_completion.py').read_bytes()).hexdigest()}
+current_added_sources={name:hashlib.sha256(Path(name).read_bytes()).hexdigest()
+    for name in ('tests/campaign_completion.py','tests/campaign_revalidation.py')}
 
 assert len(manifest['tasks'])==8
 ids=[];roots=[];catalogues=[];results=[];context=[]
