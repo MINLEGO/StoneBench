@@ -1,0 +1,24 @@
+{
+  "task_id": "2x2-volume",
+  "model": "xiaomi/mimo-v2.6-flash",
+  "provider": "Makora",
+  "completed_responses": 4,
+  "failed_calls_without_usage": 1,
+  "known_tokens": 85393,
+  "total_tokens": null,
+  "known_cost_usd": 0.011451982,
+  "total_cost_usd": null,
+  "result": {
+    "checkpoint_id": null,
+    "inspect_status": "error",
+    "status": "no_submission"
+  },
+  "error": "RetryError(<Future at 0x16feb1eea50 state=finished raised APIConnectionError>)",
+  "response_ids": [
+    "gen-1791800251-ehGsFXCJTj4Qw6ThSd1W",
+    "gen-1791800258-uiEivh2bPGrZBvxIkFAm",
+    "gen-1791800261-umKuft8FRzctPgtDhBuE",
+    "gen-1791800363-MNV3W4dfhvUn5VyvfuEq"
+  ],
+  "remaining_seven_tasks_authorized": false
+}
