@@ -69,7 +69,7 @@ class MeasurementsRuntimeIntegration(verification.VerificationRuntimeIntegration
             {"x":1030,"y":81,"z":1025,"block":"minecraft:redstone_wire"},
             {"x":1031,"y":81,"z":1025,"block":"minecraft:repeater","parameters":{"facing":"west","delay":"4"}},
             {"x":1032,"y":81,"z":1025,"block":"minecraft:sticky_piston","parameters":{"facing":"up"}},
-            # Redundant stone beside the piston is notified, never actuates the door.
+            # Redundant stone beside the piston is read, never actuates the door.
             # Its outer x extent must remain conditional rather than exact wiring.
             {"x":1033,"y":81,"z":1025,"block":"minecraft:stone"},
         ]

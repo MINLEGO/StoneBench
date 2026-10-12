@@ -17,7 +17,7 @@ def sha(path):
 def git(*args):
     return subprocess.check_output(['git',*args],cwd=ROOT,text=True).strip()
 
-logs=['.runtime-build13-final.txt','.runtime-minecraft13-review.txt','.runtime-sprint13-final.txt','.runtime-rules13-review.txt','.runtime-protocol13-final.txt','.runtime-storage13-final.txt']
+logs=['.runtime-build13-final.txt','.runtime-minecraft13-review.txt','.runtime-sprint13-final.txt','.runtime-rules13-review.txt','.runtime-protocol13-final.txt','.runtime-storage13-final.txt','.runtime-replay13-review.txt']
 def logpath(name):
     current=ROOT/name
     return current if current.exists() else ROOT/'app/controller/.runtime/history13'/name
@@ -31,7 +31,7 @@ for name in logs[1:3]:
 jar=ROOT/'app/controller/build/libs/stonebench-controller-0.1.0.jar'
 expected_jar=sha(jar)
 source_files=[p for folder in ['app/controller/src','scripts'] for p in (ROOT/folder).rglob('*') if p.is_file() and p.suffix in ('.java','.json','.py','.ps1') and '__pycache__' not in p.parts]
-source_files += [ROOT/name for name in ['app/controller/build.gradle','app/controller/gradle.properties','app/controller/settings.gradle','tests/measurements.py','tests/measurements_rules.py','tests/measurements_archive.py','docs/measurements.md']]
+source_files += [ROOT/name for name in ['app/controller/build.gradle','app/controller/gradle.properties','app/controller/settings.gradle','tests/measurements.py','tests/measurements_rules.py','tests/measurements_replay.py','tests/measurements_archive.py','docs/measurements.md']]
 manifest={'source_head':git('rev-parse','HEAD'),'base_head':'71c0f239c73bf15a9292e01c1fae3e6596b66f05',
           'jar_sha256':expected_jar,'versions':{'minecraft':'1.21.11','yarn':'1.21.11+build.3','fabric_loader':'0.19.5','java':'21.0.12','mcp_sdk':'1.26.0','loom':'1.14.10','gradle':'9.2.1'},
           'roots':[str(p) for p in roots],'sources':{},'copied_jars':{},'entries':{}}
