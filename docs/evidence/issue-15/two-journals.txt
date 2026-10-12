@@ -1,0 +1,21 @@
+{
+  "status": "ok",
+  "journals": [
+    {
+      "attempt_id": "e7071889-27fd-4b0d-b77a-a48c5cea4827",
+      "operations": 123,
+      "simulation_ticks": 4,
+      "preparation_ticks": 9,
+      "world_time": 13,
+      "errors": []
+    },
+    {
+      "attempt_id": "7f57f5e2-a027-49ad-be51-777479942f9b",
+      "operations": 109,
+      "simulation_ticks": 4,
+      "preparation_ticks": 13,
+      "world_time": 17,
+      "errors": []
+    }
+  ]
+}

@@ -1,0 +1,23 @@
+{
+  "authorization_fixture": "temporary_test_only_removed",
+  "results": [
+    {
+      "case": "no-authorization",
+      "exit_code": 2,
+      "process_started": false,
+      "output_created": false
+    },
+    {
+      "case": "no-calibration",
+      "exit_code": 2,
+      "process_started": false,
+      "output_created": false
+    },
+    {
+      "case": "rejected-calibration",
+      "exit_code": 2,
+      "process_started": false,
+      "output_created": false
+    }
+  ]
+}

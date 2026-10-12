@@ -1,0 +1,92 @@
+{
+  "schema": 1,
+  "status": "provisional_offline_not_provider_calibrated",
+  "tasks": [
+    "2x2-volume",
+    "2x2-speed",
+    "3x3-volume",
+    "3x3-speed",
+    "4x4-volume",
+    "4x4-speed",
+    "5x5-volume",
+    "5x5-speed"
+  ],
+  "model": "openrouter/xiaomi/mimo-v2.6-flash",
+  "provider": {
+    "order": [
+      "makora/fp8",
+      "xiaomi/fp8"
+    ],
+    "only": [
+      "makora/fp8",
+      "xiaomi/fp8"
+    ],
+    "allow_fallbacks": false,
+    "quantizations": [
+      "fp8"
+    ]
+  },
+  "pins": {
+    "minecraft": "1.21.11",
+    "yarn": "1.21.11+build.3",
+    "fabric_loader": "0.19.5",
+    "inspect_ai": "0.3.278",
+    "mcp": "1.26.0",
+    "controller": "0.1.0",
+    "protocol": "alpha-issue12-13",
+    "tick_execution": "sprint",
+    "seed": 731928,
+    "generator": "flat_air",
+    "random_tick_speed": 0,
+    "mob_spawning": false,
+    "advance_weather": false,
+    "players_allowed": false,
+    "openai": "3.29.0"
+  },
+  "budget": {
+    "total": 2000000,
+    "construction_output": 32768,
+    "final_output": 8192,
+    "final_reasoning": 57344,
+    "margin": 32768,
+    "final_calls": 8
+  },
+  "reasoning_request": {
+    "enabled": true
+  },
+  "max_context_bytes": 524288,
+  "stop_on_missing_usage": true,
+  "calibration_budget": {
+    "total": 400000,
+    "construction_output": 32768,
+    "final_output": 8192,
+    "final_reasoning": 57344,
+    "margin": 32768,
+    "final_calls": 2
+  },
+  "prompt": "Construct the task's regular DOOR using the discovered StoneBench MCP tools.\nRead the task, rules, block catalogue and diagnostic limits. Game ticks and wall time are separate.\nSave immutable checkpoints only at established rest; incomplete constructions may be saved.\nThe harness reports phase and budget before each model call. Reported tokens include construction\nand finalization (including reasoning). Forecasts are estimates. In finalization you may consult,\nverify independent copies and select an existing checkpoint, but cannot mutate, actuate, advance\nor restore the working world. Call submit_checkpoint with exactly the checkpoint_id you choose,\neven if incomplete. No explicit valid selection means no submission; prose is not a selection.\nVerification reports, not your own assessment, determine conformity. Never invent a checkpoint ID.\n",
+  "input_usd_per_million": {
+    "makora/fp8": 0.13,
+    "xiaomi/fp8": 0.14
+  },
+  "completion_usd_per_million": 0.28,
+  "cache_discount_assumed": false,
+  "forecast": {
+    "tokens_per_attempt": 2000000,
+    "campaign_tokens": 16000000,
+    "worst_split_usd_per_attempt": 0.56,
+    "worst_split_campaign_usd": 4.48,
+    "example_input_fraction": 0.8,
+    "example_completion_fraction": 0.2,
+    "example_makora_usd_per_attempt": 0.32,
+    "example_xiaomi_usd_per_attempt": 0.336,
+    "example_makora_campaign_usd": 2.56,
+    "example_xiaomi_campaign_usd": 2.688,
+    "calibration_worst_split_usd": 0.112,
+    "conditional_one_inflight_excess_tokens_per_attempt": 1114112,
+    "conditional_campaign_plus_excess_usd": 6.97561088,
+    "conditional_campaign_plus_excess_and_calibration_usd": 7.08761088,
+    "limitations": "Token total is an observed stop threshold, not a hard monetary cap. One in-flight request, hidden input overhead, retries and provider bound violations can exceed it; actual usage/cost fields remain authoritative."
+  },
+  "plan_sha256": "32f24a0d40364e6382fb5db5aff45ecabe884a6d642f2cac3532bd8a04e8b8ee"
+}

@@ -51,7 +51,8 @@ def payload(result):
 
 
 class Attempt:
-    def __init__(self, budget: Budget, artifact_dir: Path, tool_output_bytes=16384):
+    def __init__(self, budget: Budget, artifact_dir: Path, tool_output_bytes=16384,
+                 max_context_bytes=None, stop_on_missing_usage=False):
         self.ledger = Ledger(budget)
         self.root = Path(artifact_dir)
         self.root.mkdir(parents=True, exist_ok=False)
@@ -65,6 +66,8 @@ class Attempt:
         self.report = None
         self.catalog = []
         self.verification_jobs = set()
+        self.max_context_bytes = max_context_bytes
+        self.stop_on_missing_usage = stop_on_missing_usage
 
     def event(self, kind, **values):
         with (self.root / "events.jsonl").open("a", encoding="utf-8") as stream:
@@ -208,6 +211,9 @@ def budgeted_generation(attempt: Attempt, config: GenerateConfig):
                    "parameters": ToolDef(item).parameters.model_dump(mode="json")} for item in tools]
         context = len(encode({"messages": [item.model_dump(mode="json") for item in state.messages],
                               "tool_schemas": schema}).encode("utf-8")) + 1024
+        if attempt.max_context_bytes is not None and context > attempt.max_context_bytes:
+            attempt.event("context_guard_stop", context_bytes=context, max_context_bytes=attempt.max_context_bytes)
+            raise ToolError("Serialized context exceeds campaign client byte guard; no provider request sent")
         status = attempt.ledger.before_call(context)
         notice = "StoneBench phase/budget: " + encode(status)
         if attempt.ledger.phase == "finalization":
@@ -245,14 +251,16 @@ def budgeted_generation(attempt: Attempt, config: GenerateConfig):
 
 
 def stonebench_task(mcp_url: str, budget: Budget, artifact_dir: Path, task_id="2x2-volume",
-                    config: GenerateConfig | None = None, initialize=True, prompt=PROMPT):
+                    config: GenerateConfig | None = None, initialize=True, prompt=PROMPT,
+                    max_context_bytes=None, stop_on_missing_usage=False):
     """One task, one attempt, one server; create a fresh Task for each attempt."""
     config = config or GenerateConfig()
-    if config.extra_headers:
-        raise ValueError("Pass authentication through the Inspect provider environment, not recorded GenerateConfig headers")
+    if config.extra_headers and config.extra_headers != {"X-OpenRouter-Metadata": "enabled"}:
+        raise ValueError("Only nonsecret OpenRouter response metadata may be requested through recorded headers; authentication belongs in provider environment")
     if not isinstance(prompt, str):
         raise ValueError("Alpha harness requires a text prompt")
-    attempt = Attempt(budget, artifact_dir)
+    attempt = Attempt(budget, artifact_dir, max_context_bytes=max_context_bytes,
+                      stop_on_missing_usage=stop_on_missing_usage)
     server = mcp_server_http(url=mcp_url, name="stonebench", timeout=2450)
 
     @solver
@@ -272,7 +280,9 @@ def stonebench_task(mcp_url: str, budget: Budget, artifact_dir: Path, task_id="2
                 attempt.catalog.extend({"name": ToolDef(item).name, "description": ToolDef(item).description,
                     "parameters": ToolDef(item).parameters.model_dump(mode="json")} for item in local)
                 async def on_continue(agent_state):
-                    return attempt.selected is None and attempt.ledger.can_continue() and bool(agent_state.output.message.tool_calls)
+                    return (attempt.selected is None and attempt.ledger.can_continue()
+                        and (not attempt.stop_on_missing_usage or attempt.ledger.usage_complete)
+                        and bool(agent_state.output.message.tool_calls))
                 native = react(tools=tools, prompt=prompt, submit=False, model=budgeted_generation(attempt, config), on_continue=on_continue)
                 try:
                     state = await as_solver(native)(state, generate)
@@ -283,6 +293,7 @@ def stonebench_task(mcp_url: str, budget: Budget, artifact_dir: Path, task_id="2
                     (attempt.root / "run.json").write_text(encode({"inspect_version": version("inspect_ai"), "mcp_version": version("mcp"),
                         "prompt": prompt, "tool_catalogue": attempt.catalog, "budget": asdict(budget),
                         "generation_config": config.model_dump(mode="json"), "model": str(get_model()),
+                        "max_context_bytes": attempt.max_context_bytes, "stop_on_missing_usage": attempt.stop_on_missing_usage,
                         **state.metadata["stonebench"]}), encoding="utf-8")
             return state
         return solve

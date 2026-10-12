@@ -1,0 +1,5 @@
+Traceback (most recent call last):
+  File "C:\Users\minle\.codex\worktrees\issue-15\StoneBench\tests\verify_journals.py", line 47, in <module>
+    assert len({report["attempt_id"] for report in reports}) == len(reports), "Attempt identities must be independent"
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Attempt identities must be independent

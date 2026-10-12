@@ -1,0 +1,243 @@
+[10/12/26 10:03:56] WARNING  Executing <Task pending        base_events.py:1994
+                             name='inspect_ai._eval.eval.ev
+                             al_async.<locals>.run'
+                             coro=<TaskHandle._run_coro()
+                             running at
+                             C:\Users\minle\.codex\worktree
+                             s\issue-15\StoneBench\app\camp
+                             aign\.runtime\venv\Lib\site-pa
+                             ckages\anyio\_core\_tasks.py:3
+                             27>
+                             cb=[TaskGroup._spawn.<locals>.
+                             task_done() at
+                             C:\Users\minle\.codex\worktree
+                             s\issue-15\StoneBench\app\camp
+                             aign\.runtime\venv\Lib\site-pa
+                             ckages\anyio\_backends\_asynci
+                             o.py:870] created at
+                             C:\Users\minle\.codex\worktree
+                             s\issue-15\StoneBench\app\camp
+                             aign\.runtime\venv\Lib\site-pa
+                             ckages\anyio\_backends\_asynci
+                             o.py:944> took 0.469 seconds
+Running 1 tasks...
+---------------------------------------------------------
+task (1 sample): stonebench-scripted/guard
+log_model_api: False, dataset: (samples)
+---------------------------------------------------------
+
+                    WARNING  Executing <Task pending        base_events.py:1994
+                             name='inspect_ai._eval.task.sc
+                             heduler.SampleScheduler.run.<l
+                             ocals>.run_one'
+                             coro=<TaskHandle._run_coro()
+                             running at
+                             C:\Users\minle\.codex\worktree
+                             s\issue-15\StoneBench\app\camp
+                             aign\.runtime\venv\Lib\site-pa
+                             ckages\anyio\_core\_tasks.py:3
+                             27> wait_for=<Future pending
+                             cb=[Task.task_wakeup()]
+                             created at
+                             C:\Users\minle\AppData\Local\P
+                             rograms\Python\Python312\Lib\a
+                             syncio\base_events.py:448>
+                             cb=[TaskGroup._spawn.<locals>.
+                             task_done() at
+                             C:\Users\minle\.codex\worktree
+                             s\issue-15\StoneBench\app\camp
+                             aign\.runtime\venv\Lib\site-pa
+                             ckages\anyio\_backends\_asynci
+                             o.py:870] created at
+                             C:\Users\minle\.codex\worktree
+                             s\issue-15\StoneBench\app\camp
+                             aign\.runtime\venv\Lib\site-pa
+                             ckages\anyio\_backends\_asynci
+                             o.py:944> took 0.890 seconds
+C:\Users\minle\.codex\worktrees\issue-15\StoneBench\app\campaign\.runtime\venv\Lib\site-packages\anyio\streams\memory.py:190: ResourceWarning: Unclosed <MemoryObjectReceiveStream at 23e89b058b0>
+  warnings.warn(
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+react        | Steps:   1/1 100% | Samples:   0/  1 | stonebench-scripted:  0/20 | HTTP retries: 0
+
+---------------------------------------------------------
+task (1 sample): stonebench-scripted/guard
+
++--------------------- Traceback (most recent call last) ---------------------+
+| C:\Users\minle\.codex\worktrees\issue-15\StoneBench\app\campaign\.runtime\� |
+| in task_run                                                                 |
+|                                                                             |
+| C:\Users\minle\.codex\worktrees\issue-15\StoneBench\app\campaign\.runtime\� |
+| in run                                                                      |
+|                                                                             |
+| C:\Users\minle\.codex\worktrees\issue-15\StoneBench\app\campaign\.runtime\� |
+| in _run_coro                                                                |
+|                                                                             |
+|   324                                                                       |
+|   325         with self._cancel_scope:                                      |
+|   326             try:                                                      |
+| > 327                 retval = await self._coro                             |
+|   328             except BaseException as exc:                              |
+|   329                 self._exception = exc                                 |
+|   330                 raise                                                 |
+|                                                                             |
+| C:\Users\minle\.codex\worktrees\issue-15\StoneBench\app\campaign\.runtime\� |
+| in run_one                                                                  |
+|                                                                             |
+| C:\Users\minle\.codex\worktrees\issue-15\StoneBench\app\campaign\.runtime\� |
+| in run_sample                                                               |
+|                                                                             |
+| C:\Users\minle\.codex\worktrees\issue-15\StoneBench\app\campaign\.runtime\� |
+| in task_run_sample                                                          |
+|                                                                             |
+| C:\Users\minle\.codex\worktrees\issue-15\StoneBench\app\campaign\.runtime\� |
+| in _task_run_sample_attempt                                                 |
+|                                                                             |
+| C:\Users\minle\.codex\worktrees\issue-15\StoneBench\app\campaign\.runtime\� |
+| in _task_run_sample_attempt                                                 |
+|                                                                             |
+| C:\Users\minle\.codex\worktrees\issue-15\StoneBench\app\campaign\.runtime\� |
+| in _run_coro                                                                |
+|                                                                             |
+|   324                                                                       |
+|   325         with self._cancel_scope:                                      |
+|   326             try:                                                      |
+| > 327                 retval = await self._coro                             |
+|   328             except BaseException as exc:                              |
+|   329                 self._exception = exc                                 |
+|   330                 raise                                                 |
+|                                                                             |
+| C:\Users\minle\.codex\worktrees\issue-15\StoneBench\app\campaign\.runtime\� |
+| in run                                                                      |
+|                                                                             |
+| C:\Users\minle\.codex\worktrees\issue-15\StoneBench\app\campaign\.runtime\� |
+| in __call__                                                                 |
+|                                                                             |
+| C:\Users\minle\.codex\worktrees\issue-15\StoneBench\app\campaign\.runtime\� |
+| in solve                                                                    |
+|                                                                             |
+| C:\Users\minle\.codex\worktrees\issue-15\StoneBench\app\campaign\.runtime\� |
+| in execute                                                                  |
+|                                                                             |
+| C:\Users\minle\.codex\worktrees\issue-15\StoneBench\app\campaign\.runtime\� |
+| in _agent_generate                                                          |
+|                                                                             |
+| C:\Users\minle\.codex\worktrees\issue-15\StoneBench\app\harness\inspect_ta� |
+| in execute                                                                  |
+|                                                                             |
+|   213                               "tool_schemas": schema}).encode("utf-8" |
+|   214         if attempt.max_context_bytes is not None and context > attemp |
+|   215             attempt.event("context_guard_stop", context_bytes=context |
+| > 216             raise ToolError("Serialized context exceeds campaign clie |
+|   217         status = attempt.ledger.before_call(context)                  |
+|   218         notice = "StoneBench phase/budget: " + encode(status)         |
+|   219         if attempt.ledger.phase == "finalization":                    |
++-----------------------------------------------------------------------------+
+ToolError: Serialized context exceeds campaign client byte guard; no provider
+request sent
+Task interrupted (no samples completed before interruption)
+Log:
+..\..\..\..\AppData\Local\Temp\tmpzbs2tuwu\logs\2026-10-12T08-03-55-00-00_task�
+---------------------------------------------------------
+
+[10/12/26 10:03:57] WARNING  Executing <Task finished       base_events.py:1994
+                             name='inspect_ai._eval.eval.ev
+                             al_async.<locals>.run'
+                             coro=<TaskHandle._run_coro()
+                             done, defined at
+                             C:\Users\minle\.codex\worktree
+                             s\issue-15\StoneBench\app\camp
+                             aign\.runtime\venv\Lib\site-pa
+                             ckages\anyio\_core\_tasks.py:3
+                             22> result=None created at
+                             C:\Users\minle\.codex\worktree
+                             s\issue-15\StoneBench\app\camp
+                             aign\.runtime\venv\Lib\site-pa
+                             ckages\anyio\_backends\_asynci
+                             o.py:944> took 0.140 seconds
+Running 1 tasks...
+                    WARNING  Executing <Task pending        base_events.py:1994
+                             name='inspect_ai._eval.eval.ev
+                             al_async.<locals>.run'
+                             coro=<TaskHandle._run_coro()
+                             running at
+                             C:\Users\minle\.codex\worktree
+                             s\issue-15\StoneBench\app\camp
+                             aign\.runtime\venv\Lib\site-pa
+                             ckages\anyio\_core\_tasks.py:3
+                             27> wait_for=<Future pending
+                             cb=[Task.task_wakeup()]
+                             created at
+                             C:\Users\minle\AppData\Local\P
+                             rograms\Python\Python312\Lib\a
+                             syncio\base_events.py:448>
+                             cb=[TaskGroup._spawn.<locals>.
+                             task_done() at
+                             C:\Users\minle\.codex\worktree
+                             s\issue-15\StoneBench\app\camp
+                             aign\.runtime\venv\Lib\site-pa
+                             ckages\anyio\_backends\_asynci
+                             o.py:870] created at
+                             C:\Users\minle\.codex\worktree
+                             s\issue-15\StoneBench\app\camp
+                             aign\.runtime\venv\Lib\site-pa
+                             ckages\anyio\_backends\_asynci
+                             o.py:944> took 0.125 seconds
+---------------------------------------------------------
+task (1 sample): openrouter/xiaomi/mimo-v2.6-flash
+max_retries: 0, max_tokens: 65536, extra_headers: {...}, retry_on_error: 0,
+log_model_api: True, dataset: (samples)
+---------------------------------------------------------
+
+.C:\Users\minle\.codex\worktrees\issue-15\StoneBench\app\campaign\.runtime\venv\Lib\site-packages\inspect_ai\model\_retry.py:110: DeprecationWarning: The 'initial' parameter is deprecated, use 'multiplier' instead
+  else wait_exponential_jitter(initial=3, max=(30 * 60), jitter=3)
+                    WARNING  Executing <Task pending        base_events.py:1994
+                             name='inspect_ai._eval.task.ru
+                             n._task_run_sample_attempt.<lo
+                             cals>.run'
+                             coro=<TaskHandle._run_coro()
+                             running at
+                             C:\Users\minle\.codex\worktree
+                             s\issue-15\StoneBench\app\camp
+                             aign\.runtime\venv\Lib\site-pa
+                             ckages\anyio\_core\_tasks.py:3
+                             27> wait_for=<Future pending
+                             cb=[_chain_future.<locals>._ca
+                             ll_check_cancel() at
+                             C:\Users\minle\AppData\Local\P
+                             rograms\Python\Python312\Lib\a
+                             syncio\futures.py:389,
+                             Task.task_wakeup()] created at
+                             C:\Users\minle\AppData\Local\P
+                             rograms\Python\Python312\Lib\a
+                             syncio\base_events.py:448>
+                             cb=[TaskGroup._spawn.<locals>.
+                             task_done() at
+                             C:\Users\minle\.codex\worktree
+                             s\issue-15\StoneBench\app\camp
+                             aign\.runtime\venv\Lib\site-pa
+                             ckages\anyio\_backends\_asynci
+                             o.py:870] created at
+                             C:\Users\minle\.codex\worktree
+                             s\issue-15\StoneBench\app\camp
+                             aign\.runtime\venv\Lib\site-pa
+                             ckages\anyio\_backends\_asynci
+                             o.py:944> took 0.140 seconds
+generate     | Steps:   1/1 100% | Samples:   1/  1 | openrouter:  0/20 | HTTP retries: 0
+
+---------------------------------------------------------
+task (1 sample): openrouter/xiaomi/mimo-v2.6-flash
+max_retries: 0, max_tokens: 65536, extra_headers: {...}, retry_on_error: 0,
+log_model_api: True, dataset: (samples)
+
+total time:                             0:00:00
+openrouter/xiaomi/mimo-v2.6-flash       300 tokens [I: 200, O: 100, R: 90]
+
+Log:
+..\..\..\..\AppData\Local\Temp\tmp8mu9ydj0\2026-10-12T08-03-57-00-00_task_Lxfq�
+---------------------------------------------------------
+
+.
+----------------------------------------------------------------------
+Ran 2 tests in 2.213s
+
+OK

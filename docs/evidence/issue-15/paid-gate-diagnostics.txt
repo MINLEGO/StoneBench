@@ -1,0 +1,18 @@
+usage: launch [-h] [--output OUTPUT] [--authorization AUTHORIZATION]
+              [--calibration CALIBRATION] [--java JAVA]
+              [--server-cache SERVER_CACHE] [--mcp-port MCP_PORT]
+              [--game-port GAME_PORT]
+              {plan,rehearsal,calibration,paid}
+launch: error: Paid inference requires --authorization for this exact plan and scope
+usage: launch [-h] [--output OUTPUT] [--authorization AUTHORIZATION]
+              [--calibration CALIBRATION] [--java JAVA]
+              [--server-cache SERVER_CACHE] [--mcp-port MCP_PORT]
+              [--game-port GAME_PORT]
+              {plan,rehearsal,calibration,paid}
+launch: error: Paid campaign requires accepted --calibration status.json
+usage: launch [-h] [--output OUTPUT] [--authorization AUTHORIZATION]
+              [--calibration CALIBRATION] [--java JAVA]
+              [--server-cache SERVER_CACHE] [--mcp-port MCP_PORT]
+              [--game-port GAME_PORT]
+              {plan,rehearsal,calibration,paid}
+launch: error: Calibration absent, stale or rejected; no eight-task inference permitted
