@@ -56,6 +56,8 @@ public final class Observation {
         if(operationWriter==null) operationWriter=Artifacts.writer("intratick_events");
         operationWriter.add(event);
     }
+    public static void pistonSample(ServerWorld world,BlockPos pos,PistonBlockEntity entity,String sample) { internalReads++;try {Measurement.piston(world,pos,entity,sample);} finally {internalReads--;} }
+    public static void changedBlock(ServerWorld world,BlockPos pos) { if(!recording) return; internalReads++;try {event(world,"measurement_block",pos,Measurement.block(world,pos,world.getBlockState(pos)));} finally {internalReads--;} }
     public static JsonObject detail(String key,String value) {JsonObject detail=new JsonObject();detail.addProperty(key,value);return detail;}
     public static void read(ServerWorld world,BlockPos pos,BlockState state) {
         if(recording && internalReads==0) event(world,"block_state_read",pos,detail("state",state.toString()));
@@ -121,3 +123,4 @@ public final class Observation {
         JsonObject payload=new JsonObject();payload.add("comparison",TraceComparison.compare(left,right));return payload;
     }
 }
+

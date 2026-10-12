@@ -69,6 +69,7 @@ final class Verification {
         report.addProperty("working_construction_preserved",differences.isEmpty());
         report.add("working_differences",differences);report.add("working_after",current.deepCopy());
         if(!differences.isEmpty()) {report.addProperty("verdict","infrastructure_error");report.addProperty("conforms_to_alpha",false);}
+        if(report.has("measurements")) report.getAsJsonObject("measurements").addProperty("interpretation",report.get("conforms_to_alpha").getAsBoolean()?"conforms_to_alpha_measurements":"alpha_diagnostic");
         CheckpointStorage.writeAtomic(directory.resolve("completed.json"),report);
         JsonObject visible=report.deepCopy();visible.add("full_report",Artifacts.write("verification_report",List.of(report)));
         visible.add("working_after",Artifacts.write("verification_working_after",List.of(current)));

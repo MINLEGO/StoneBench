@@ -16,6 +16,7 @@ public class ObservationWritesMixin {
     }
     @Inject(method="setBlockState(Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/block/BlockState;II)Z",at=@At("RETURN"))
     private void written(BlockPos pos,BlockState state,int flags,int depth,CallbackInfoReturnable<Boolean> ci) {
-        if((Object)this instanceof ServerWorld world) {JsonObject detail=new JsonObject();detail.addProperty("effective",world.getBlockState(pos).toString());detail.addProperty("changed",ci.getReturnValue());Observation.event(world,"block_write_result",pos,detail);}
+        if((Object)this instanceof ServerWorld world) {JsonObject detail=new JsonObject();detail.addProperty("effective",world.getBlockState(pos).toString());detail.addProperty("changed",ci.getReturnValue());Observation.event(world,"block_write_result",pos,detail);if(ci.getReturnValue()) Observation.changedBlock(world,pos);}
     }
 }
+

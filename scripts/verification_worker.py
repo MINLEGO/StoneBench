@@ -1,5 +1,6 @@
 """Run the alpha protocol on independent Minecraft processes, never the working world."""
 import json
+from itertools import chain
 import os
 from pathlib import Path
 import shutil
@@ -12,6 +13,7 @@ import uuid
 from contextlib import ExitStack
 from checkpoint_restore import validate, digest, file_map, write_json
 from verification_protocol import construction, first_difference, criteria, compliant, verdict, VERSION
+from measurements import measure, summarize
 
 
 class Workers:
@@ -142,8 +144,7 @@ def run(source, request_directory, java, execution, test, workers, base_mcp, bas
                          "independent_global_tick_quota": None, "boot_watchdog_seconds": 180,
                          "transition_process_watchdog_seconds": 2400},
               "comparison_policy": "Exact construction blocks/inventories/typed NBT/runtime/ordered queues. Only implicit empty air sampling records omitted. Absolute clocks and external adapters archived separately; no internal deadline/priority/order normalization.",
-              "measurements": {"dynamic_volume": None, "opening_time": None, "closing_time": None,
-                               "status": "not_verified", "extension": "issue_13", "transition_ticks": []}}
+              "measurements": {"transition_ticks": [], "transitions": []}}
     start = time.monotonic()
     try:
         if request.get("test_plan") and not test:
@@ -256,6 +257,17 @@ def run(source, request_directory, java, execution, test, workers, base_mcp, bas
                     geometry = call(worker_port, "check_geometry", dict(geometry_args, expected_state=expected))
                     rows = criteria(geometry, closed, rest_report, complete, manifest["provenance"].get("memory_coverage", {}))
                     report["criteria"] += rows
+                    samples = chain([operation["initial"]], artifact(worker_root, operation["trace"]))
+                    samples = ({"world_time": sample["world_time"], "blocks": artifact(worker_root, sample["state"]["blocks"])} for sample in samples)
+                    measured = measure(operation, samples, artifact(worker_root, operation["intratick_events"]), closed, geometry, snapshot["input"], complete, manifest["provenance"].get("memory_coverage", {}))
+                    if post_fault:
+                        for key in ("dynamic_volume", "opening_time", "closing_time"):
+                            if key in measured:
+                                metric = measured[key]
+                                metric.update({"status": "indeterminate", "observed_value": metric["value"], "value": None})
+                                metric["gaps"].append("additional_injected_transition_not_part_of_original_measurement")
+                    measured.update({"cycle": cycle, "state": expected})
+                    report["measurements"]["transitions"].append(measured)
                     entry = {"mode": mode, "cycle": cycle, "expected_state": expected, "operation": operation,
                              "snapshot": snapshot, "geometry": geometry, "criteria": rows, "trace_complete": complete,
                              "injected_fault": fault, "post_fault_rest": post_fault}
@@ -371,6 +383,9 @@ def run(source, request_directory, java, execution, test, workers, base_mcp, bas
             report["stop_cause"] = "verification_interrupted"
         report["verdict"] = verdict(report)
         report["conforms_to_alpha"] = report["verdict"] == "conforms_to_alpha"
+        transition_ticks = report["measurements"]["transition_ticks"]
+        report["measurements"] = summarize(report["measurements"]["transitions"], report["conforms_to_alpha"])
+        report["measurements"]["transition_ticks"] = transition_ticks
         report["traces_retained"] = True
         # A lost-owner result may already have been finalized by the controller.
         # Preserve it and keep any late worker evidence separately.
@@ -393,4 +408,6 @@ def run(source, request_directory, java, execution, test, workers, base_mcp, bas
                 report["stop_cause"] = "individual_phase_watchdog" if reason.startswith("individual_phase_watchdog:") else "verification_interrupted"
                 report["verdict"] = "infrastructure_error"
                 report["conforms_to_alpha"] = False
+            report["measurements"]["interpretation"] = "conforms_to_alpha_measurements" if report["conforms_to_alpha"] else "alpha_diagnostic"
             write_json(directory / ("late-worker-result.json" if (directory / "result.json").exists() else "result.json"), report)
+
