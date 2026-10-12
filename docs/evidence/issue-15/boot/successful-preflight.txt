@@ -1,0 +1,30 @@
+Disposable server data and logs: C:\Users\minle\.codex\worktrees\issue-15\StoneBench\app\controller\.runtime\tests-2a7e4a18824c47b69429b44a09ce0ab8
+Starting server 1: MCP 127.0.0.1:19765, Minecraft 127.0.0.1:26581
+{
+  "status": "passed",
+  "scope": "one production MCP dry startup, not paid task execution",
+  "inference_calls": 0,
+  "server_root": "C:\\Users\\minle\\.codex\\worktrees\\issue-15\\StoneBench\\app\\controller\\.runtime\\tests-2a7e4a18824c47b69429b44a09ce0ab8\\server-1",
+  "task_id": "2x2-volume",
+  "attempt_id": "fdca7da4-c2b4-4344-af98-0cffda9ccdda",
+  "production_tools": 22,
+  "useful_ticks": 0,
+  "preparation_ticks": 22,
+  "generated_loader_sha256": "acc662032e437667ab70038de34f05a20348e362f0e04e490a3774f23167e0d7"
+}
+
+
+{
+  "status": "ok",
+  "journals": [
+    {
+      "attempt_id": "fdca7da4-c2b4-4344-af98-0cffda9ccdda",
+      "operations": 3,
+      "simulation_ticks": 0,
+      "preparation_ticks": 22,
+      "world_time": 22,
+      "errors": []
+    }
+  ]
+}
+Integration suite finished; server logs and worlds remain under C:\Users\minle\.codex\worktrees\issue-15\StoneBench\app\controller\.runtime\tests-2a7e4a18824c47b69429b44a09ce0ab8

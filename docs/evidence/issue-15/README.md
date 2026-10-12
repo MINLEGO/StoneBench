@@ -1,0 +1,51 @@
+# Issue #15 preparation evidence
+
+Initial preparation performed no paid inference or credential read. Later, root executed exactly two separately authorized calibration calls; see [immutable calibration archive and derived revalidation](calibration/README.md). No eight-task paid campaign is authorized. During preparation the only network reads were public OpenRouter model/endpoint metadata; the actual OpenRouter/SDK tests used a fake key and offline HTTP transport. The only auxiliary agent was GPT-6 Luna Max, read-only provider/source review; implementation used the requested GPT-6.1 Sol Medium.
+
+## Final real Minecraft/Inspect/MCP rehearsal
+
+Command from the isolated issue-15 worktree:
+
+```powershell
+& app/campaign/.runtime/venv/Scripts/python.exe -m app.campaign.launch rehearsal --output app/campaign/.runtime/rehearsal-v7
+```
+
+All eight independent task lifecycles exited 0. Seven explicitly submitted an immutable incomplete checkpoint; their verifier result remains `indeterminate`, with nullable exact volume. The last task (`5x5-speed`) retains `no_submission`, its checkpoint/inventory and diagnostics. These are infrastructure/isolation tests with scripted model usage, not successful doors, paid model performance or provider calibration.
+
+[rehearsal-validation.json](rehearsal-validation.json) records exact identities/directories, native call counts, actual initial preparation ticks, zero useful initial ticks, result/verdict and context estimates for every task. All eight production MCP catalogues match and contain no test-only tool. Every frame and residue coordinate starts air; input, inventory, checkpoints and scheduled/block-event queues start empty. Each previous attempt leaves a chest with seven diamonds, declared input, advanced clocks and a checkpoint. Fresh absolute clocks equal only their own declared initial preparation count; no clock, state or queue was normalized to fabricate equality.
+
+Measured context forecasts range **28,575..84,594 UTF-8 bytes**, including the actual MCP schemas and retained responses. This is offline context calibration only, not provider token/hidden-template calibration. The 32,768-token reserve margin and 65,536 final completion allowance remain provisional until the authorized provider calibration.
+
+[rehearsal.tar.xz](rehearsal.tar.xz) contains 2,681 hash-inventoried payloads: frozen code/tests/docs and controller JAR, prompts/config/budgets, all native Inspect logs, source/copy worlds, settings, checkpoints, raw traces, operation journals, full tool results and verification reports. Immutable copied dependencies have deployed SHA-256 inventories; runtime libraries/cache trees are excluded. [archive-manifest.json](archive-manifest.json) lists every payload. [archive-check.json](archive-check.json) confirms the whole archive and every payload were read back; archive SHA-256: `448a949fdf4c14e702892e53bd2ce2ac366502bed756cd921c9af2573b9241ec`. [rehearsal-check.py](rehearsal-check.py) reads the published archive directly, verifies every payload and archived source byte against its manifest, checks reset/identities/explicit selection, and records the seven current source deltas plus the added offline tests. Run it from the worktree with the pinned campaign Python; it does not require retained local rehearsal directories.
+
+Failed/debug runs v2..v6 remain exported under `preparatory-failures/`. They include a version preflight failure, an overly strict initial-zero-clock assertion (actual chunks needed declared preparation), a legitimate `read_blocks` refusal across an unprepared chunk, the scripted-provider ToolInfo mismatch, and old two-journal-only CLI/lifecycle mismatches. Source changes intentionally revoked comparison in those interrupted runs; their archives retain the source they tested. The final v7 is complete. Its frozen source matches its archive manifest; it predates the subsequent numerical and provider-error fixes, whose current deltas and focused offline validation are reported separately.
+
+## Focused checks
+
+- Offline controller build passed with JDK 21.0.12 and independent Gradle cache, seeded read-only from issue #7.
+- Eight campaign boundary tests passed; six existing budget tests and four existing native Inspect tests passed.
+- Three real Inspect/OpenRouter/OpenAI SDK tests passed under offline HTTP transport: exact endpoint routing, `reasoning.enabled=true`, real parser usage (200 input +100 completion =300 total, with 90 reasoning already inside completion), raw cost retention, no fake secret in logs, and context refusal before any provider request. The additional length fixtures reject whitespace-only text and retain a valid tool call. Pinned Inspect rejects a list of empty text parts during response parsing; the test records that error, then separately checks raw-part normalization and shared validation with the same valid provider/usage/cost fixture. No SDK acceptance of list content is claimed.
+- [provider-validation-tests.json](provider-validation-tests.json): two accepted fixtures (including length with usable output) and six rejected provider/cost/usage/overshoot/empty-length controls. [paid-gate-tests.json](paid-gate-tests.json): absent authorization, absent calibration and rejected calibration all fail before a process/output/key-loader can start; the fake authorization fixture was temporary and deleted.
+- The final eight single journals passed real clock accounting; two independent journals passed, and duplicating the same attempt journal was rejected.
+
+The SDK runtime is pinned to Inspect 0.3.278, MCP 1.26.0 and OpenAI 3.29.0 (Inspect actually requires OpenAI >=3.4.0). `sdk-config.json` confirms SDK retries zero and reasoning enabled without inference. Controller/protocol/timing/volume code remains unchanged. Existing #14 defaults and test-only two-server behavior are preserved.
+
+## Numerical paid gate, still pending
+
+The full nonsecret proposal/hash is in [provisional-plan.json](provisional-plan.json); operational details and executable commands are in [campaign.md](../../campaign.md). Each attempt: total 2,000,000 tokens; construction completion 32,768; final completion 65,536 =8,192 visible +57,344 reasoning allowance; margin 32,768 plus recalculated actual context forecast. Request client guard: 524,288 context bytes. Stop immediately after the first missing-usage response, then suspend later paid tasks; the original standalone harness finite fallback remains unchanged.
+
+OpenRouter model `xiaomi/mimo-v2.6-flash`: exact `makora/fp8` primary and `xiaomi/fp8` explicitly ordered fallback only; `allow_fallbacks=false`, exact `only` allowlist and FP8 quantization. All inference/sample/SDK retries are disabled. No effort or reasoning.max_tokens is invented. Real provider identity/cost/usage/completion bounds must pass calibration; length termination without usable visible/tool output rejects shared provider validation in both calibration and paid modes. Diagnostics are saved before nonzero attempt exit, and the launcher suspends later paid tasks. The two offline `tests/campaign_completion.py` tests mock lifecycle processes: rejected paid validation stops before task 2 and rejected calibration exits nonzero even if its lifecycle exits zero; both retain diagnostics and invoke archive creation. No Minecraft or provider call is made by these focused tests.
+
+Price snapshot: input $0.13/M Makora or $0.14/M Xiaomi; completion $0.28/M (reasoning included); no cache discount assumed. At 80% input/20% completion: $2.56 or $2.688 for eight tasks. Worst nominal 16M-token split: **$4.48**. With one deliberately loose 1,114,112-token in-flight excess per attempt: **$6.97561088**, Calibration nominal cost is **$0.112**; including its own one-in-flight excess gives **$0.42395136**, hence **$7.39956224** conditional for both stages. **$7.08761088** included nominal calibration only and is not a global ceiling. These are not hard monetary caps; hidden overhead/provider violations invalidate them. The next authorization covers only calibration, about **$0.424** conditionally; eight-task authorization follows its results.
+
+The archived rehearsal and its manifest retain the historical plan hash `32f24a0d40364e6382fb5db5aff45ecabe884a6d642f2cac3532bd8a04e8b8ee`. The numerical correction after that rehearsal changes the current authorization plan hash; the historical archive was not rewritten or rerun. Subsequent provider-validation/launcher fixes were tested with offline transport and mocked lifecycle branches; the archived rehearsal remains proof of the earlier Minecraft lifecycle/isolation behavior, not execution proof of the new provider-error branches.
+
+No authorization JSON exists from preparation and no real key was inspected. The loader reads only the primary gitignored secret file in the inference process after the paid gate; ambient keys never reach the Minecraft JVM/supervisor. Calibration must be explicitly authorized separately and accepted for this plan before any eight-task paid run. Issue #15 and parent #4 remain open until the real campaign and archive are complete.
+
+## One-task paid selection gate
+
+The user subsequently authorized only `2x2-volume` before reviewing OpenRouter logs. The launcher now requires its exact `task_ids` subset in paid authorization and records selected/authorized task IDs separately from the unchanged full plan. Default eight-task selection, wrong/extra/duplicate tasks and missing task_ids are refused before process/output/key loading. Direct runner entry independently refuses a task outside the authorization. `tests/campaign_selection.py` uses mocked lifecycle dispatch and a real verified archive to prove exactly one selected task is launched and archived; no paid task was executed by these tests or this implementation agent. The other seven remain unauthorized.
+
+## Cached production startup correction
+
+The first authorized one-task launch failed before inference because fresh Fabric installer metadata reads hit PKIX certificate_unknown. [Boot evidence](boot/README.md) retains that failure and a subsequent actual production MCP dry startup using independent copied launch/derived caches, without model calls. This startup fix does not execute the authorized paid task or unlock the other seven. Historical eight-run source differences remain explicit.

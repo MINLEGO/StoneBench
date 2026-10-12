@@ -1,0 +1,242 @@
+{
+  "mode": "calibration",
+  "plan_sha256": "8758eb0f4d8b2a14c321bf161685103d4e0e88b135fada97b04abe293da2fc21",
+  "original_archive_sha256": "c19c66dcb9ac0558bb6284c98bf7d6c69e40dfbfd3194a9f255a13c78572503e",
+  "original_outcome": "rejected_immutable",
+  "derived_outcome": "accepted_offline_revalidation_pending_review",
+  "new_inference_calls": 0,
+  "original_inference_calls": 2,
+  "archive_payloads_verified": 168,
+  "provider_validation": {
+    "accepted": true,
+    "gaps": [],
+    "scope": "observed_requests_not_universal_provider_guarantee"
+  },
+  "calibration_validation": {
+    "accepted": true,
+    "gaps": [],
+    "scope": "observed_requests_not_universal_provider_guarantee"
+  },
+  "provider_records": [
+    {
+      "response_id": "gen-1791795598-tihCijiobt3VzJHqh78y",
+      "routing_metadata": {
+        "requested": "xiaomi/mimo-v2.6-flash",
+        "strategy": "direct",
+        "region": "CDG",
+        "summary": "available=2, selected=Makora",
+        "attempt": 1,
+        "is_byok": false,
+        "endpoints": {
+          "total": 8,
+          "available": [
+            {
+              "provider": "Makora",
+              "model": "xiaomi/mimo-v2.6-flash-20260921",
+              "selected": true
+            },
+            {
+              "provider": "Xiaomi",
+              "model": "xiaomi/mimo-v2.6-flash-20260921",
+              "selected": false
+            }
+          ]
+        },
+        "generation_time": 770
+      },
+      "raw_provider_usage": {
+        "completion_tokens": 99,
+        "prompt_tokens": 3122,
+        "total_tokens": 3221,
+        "completion_tokens_details": {
+          "accepted_prediction_tokens": null,
+          "audio_tokens": 0,
+          "reasoning_tokens": 33,
+          "rejected_prediction_tokens": null,
+          "text_tokens": null,
+          "image_tokens": 0
+        },
+        "prompt_tokens_details": {
+          "audio_tokens": 0,
+          "cache_write_tokens": 0,
+          "cached_tokens": 0,
+          "image_tokens": null,
+          "text_tokens": null,
+          "video_tokens": 0
+        },
+        "cost": 0.00043358,
+        "is_byok": false,
+        "cost_details": {
+          "upstream_inference_cost": 0.00043358,
+          "upstream_inference_prompt_cost": 0.00040586,
+          "upstream_inference_completions_cost": 2.772e-05
+        }
+      },
+      "provider_reported_cost": 0.00043358,
+      "requested_model": "xiaomi/mimo-v2.6-flash",
+      "requested_provider": {
+        "order": [
+          "makora/fp8",
+          "xiaomi/fp8"
+        ],
+        "only": [
+          "makora/fp8",
+          "xiaomi/fp8"
+        ],
+        "allow_fallbacks": false,
+        "quantizations": [
+          "fp8"
+        ]
+      },
+      "requested_reasoning": {
+        "enabled": true
+      },
+      "requested_max_tokens": 65536,
+      "finish_reason": "tool_calls",
+      "usable_visible_or_tool_output": true,
+      "inspect_usage_cost_is_not_route_exact": true,
+      "generation_metadata": {
+        "id": "gen-1791795598-tihCijiobt3VzJHqh78y",
+        "provider_name": "Makora",
+        "model": "xiaomi/mimo-v2.6-flash-20260921",
+        "total_cost": 0.00043358,
+        "tokens_prompt": null,
+        "tokens_completion": null,
+        "native_tokens_prompt": 3122,
+        "native_tokens_completion": 99,
+        "native_tokens_reasoning": 33,
+        "cache_discount": null,
+        "finish_reason": "tool_calls"
+      },
+      "metadata_http_status": 200,
+      "resolved_provider_evidence": {
+        "provider": "Makora",
+        "cost": 0.00043358,
+        "provider_source": "generation_get",
+        "cost_source": "generation_get",
+        "endpoint_tag": "makora/fp8",
+        "endpoint_tag_is_inferred_from_exact_request_allowlist": true
+      }
+    },
+    {
+      "response_id": "gen-1791795599-MW8pxmzCZwe5EpZ1HamF",
+      "routing_metadata": {
+        "requested": "xiaomi/mimo-v2.6-flash",
+        "strategy": "direct",
+        "region": "CDG",
+        "summary": "available=2, selected=Makora",
+        "attempt": 1,
+        "is_byok": false,
+        "endpoints": {
+          "total": 8,
+          "available": [
+            {
+              "provider": "Makora",
+              "model": "xiaomi/mimo-v2.6-flash-20260921",
+              "selected": true
+            },
+            {
+              "provider": "Xiaomi",
+              "model": "xiaomi/mimo-v2.6-flash-20260921",
+              "selected": false
+            }
+          ]
+        },
+        "generation_time": 1707
+      },
+      "raw_provider_usage": {
+        "completion_tokens": 247,
+        "prompt_tokens": 6220,
+        "total_tokens": 6467,
+        "completion_tokens_details": {
+          "accepted_prediction_tokens": null,
+          "audio_tokens": 0,
+          "reasoning_tokens": 159,
+          "rejected_prediction_tokens": null,
+          "text_tokens": null,
+          "image_tokens": 0
+        },
+        "prompt_tokens_details": {
+          "audio_tokens": 0,
+          "cache_write_tokens": 0,
+          "cached_tokens": 0,
+          "image_tokens": null,
+          "text_tokens": null,
+          "video_tokens": 0
+        },
+        "cost": 0.00087776,
+        "is_byok": false,
+        "cost_details": {
+          "upstream_inference_cost": 0.00087776,
+          "upstream_inference_prompt_cost": 0.0008086,
+          "upstream_inference_completions_cost": 6.916e-05
+        }
+      },
+      "provider_reported_cost": 0.00087776,
+      "requested_model": "xiaomi/mimo-v2.6-flash",
+      "requested_provider": {
+        "order": [
+          "makora/fp8",
+          "xiaomi/fp8"
+        ],
+        "only": [
+          "makora/fp8",
+          "xiaomi/fp8"
+        ],
+        "allow_fallbacks": false,
+        "quantizations": [
+          "fp8"
+        ]
+      },
+      "requested_reasoning": {
+        "enabled": true
+      },
+      "requested_max_tokens": 65536,
+      "finish_reason": "tool_calls",
+      "usable_visible_or_tool_output": true,
+      "inspect_usage_cost_is_not_route_exact": true,
+      "generation_metadata": {
+        "id": "gen-1791795599-MW8pxmzCZwe5EpZ1HamF",
+        "provider_name": "Makora",
+        "model": "xiaomi/mimo-v2.6-flash-20260921",
+        "total_cost": 0.00087776,
+        "tokens_prompt": null,
+        "tokens_completion": null,
+        "native_tokens_prompt": 6220,
+        "native_tokens_completion": 247,
+        "native_tokens_reasoning": 159,
+        "cache_discount": null,
+        "finish_reason": "tool_calls"
+      },
+      "metadata_http_status": 200,
+      "resolved_provider_evidence": {
+        "provider": "Makora",
+        "cost": 0.00087776,
+        "provider_source": "generation_get",
+        "cost_source": "generation_get",
+        "endpoint_tag": "makora/fp8",
+        "endpoint_tag_is_inferred_from_exact_request_allowlist": true
+      }
+    }
+  ],
+  "total_tokens": 9688,
+  "input_tokens": 9342,
+  "completion_tokens": 346,
+  "reasoning_tokens_already_in_completion": 192,
+  "actual_provider_reported_cost_usd": 0.00131134,
+  "context_forecast_vs_usage": [
+    {
+      "context_estimate_bytes": 28576,
+      "actual_input_tokens": 3122,
+      "margin": 32768
+    },
+    {
+      "context_estimate_bytes": 39155,
+      "actual_input_tokens": 6220,
+      "margin": 32768
+    }
+  ],
+  "prompt_and_exact_request_config_checked": true,
+  "limitations": "Two small read-only tool responses. No long reasoning stress or door-solving performance proof. FP8 tag inferred from exact request allowlist plus selected provider, not independently returned by metadata.",
+  "validator_source_sha256": "8519b2e5e5b6d6c36628835bb1604b0e8045d2989073c5ac146aa6e116dd715b"
+}

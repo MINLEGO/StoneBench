@@ -43,6 +43,6 @@ def check(path):
 
 if __name__ == "__main__":
     reports = [check(pathlib.Path(value)) for value in sys.argv[1:]]
-    assert len(reports) == 2
-    assert reports[0]["attempt_id"] != reports[1]["attempt_id"]
+    assert reports, "At least one operation journal is required"
+    assert len({report["attempt_id"] for report in reports}) == len(reports), "Attempt identities must be independent"
     print(json.dumps({"status": "ok", "journals": reports}, indent=2))

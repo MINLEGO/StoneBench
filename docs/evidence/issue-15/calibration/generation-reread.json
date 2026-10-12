@@ -1,0 +1,38 @@
+[
+  {
+    "id": "gen-1791795598-tihCijiobt3VzJHqh78y",
+    "read_at_utc": "2026-10-12T09:02:15.780138+00:00",
+    "method": "GET",
+    "endpoint": "https://openrouter.ai/api/v1/generation",
+    "inference_calls": 0,
+    "http_status": 200,
+    "data": {
+      "id": "gen-1791795598-tihCijiobt3VzJHqh78y",
+      "provider_name": "Makora",
+      "model": "xiaomi/mimo-v2.6-flash-20260921",
+      "total_cost": 0.00043358,
+      "native_tokens_prompt": 3122,
+      "native_tokens_completion": 99,
+      "native_tokens_reasoning": 33,
+      "finish_reason": "tool_calls"
+    }
+  },
+  {
+    "id": "gen-1791795599-MW8pxmzCZwe5EpZ1HamF",
+    "read_at_utc": "2026-10-12T09:02:16.293352+00:00",
+    "method": "GET",
+    "endpoint": "https://openrouter.ai/api/v1/generation",
+    "inference_calls": 0,
+    "http_status": 200,
+    "data": {
+      "id": "gen-1791795599-MW8pxmzCZwe5EpZ1HamF",
+      "provider_name": "Makora",
+      "model": "xiaomi/mimo-v2.6-flash-20260921",
+      "total_cost": 0.00087776,
+      "native_tokens_prompt": 6220,
+      "native_tokens_completion": 247,
+      "native_tokens_reasoning": 159,
+      "finish_reason": "tool_calls"
+    }
+  }
+]

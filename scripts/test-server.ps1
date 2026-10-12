@@ -3,6 +3,8 @@ param(
     [switch]$AcceptEula,
     [switch]$SkipBuild,
     [switch]$UseCheckpointSupervisor,
+    [switch]$ProductionServer,
+    [ValidateSet(1,2)][int]$ServerCount = 2,
     [string]$Java = 'java',
     [string]$Python = 'python',
     [string]$Suite = 'tests\integration.py',
@@ -58,12 +60,17 @@ if ($LASTEXITCODE -ne 0 -or $pythonVersion -notmatch '^Python 3\.12\.') {
 }
 
 $serverCacheRoot = $null
+$cachedLoader = $null
 if ($ServerCacheSource) {
     $serverCacheRoot = [IO.Path]::GetFullPath($ServerCacheSource)
     foreach ($directory in @('libraries', 'versions')) {
         if (!(Test-Path -LiteralPath (Join-Path $serverCacheRoot $directory))) {
             throw "Server cache is missing $directory/: $serverCacheRoot"
         }
+    }
+    $cachedLoader = Join-Path $serverCacheRoot '.fabric\server\fabric-loader-server-0.19.5-minecraft-1.21.11.jar'
+    if (!(Test-Path -LiteralPath $cachedLoader -PathType Leaf)) {
+        throw "Server cache is missing the pinned generated Fabric launch jar: $cachedLoader"
     }
 }
 $launcher = Join-Path $runtime 'fabric-server-mc.1.21.11-loader.0.19.5-launcher.1.1.2.jar'
@@ -130,12 +137,12 @@ function Start-Server($Server) {
     $info.RedirectStandardOutput = $true
     $info.RedirectStandardError = $true
     $serverArguments = if ($UseCheckpointSupervisor) {
-        @((Join-Path $repoRoot 'scripts\checkpoint_server.py'), '--server-root', $Server.Root, '--java', $javaExe, '--port', "$($Server.McpPort)", '--execution', $TickExecution, '--test', '--verification-mcp-port', "$($BaseMcpPort + 2 + ($Server.Index - 1) * 4)", '--verification-game-port', "$($BaseGamePort + 2 + ($Server.Index - 1) * 4)")
+        @((Join-Path $repoRoot 'scripts\checkpoint_server.py'), '--server-root', $Server.Root, '--java', $javaExe, '--port', "$($Server.McpPort)", '--execution', $TickExecution, '--verification-mcp-port', "$($BaseMcpPort + 2 + ($Server.Index - 1) * 4)", '--verification-game-port', "$($BaseGamePort + 2 + ($Server.Index - 1) * 4)") + $(if (!$ProductionServer) { @('--test') } else { @() })
     } else { @(
         '-Xms256M',
         '-Xmx1G',
         "-Dstonebench.port=$($Server.McpPort)",
-         '-Dstonebench.test=true',
+        "-Dstonebench.test=$((!$ProductionServer).ToString().ToLowerInvariant())",
         '-Dstonebench.supervised=true',
         "-Dstonebench.tickExecution=$(if ($Server.Index -eq 2 -and $SecondTickExecution) { $SecondTickExecution } else { $TickExecution })",
         "-Dstonebench.initialPreparationTicks=$InitialPreparationTicks",
@@ -264,6 +271,7 @@ $servers = @(
     [pscustomobject]@{ Index = 1; Boot = 0; McpPort = $BaseMcpPort; GamePort = $BaseGamePort; Root = Join-Path $testRoot 'server-1'; Process = $null; ProcessId = $null; StdoutTask = $null; StderrTask = $null; Killed = $false },
     [pscustomobject]@{ Index = 2; Boot = 0; McpPort = ($BaseMcpPort + 1); GamePort = ($BaseGamePort + 1); Root = Join-Path $testRoot 'server-2'; Process = $null; ProcessId = $null; StdoutTask = $null; StderrTask = $null; Killed = $false }
 )
+$servers = @($servers | Select-Object -First $ServerCount)
 foreach ($server in $servers) {
     Assert-PortAvailable $server.McpPort
     Assert-PortAvailable $server.GamePort
@@ -298,6 +306,24 @@ foreach ($server in $servers) {
     if ($serverCacheRoot) {
         foreach ($directory in @('libraries', 'versions')) {
             Copy-Item -LiteralPath (Join-Path $serverCacheRoot $directory) -Destination (Join-Path $server.Root $directory) -Recurse
+        }
+        $copiedLoader = Join-Path $server.Root '.fabric\server\fabric-loader-server-0.19.5-minecraft-1.21.11.jar'
+        Copy-Item -LiteralPath $cachedLoader -Destination $copiedLoader
+        if ((Get-FileHash -LiteralPath $cachedLoader -Algorithm SHA256).Hash -ne (Get-FileHash -LiteralPath $copiedLoader -Algorithm SHA256).Hash) {
+            throw 'Copied generated Fabric launch jar SHA-256 mismatch.'
+        }
+        foreach ($directory in @('remappedJars', 'processedMods')) {
+            $cachedDirectory = Join-Path $serverCacheRoot ".fabric\$directory"
+            if (Test-Path -LiteralPath $cachedDirectory -PathType Container) {
+                $copiedDirectory = Join-Path $server.Root ".fabric\$directory"
+                Copy-Item -LiteralPath $cachedDirectory -Destination $copiedDirectory -Recurse
+                foreach ($file in Get-ChildItem -LiteralPath $cachedDirectory -Recurse -File) {
+                    $copiedFile = Join-Path $copiedDirectory ([IO.Path]::GetRelativePath($cachedDirectory, $file.FullName))
+                    if ((Get-FileHash -LiteralPath $file.FullName -Algorithm SHA256).Hash -ne (Get-FileHash -LiteralPath $copiedFile -Algorithm SHA256).Hash) {
+                        throw 'Copied Fabric derived cache SHA-256 mismatch.'
+                    }
+                }
+            }
         }
     }
     [IO.File]::WriteAllText((Join-Path $server.Root 'eula.txt'), 'eula=true' + [Environment]::NewLine, [Text.UTF8Encoding]::new($false))

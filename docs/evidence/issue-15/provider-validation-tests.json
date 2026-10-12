@@ -1,0 +1,63 @@
+{
+  "network": "mock_transport_only",
+  "accepted": {
+    "accepted": true,
+    "gaps": [],
+    "scope": "observed_requests_not_universal_provider_guarantee"
+  },
+  "usable_length_accepted": {
+    "accepted": true,
+    "gaps": [],
+    "scope": "observed_requests_not_universal_provider_guarantee"
+  },
+  "negative": [
+    {
+      "name": "wrong-provider",
+      "accepted": false,
+      "gaps": [
+        "provider_identity_unavailable_or_unexpected"
+      ],
+      "scope": "observed_requests_not_universal_provider_guarantee"
+    },
+    {
+      "name": "missing-cost",
+      "accepted": false,
+      "gaps": [
+        "provider_cost_unavailable"
+      ],
+      "scope": "observed_requests_not_universal_provider_guarantee"
+    },
+    {
+      "name": "missing-usage",
+      "accepted": false,
+      "gaps": [
+        "provider_token_usage_unavailable"
+      ],
+      "scope": "observed_requests_not_universal_provider_guarantee"
+    },
+    {
+      "name": "inconsistent-total",
+      "accepted": false,
+      "gaps": [
+        "provider_token_usage_inconsistent"
+      ],
+      "scope": "observed_requests_not_universal_provider_guarantee"
+    },
+    {
+      "name": "over-completion",
+      "accepted": false,
+      "gaps": [
+        "completion_bound_unavailable_or_exceeded"
+      ],
+      "scope": "observed_requests_not_universal_provider_guarantee"
+    },
+    {
+      "name": "length-without-visible-or-tool-output",
+      "accepted": false,
+      "gaps": [
+        "reasoning_exhausted_completion_without_usable_response"
+      ],
+      "scope": "observed_requests_not_universal_provider_guarantee"
+    }
+  ]
+}
