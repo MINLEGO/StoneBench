@@ -39,11 +39,8 @@ final class Verification {
         String id=UUID.fromString(Task.string(args,"request_id")).toString();Path path=Path.of("stonebench/verifications",id);
         if(Files.exists(path.resolve("visible.json"))){
             JsonObject visible=CheckpointStorage.read(path.resolve("visible.json"));
-            // A visible.json from a build before the concise form has no `faults`: rebuild it from the local report, never serve it.
-            if(!visible.has("faults")){
-                if(!Files.exists(path.resolve("completed.json")))throw new IllegalArgumentException("Unknown verification request");
-                visible=publish(path,CheckpointStorage.read(path.resolve("completed.json")));
-            }
+            // A visible.json from a build before the concise form has no `faults` and may carry the complete report: status is a read (it also runs in artifact recovery), so it refuses rather than rebuilds.
+            if(!visible.has("faults"))throw new IllegalArgumentException("Verification result predates the concise form; run verify_checkpoint again");
             JsonObject result=new JsonObject();result.add("verification",visible);return result;
         }
         if(directory==null || !directory.equals(path))throw new IllegalArgumentException("Unknown verification request");
@@ -79,7 +76,8 @@ final class Verification {
                 for(String key:List.of("id","status","mode","boundary","expected","observed","diagnostic"))if(row.has(key))fault.add(key,row.get(key).deepCopy());
                 // Evidence already at the root of the answer is not repeated per fault; the same fault over several cycles is one entry.
                 if(fault.has("observed") && (fault.get("observed").equals(recurrence) || fault.get("observed").equals(difference)))fault.remove("observed");
-                JsonObject entry=faults.computeIfAbsent(fault.toString(),key->fault);
+                JsonObject same=fault.deepCopy();same.remove("observed");
+                JsonObject entry=faults.computeIfAbsent(same.toString(),key->fault);
                 if(row.has("cycle")){if(!entry.has("cycles"))entry.add("cycles",new JsonArray());entry.getAsJsonArray("cycles").add(row.get("cycle"));}
             }
         }

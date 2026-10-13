@@ -67,9 +67,12 @@ def visible(full):
     for row in rows:
         if row["mandatory"] and row["status"] != "satisfied":
             fault = {key: row[key] for key in keys if key in row}
-            if fault.get("observed") is not None and fault["observed"] == full.get("recurrence_comparisons"):
+            located = full.get("first_difference")
+            located = {k: v for k, v in located.items() if k not in ("mode", "boundary", "first_tick")} if isinstance(located, dict) else None
+            if fault.get("observed") is not None and fault["observed"] in (full.get("recurrence_comparisons"), located):
                 del fault["observed"]  # already shown at the root
-            twin = next((other for other in shown["faults"] if {k: v for k, v in other.items() if k != "cycles"} == fault), None)
+            without = lambda value: {k: v for k, v in value.items() if k not in ("cycles", "observed")}
+            twin = next((other for other in shown["faults"] if without(other) == without(fault)), None)
             if twin is None:
                 shown["faults"].append(twin := fault)
             if "cycle" in row:
@@ -264,19 +267,28 @@ class LocalAudit(unittest.TestCase):
     def test_faults_group_cycles_and_omit_evidence_shown_at_the_root(self):
         full = report(self.manifest)
         again = {"id": "continuable", "mandatory": True, "status": "indeterminate", "mode": "repeater", "boundary": "closed", "diagnostic": "d", "sources": [SOURCE()]}
-        full["criteria"] += [dict(again, cycle=1), dict(again, cycle=2), dict(again, cycle=2, boundary="open"),
-                             {"id": "recurrence", "mandatory": True, "status": "failed", "observed": [{"cycle": 1}], "diagnostic": "d", "sources": [SOURCE()]}]
+        difference = {"path": "blocks"}
+        full["criteria"] += [dict(again, cycle=1, observed={"rest": 1}), dict(again, cycle=2, observed={"rest": 2}), dict(again, cycle=2, boundary="open"),
+                             {"id": "recurrence", "mandatory": True, "status": "failed", "observed": [{"cycle": 1}], "diagnostic": "d", "sources": [SOURCE()]},
+                             {"id": "mode_equivalence_open", "mandatory": True, "status": "failed", "observed": difference, "diagnostic": "d", "sources": [SOURCE()]},
+                             {"id": "mode_equivalence_closed", "mandatory": True, "status": "failed", "observed": {"path": "other"}, "diagnostic": "d", "sources": [SOURCE()]}]
         full["recurrence_comparisons"] = [{"cycle": 1}]
+        full["first_difference"] = dict(difference, mode="direct", boundary="open", first_tick=9)
         full.update(verdict="failed", conforms_to_alpha=False)
         self.write(full)
         shown = visible(full)
-        self.assertEqual([(row["id"], row["boundary"] if "boundary" in row else None, row.get("cycles")) for row in shown["faults"]],
-                         [("continuable", "closed", [1, 2]), ("continuable", "open", [2]), ("recurrence", None, None)])
-        self.assertNotIn("observed", shown["faults"][2])
+        self.assertEqual([(row["id"], row.get("boundary"), row.get("cycles")) for row in shown["faults"]],
+                         [("continuable", "closed", [1, 2]), ("continuable", "open", [2]), ("recurrence", None, None),
+                          ("mode_equivalence_open", None, None), ("mode_equivalence_closed", None, None)])
+        self.assertEqual(shown["faults"][0]["observed"], {"rest": 1})  # the first observed is kept
+        self.assertEqual(["observed" in row for row in shown["faults"][2:]], [False, False, True])
         self.assertTrue(audit.load(self.root, REQUEST, CHECKPOINT, shown)["complete"])  # the derivation agrees
-        shown["faults"][0]["cycles"] = [1]
-        with self.assertRaises(audit.AuditError):
-            audit.load(self.root, REQUEST, CHECKPOINT, shown)
+        for damage in (lambda value: value["faults"][0].update(cycles=[1]), lambda value: value["faults"][3].update(observed={"path": "blocks"}),
+                       lambda value: value["faults"][0].update(observed={"rest": 2})):
+            changed = deepcopy(shown)
+            damage(changed)
+            with self.assertRaises(audit.AuditError):
+                audit.load(self.root, REQUEST, CHECKPOINT, changed)
 
     def test_infrastructure_fallback_without_criteria_is_missing_evidence_not_an_error(self):
         """The heartbeat-lost fallback has no criteria, boundaries or measurements: incomplete, never positive, never an audit error."""

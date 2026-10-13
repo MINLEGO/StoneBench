@@ -36,7 +36,7 @@ EVIDENCE_KEYS = ("sources", "movements", "excluded", "conditional_roles")
 
 def faults(rows, report):
     """The agent's fault list: mandatory rows not satisfied, minus citations. Evidence already at the root of the answer is
-    not repeated, and the same fault over several cycles is one entry listing them."""
+    not repeated, and the same fault over several cycles is one entry listing them (the first `observed` is kept)."""
     difference = report.get("first_difference")
     if isinstance(difference, dict):
         difference = {key: item for key, item in difference.items() if key not in ("mode", "boundary", "first_tick")}
@@ -46,7 +46,7 @@ def faults(rows, report):
             fault = {key: row[key] for key in FAULT_KEYS if key in row}
             if fault.get("observed") is not None and fault["observed"] in (report.get("recurrence_comparisons"), difference):
                 del fault["observed"]
-            entry = listed.setdefault(json.dumps(fault, sort_keys=True), fault)
+            entry = listed.setdefault(json.dumps({key: item for key, item in fault.items() if key != "observed"}, sort_keys=True), fault)
             if "cycle" in row:
                 entry.setdefault("cycles", []).append(row["cycle"])
     return list(listed.values())
