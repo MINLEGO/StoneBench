@@ -54,6 +54,45 @@ final class Verification {
         JsonObject result=new JsonObject();result.addProperty("scenario",scenario);result.addProperty("test_only",true);
         CheckpointStorage.writeAtomic(Path.of("stonebench/verification-test-plan.json"),result);return result;
     }
+    private static final List<String> SHOWN=List.of("request_id","checkpoint_id","manifest_sha256","status","protocol_version","minecraft_version","verdict","conforms_to_alpha","stop_cause","cycles_executed","transition_ticks","first_difference","recurrence_comparisons","infrastructure_error","limits","wall_seconds","worker_artifacts_available_via_mcp","traces_retained","injected_control_not_natural_recurrence","working_construction_preserved","working_differences");
+    private static final List<String> SEVERITY=List.of("satisfied","not_verified","indeterminate","failed");
+    /** MCP form of a completed report: verdict, outcome per criterion, faults, measurements and rest per boundary. Rule sources, raw movements, preparation/geometry dumps and the report itself stay in completed.json. */
+    static JsonObject agentReport(JsonObject full) {
+        JsonObject view=new JsonObject();
+        for(String key:SHOWN)if(full.has(key))view.add(key,full.get(key).deepCopy());
+        Map<String,JsonObject> outcomes=new LinkedHashMap<>();JsonArray faults=new JsonArray();
+        if(full.has("criteria"))for(JsonElement item:full.getAsJsonArray("criteria")) {
+            JsonObject row=item.getAsJsonObject();String id=row.get("id").getAsString(),status=row.get("status").getAsString();
+            JsonObject outcome=outcomes.computeIfAbsent(id,key->{JsonObject value=new JsonObject();value.addProperty("id",key);value.add("mandatory",row.get("mandatory"));value.addProperty("status",status);return value;});
+            if(SEVERITY.indexOf(status)>SEVERITY.indexOf(outcome.get("status").getAsString()))outcome.addProperty("status",status);
+            if(row.get("mandatory").getAsBoolean() && !status.equals("satisfied")) {
+                JsonObject fault=new JsonObject();
+                for(String key:List.of("id","status","mode","cycle","boundary","expected","observed","diagnostic"))if(row.has(key))fault.add(key,row.get(key).deepCopy());
+                faults.add(fault);
+            }
+        }
+        JsonArray criteria=new JsonArray();outcomes.values().forEach(criteria::add);view.add("criteria",criteria);view.add("faults",faults);
+        if(full.has("measurements"))view.add("measurements",withoutEvidence(full.get("measurements")));
+        JsonArray boundaries=new JsonArray();
+        if(full.has("boundaries"))for(JsonElement item:full.getAsJsonArray("boundaries")) {
+            JsonObject boundary=item.getAsJsonObject(),operation=boundary.getAsJsonObject("operation"),rest=operation.getAsJsonObject("transition"),shown=new JsonObject();
+            for(String key:List.of("mode","cycle","expected_state","trace_complete"))shown.add(key,boundary.get(key));
+            shown.add("ticks_executed",operation.get("ticks_executed"));
+            JsonObject summary=new JsonObject();for(String key:List.of("status","cause","tick","last_movement_tick","recognition_tick","observed_ticks"))if(rest.has(key))summary.add(key,rest.get(key));
+            shown.add("rest",summary);
+            shown.add("snapshot",Artifacts.write("verification_boundary_snapshot",List.of(boundary.get("snapshot"))));
+            boundaries.add(shown);
+        }
+        view.add("boundaries",boundaries);return view;
+    }
+    /** Measurements keep status, value, gaps, envelopes and timestamps; citations, per-movement samples and exclusion/role lists stay local. */
+    private static JsonElement withoutEvidence(JsonElement value) {
+        if(value.isJsonArray()){JsonArray copy=new JsonArray();value.getAsJsonArray().forEach(item->copy.add(withoutEvidence(item)));return copy;}
+        if(!value.isJsonObject())return value.deepCopy();
+        JsonObject copy=new JsonObject();
+        for(var entry:value.getAsJsonObject().entrySet())if(!Set.of("sources","movements","excluded","conditional_roles").contains(entry.getKey()))copy.add(entry.getKey(),withoutEvidence(entry.getValue()));
+        return copy;
+    }
     static JsonObject poll(java.util.function.Supplier<JsonObject> snapshot) throws IOException {
         if(directory==null)return null;
         if(!Files.exists(directory.resolve("result.json"))){
@@ -75,12 +114,8 @@ final class Verification {
         if(!differences.isEmpty()) {report.addProperty("verdict","infrastructure_error");report.addProperty("conforms_to_alpha",false);}
         if(report.has("measurements")) report.getAsJsonObject("measurements").addProperty("interpretation",report.get("conforms_to_alpha").getAsBoolean()?"conforms_to_alpha_measurements":"alpha_diagnostic");
         CheckpointStorage.writeAtomic(directory.resolve("completed.json"),report);
-        JsonObject visible=report.deepCopy();visible.remove("audit");visible.add("full_report",Artifacts.write("verification_report",List.of(visible.deepCopy())));
+        JsonObject visible=agentReport(report);
         visible.add("working_after",Artifacts.write("verification_working_after",List.of(current)));
-        if(visible.has("boundaries")) for(JsonElement item:visible.getAsJsonArray("boundaries")) {
-            JsonObject boundary=item.getAsJsonObject();
-            boundary.add("snapshot",Artifacts.write("verification_boundary_snapshot",List.of(boundary.get("snapshot"))));
-        }
         CheckpointStorage.writeAtomic(directory.resolve("visible.json"),visible);
         JsonObject result=new JsonObject();result.add("verification",visible);directory=null;before=null;return result;
     }

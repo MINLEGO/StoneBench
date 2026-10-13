@@ -22,6 +22,16 @@ class SourceFreeTests(unittest.TestCase):
         self.assertEqual(source_leaks({"criteria": [{"id": "frame_state", "expected": "closed", "observed": []}]}), [])
         self.assertEqual(source_leaks({"observed": {"x": 1024, "y": 80, "z": 1024, "block": "minecraft:quartz_block"}}), [])
 
+    def test_verification_leaks_are_found_and_the_concise_form_passes(self):
+        sourced = {"criteria": [{"id": "x", "sources": [{"source": "https://docs.google.com/document/d/1", "revision_id": "r", "locator": "1"}]}],
+                   "measurements": {"opening_time": {"sources": [{"native_cache_sha256": "e4a01f6d47956291"}]}},
+                   "boundaries": [{"geometry": {"criteria": [{"source_index": 5}]}}]}
+        self.assertGreaterEqual(len(source_leaks(sourced)), 8)
+        concise = {"verdict": "failed", "criteria": [{"id": "frame_state", "mandatory": True, "status": "failed"}],
+                   "faults": [{"id": "frame_state", "status": "failed", "boundary": "open", "observed": [{"x": 1024, "y": 80, "z": 1024}], "diagnostic": "Snapshot occupancy"}],
+                   "measurements": {"opening_time": {"status": "measured", "value": 6, "gaps": []}}}
+        self.assertEqual(source_leaks(concise), [])
+
     def test_worker_reads_the_full_row_from_the_copy_journal(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)

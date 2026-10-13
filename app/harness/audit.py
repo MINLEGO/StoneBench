@@ -4,8 +4,8 @@ import json
 from pathlib import Path
 
 # Report fields the scorer needs to agree on with the agent-visible status; a divergence is incoherent evidence.
-COHERENT = ("request_id", "checkpoint_id", "manifest_sha256", "verdict", "conforms_to_alpha", "stop_cause",
-            "cycles_executed", "criteria", "measurements")
+COHERENT = ("request_id", "checkpoint_id", "manifest_sha256", "verdict", "conforms_to_alpha", "stop_cause", "cycles_executed")
+SEVERITY = ("satisfied", "not_verified", "indeterminate", "failed")
 SOURCE_FIELDS = ("source", "revision_id", "locator")
 
 
@@ -18,6 +18,32 @@ def _json(path):
         return json.loads(Path(path).read_text(encoding="utf-8"))
     except (OSError, ValueError) as exc:
         raise AuditError(f"Audit file unavailable: {path.name}") from exc
+
+
+def outcomes(rows):
+    """The agent's per-criterion outcome: its worst status over every executed boundary."""
+    result = {}
+    for row in rows:
+        current = result.setdefault(row["id"], {"id": row["id"], "mandatory": row["mandatory"], "status": row["status"]})
+        if SEVERITY.index(row["status"]) > SEVERITY.index(current["status"]):
+            current["status"] = row["status"]
+    return list(result.values())
+
+
+FAULT_KEYS = ("id", "status", "mode", "cycle", "boundary", "expected", "observed", "diagnostic")
+EVIDENCE_KEYS = ("sources", "movements", "excluded", "conditional_roles")
+
+
+def faults(rows):
+    """The agent's fault list: mandatory rows not satisfied, minus citations."""
+    return [{key: row[key] for key in FAULT_KEYS if key in row} for row in rows if row["mandatory"] and row["status"] != "satisfied"]
+
+
+def lean(value):
+    """Measurements as the agent sees them: evidence lists (citations, per-movement samples, exclusions) omitted."""
+    if isinstance(value, dict):
+        return {key: lean(item) for key, item in value.items() if key not in EVIDENCE_KEYS}
+    return [lean(item) for item in value] if isinstance(value, list) else value
 
 
 def _sources(rows):
@@ -123,6 +149,12 @@ def _load(server_root, request_id, checkpoint_id, visible):
     for key in COHERENT:
         if report.get(key) != visible.get(key):
             raise AuditError(f"Audit and MCP verification status disagree on {key}")
+    # The MCP status is the concise form of the local rows: outcomes, faults and measurements are derived, never trusted.
+    rows = report.get("criteria")
+    if not isinstance(rows, list) or visible.get("criteria") != outcomes(rows) or visible.get("faults") != faults(rows):
+        raise AuditError("Audit and MCP verification status disagree on criteria")
+    if visible.get("measurements") != lean(report.get("measurements")):
+        raise AuditError("Audit and MCP verification status disagree on measurements")
     gaps = missing(report)
     return {"report": report, "complete": not gaps, "missing": gaps,
             "path": str(directory / "completed.json"), "sha256": sha256((directory / "completed.json").read_bytes()).hexdigest(),

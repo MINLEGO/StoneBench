@@ -88,6 +88,8 @@ class HarnessRuntimeIntegration(verification.VerificationRuntimeIntegration):
                     self.assertGreaterEqual(len(refused), 7, refused)
                     self.assertTrue(script.verification_finished)
                     during = [json.loads(file.read_text(encoding="utf-8")) for file in attempt.root.glob("tool-*.json")]
+                    pages = [item for item in during if item.get("operation") == "read_artifact"]
+                    self.assertEqual([(page["status"], len(page["entries"])) for page in pages], [("ok", 1)])
                     snapshots = [item for item in during if item.get("operation") == "verification_snapshot"]
                     self.assertTrue(snapshots)
                     for snapshot in snapshots:
@@ -112,8 +114,10 @@ class HarnessRuntimeIntegration(verification.VerificationRuntimeIntegration):
                     self.assertIsNone(attempt.selected)
                     self.assertEqual(attempt.report["status"], "no_submission")
                     self.assertEqual(log.samples[0].scores["selected_checkpoint"].value, 0)
+                self.assert_agent_files_source_free(attempt, log)
                 if scenario == "cancel_copy":
                     cancelled = await self.wait_for_verification(first, script.request_id)
+                    await self.assert_agent_view(first, cancelled)
                     self.assertEqual(cancelled["verdict"], "infrastructure_error", self.report_context(cancelled))
                     self.assertFalse(cancelled["conforms_to_alpha"])
                     evidence["cancelled_copy"] = cancelled
@@ -124,7 +128,7 @@ class HarnessRuntimeIntegration(verification.VerificationRuntimeIntegration):
                 run = json.loads((attempt.root / "run.json").read_text(encoding="utf-8"))
                 self.assertIn("submit_checkpoint", {item["name"] for item in run["tool_catalogue"]})
                 self.assertFalse(any(item["name"].startswith("__test") for item in run["tool_catalogue"]))
-                evidence["scenarios"].append({"scenario": scenario, "selected": attempt.selected, "result": attempt.report,
+                evidence["scenarios"].append({"scenario": scenario, "selected": attempt.selected, "result": {**attempt.report, "audit": {key: value for key, value in attempt.report.get("audit", {}).items() if key != "report"}},
                     "phases": script.phases, "inspect_usage": {key: value.model_dump() for key, value in usage.items()},
                     "ledger_total": recorded, "known_subtotal": attempt.ledger.known_tokens,
                     "working_difference": None, "calls": attempt.ledger.calls,
@@ -164,16 +168,26 @@ class HarnessRuntimeIntegration(verification.VerificationRuntimeIntegration):
         self.assertEqual(again["sha256"], local["sha256"])
         report = again["report"]
         self.assertEqual(report["audit"]["attempt_id"], json.loads((server_root / "stonebench/attempt.json").read_text())["attempt_id"])
-        self.assertEqual(report["measurements"], attempt.report["verification"]["measurements"])
-        self.assertEqual(report["verdict"], attempt.report["verification"]["verdict"])
-        # The agent can read full_report with read_artifact: it must be the audit minus the local binding.
-        page = await self.call(first, "read_artifact", {"artifact_id": attempt.report["verification"]["full_report"]["artifact_id"], "offset": 0, "limit": 1})
-        self.assert_ok(page)
-        self.assertEqual(len(page["entries"]), 1)
-        self.assertNotIn("audit", page["entries"][0])
-        self.assertEqual(page["entries"][0], {key: value for key, value in report.items() if key != "audit"})
+        shown = attempt.report["verification"]
+        self.assertEqual(status, shown)  # what the agent was shown is what visible.json holds
+        self.assertEqual(audit.lean(report["measurements"]), shown["measurements"])
+        self.assertEqual(report["verdict"], shown["verdict"])
+        # The agent has no route to the complete report: no identifier, no sources, no citation anywhere in what it saw.
+        self.assertNotIn("full_report", shown)
+        self.assertEqual(integration.source_leaks(shown), [])
+        self.assertTrue(integration.source_leaks(report))
+        self.assertTrue(all(row["sources"] for row in report["criteria"]))
+        # The scorer's own metadata keeps the complete local record (provenance, raw transitions, measurements, selected checkpoint).
+        record = attempt.report["audit"]["report"]
+        self.assertEqual(record, report)
+        self.assertEqual(attempt.report["checkpoint_id"], checkpoint_id)
+        self.assertEqual(record["checkpoint_id"], checkpoint_id)
+        self.assertTrue(record["checkpoint_provenance"] and record["copies"] and record["audit"]["manifest_sha256"])
+        self.assertTrue(all(row["operation"]["transition"] for row in record["boundaries"]))
+        if positive:
+            self.assert_separate_metrics(record["measurements"], raw=True)
         self.assertTrue(all(isinstance(row["snapshot"], dict) and "world_time" in row["snapshot"] for row in report["boundaries"]))
-        self.assertTrue(all(source["revision_id"] and source["locator"] for row in report["criteria"] for source in row["sources"]))
+        await self.assert_agent_view(first, shown)
         self.assertEqual(audit.positive(again), attempt.report["audit_positive"])
 
     def assert_source_free_inspect(self, attempt, log, session):
@@ -224,7 +238,26 @@ class HarnessRuntimeIntegration(verification.VerificationRuntimeIntegration):
                 self.assertNotIn(marker, text, file.name)
             self.assertIsNone(integration.SOURCE_PROSE.search(text), file.name)
 
-    def assert_separate_metrics(self, metrics):
+    def assert_agent_files_source_free(self, attempt, log):
+        """Everything the model received or the harness retained for it, whole (the retained files hold results the model saw only as pages)."""
+        files = sorted(attempt.root.glob("tool-*.json")) + [attempt.root / "events.jsonl", attempt.root / "run.json"]
+        for file in files:
+            text = file.read_text(encoding="utf-8")
+            for marker in integration.SOURCE_TEXT:
+                self.assertNotIn(marker, text, file.name)
+            self.assertIsNone(integration.SOURCE_PROSE.search(text), file.name)
+            if file.name.startswith("tool-"):
+                self.assertEqual(integration.source_leaks(json.loads(text)), [], file.name)
+        for message in log.samples[0].messages:
+            if message.role == "tool":
+                self.assertEqual(integration.source_leaks(message.content), [], message.function)
+        # The model reads a completed verification directly (not as a paged reference) when it fits the unchanged threshold.
+        completed = [json.loads(message.content) for message in log.samples[0].messages
+                     if message.role == "tool" and message.function == "verification_status" and '"verdict"' in message.content]
+        self.assertTrue(all("result_output_bounded" not in value and "faults" in value["verification"] for value in completed))
+
+    def assert_separate_metrics(self, metrics, raw=False):
+        """`raw`: the complete local measurements (per-movement evidence and sources); otherwise the agent's concise form."""
         dynamic = metrics["dynamic_volume"]
         self.assertEqual(dynamic["status"], "indeterminate")
         self.assertIsNone(dynamic["value"])
@@ -235,6 +268,8 @@ class HarnessRuntimeIntegration(verification.VerificationRuntimeIntegration):
         self.assertEqual(metrics["opening_time"]["value"], 6)
         self.assertEqual(metrics["closing_time"]["value"], 6)
         self.assertEqual(metrics["record_eligibility"], "not_verified")
+        if not raw:
+            self.assertEqual(integration.source_leaks(metrics), [])
         self.assertEqual({row["mode"] for row in metrics["transitions"]}, {"repeater", "direct"})
         for row in metrics["transitions"]:
             timing = row["opening_time" if row["state"] == "open" else "closing_time"]
@@ -246,7 +281,11 @@ class HarnessRuntimeIntegration(verification.VerificationRuntimeIntegration):
             self.assertEqual(timing["value"], timing["completion_world_time"] - timing["interaction"]["world_time"])
             self.assertIsNotNone(timing["signal_at_input_block"])
             self.assertIsNotNone(timing["rest_recognition"])
-            self.assertTrue(row["movements"])
+            if raw:
+                self.assertTrue(row["movements"])
+                self.assertTrue(all(source["locator"] for source in timing["sources"]))
+            else:
+                self.assertFalse({"movements", "sources", "excluded", "conditional_roles"} & (row.keys() | row["dynamic_volume"].keys() | timing.keys()))
             self.assertFalse(row["objectives_combined"])
 
 
@@ -283,9 +322,12 @@ class Scenario:
                 jobs = [item.get("verification",{}) for item in retained if isinstance(item,dict) and item.get("verification")]
                 if self.request_id is None:
                     self.request_id = next(job["request_id"] for job in reversed(jobs) if "request_id" in job)
-                if any("verdict" in job for job in jobs):
+                finished = next((job for job in jobs if "verdict" in job), None)
+                if finished:
                     self.verification_finished = True
-                    calls = [("submit_checkpoint", {"checkpoint_id":self.chosen})]
+                    # Construction evidence stays readable after the report is complete; the report itself has no artifact.
+                    calls = [("read_artifact", {"artifact_id": finished["working_after"]["artifact_id"], "offset": 0, "limit": 1}),
+                             ("submit_checkpoint", {"checkpoint_id":self.chosen})]
                 else:
                     await asyncio.sleep(2)
                     calls = [("verification_status", {"request_id":self.request_id})]

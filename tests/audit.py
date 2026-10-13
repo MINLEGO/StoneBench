@@ -45,11 +45,26 @@ def report(manifest):
                              "transitions": [transition("repeater", "opening_time"), transition("direct", "closing_time")]}}
 
 
+def without_evidence(value):
+    if isinstance(value, dict):
+        return {key: without_evidence(item) for key, item in value.items() if key not in ("sources", "movements", "excluded", "conditional_roles")}
+    return [without_evidence(item) for item in value] if isinstance(value, list) else value
+
+
 def visible(full):
-    """What the MCP status shows: same decisive fields, boundary snapshots replaced by artifact references."""
-    shown = deepcopy(full)
-    shown.pop("audit")
-    shown["full_report"] = {"artifact_id": "x"}
+    """What the MCP status shows (written independently of audit.outcomes): decisive fields, one outcome per criterion id,
+    mandatory faults without citations, measurements without evidence lists. No full_report identifier exists."""
+    shown = {key: deepcopy(full.get(key)) for key in audit.COHERENT}
+    rows = full["criteria"] if isinstance(full["criteria"], list) and all(isinstance(row, dict) for row in full["criteria"]) else []
+    order = ("satisfied", "not_verified", "indeterminate", "failed")
+    outcomes = {}
+    for row in rows:
+        outcome = outcomes.setdefault(row["id"], {"id": row["id"], "mandatory": row["mandatory"], "status": row["status"]})
+        outcome["status"] = max(outcome["status"], row["status"], key=order.index)
+    shown["criteria"] = list(outcomes.values())
+    keys = ("id", "status", "mode", "cycle", "boundary", "expected", "observed", "diagnostic")
+    shown["faults"] = [{key: row[key] for key in keys if key in row} for row in rows if row["mandatory"] and row["status"] != "satisfied"]
+    shown["measurements"] = without_evidence(full["measurements"])
     return shown
 
 
@@ -197,7 +212,12 @@ class LocalAudit(unittest.TestCase):
             self.assertTrue(audit.positive(local), (variant.__name__, local["missing"]))
 
     def test_malformed_content_is_incomplete_and_never_positive(self):
-        for damage in (lambda full: full.update(criteria=["x"]), lambda full: full["criteria"][0].update(sources=["x"]),
+        full = report(self.manifest)
+        full["criteria"] = ["x"]  # no concise form can agree with rows that are not rows: an audit error, still never positive
+        self.write(full)
+        with self.assertRaises(audit.AuditError):
+            self.load(full)
+        for damage in (lambda full: full["criteria"][0].update(sources=["x"]),
                        lambda full: full.update(boundaries=["x"]), lambda full: full["measurements"].update(transitions=[1]),
                        lambda full: full.update(measurements="x")):
             full = report(self.manifest)
@@ -207,6 +227,28 @@ class LocalAudit(unittest.TestCase):
             self.assertFalse(local["complete"])
             self.assertTrue(local["missing"])
             self.assertFalse(audit.positive(local))
+
+    def test_concise_status_must_match_the_local_rows(self):
+        """Outcomes, faults and measurements are re-derived from completed.json; the MCP form cannot overstate them."""
+        full = report(self.manifest)
+        stamp = {"id": "stable_state", "mandatory": True}
+        full["criteria"] += [dict(stamp, status="satisfied", boundary="open", sources=[SOURCE()]),
+                             dict(stamp, status="failed", boundary="closed", observed={"x": 1}, diagnostic="d", sources=[SOURCE()]),
+                             {"id": "hallway_composition", "mandatory": False, "status": "not_verified", "sources": [SOURCE()]}]
+        full.update(verdict="failed", conforms_to_alpha=False)
+        self.write(full)
+        shown = visible(full)
+        self.assertEqual([row["status"] for row in shown["criteria"]], ["satisfied", "failed", "not_verified"])  # worst status per id
+        self.assertEqual([row["boundary"] for row in shown["faults"]], ["closed"])
+        self.assertTrue(audit.load(self.root, REQUEST, CHECKPOINT, shown)["complete"])
+        for damage in (lambda value: value["criteria"][1].update(status="satisfied"), lambda value: value.update(faults=[]),
+                       lambda value: value["faults"][0].update(diagnostic="other"), lambda value: value["criteria"].pop(),
+                       lambda value: value["measurements"].update(opening_time={}), lambda value: value.pop("measurements"),
+                       lambda value: value["measurements"].pop("dynamic_volume")):
+            changed = deepcopy(shown)
+            damage(changed)
+            with self.assertRaises(audit.AuditError):
+                audit.load(self.root, REQUEST, CHECKPOINT, changed)
 
     def test_unreadable_or_unbound_file_is_an_audit_error(self):
         full = report(self.manifest)
