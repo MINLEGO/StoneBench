@@ -40,7 +40,7 @@ final class Verification {
         if(Files.exists(path.resolve("visible.json"))){
             JsonObject visible=CheckpointStorage.read(path.resolve("visible.json"));
             // A visible.json from a build before the concise form has no `faults` and may carry the complete report: status is a read (it also runs in artifact recovery), so it refuses rather than rebuilds.
-            if(!visible.has("faults"))throw new IllegalArgumentException("Verification result predates the concise form; run verify_checkpoint again");
+            if(!visible.has("faults"))throw new IllegalArgumentException("Verification result predates the concise form; start a new attempt and verify again");
             JsonObject result=new JsonObject();result.add("verification",visible);return result;
         }
         if(directory==null || !directory.equals(path))throw new IllegalArgumentException("Unknown verification request");
@@ -74,13 +74,15 @@ final class Verification {
             if(row.get("mandatory").getAsBoolean() && !status.equals("satisfied")) {
                 JsonObject fault=new JsonObject();
                 for(String key:List.of("id","status","mode","boundary","expected","observed","diagnostic"))if(row.has(key))fault.add(key,row.get(key).deepCopy());
-                // Evidence already at the root of the answer is not repeated per fault; the same fault over several cycles is one entry.
-                if(fault.has("observed") && (fault.get("observed").equals(recurrence) || fault.get("observed").equals(difference)))fault.remove("observed");
+                // One entry per fault over its cycles; it keeps the first non-null observed (null when there is none).
                 JsonObject same=fault.deepCopy();same.remove("observed");
                 JsonObject entry=faults.computeIfAbsent(same.toString(),key->fault);
+                if((!entry.has("observed") || entry.get("observed").isJsonNull()) && fault.has("observed"))entry.add("observed",fault.get("observed"));
                 if(row.has("cycle")){if(!entry.has("cycles"))entry.add("cycles",new JsonArray());entry.getAsJsonArray("cycles").add(row.get("cycle"));}
             }
         }
+        // Evidence already at the root of the answer is not repeated per fault.
+        for(JsonObject fault:faults.values())if(fault.has("observed") && (fault.get("observed").equals(recurrence) || fault.get("observed").equals(difference)))fault.remove("observed");
         JsonArray criteria=new JsonArray();outcomes.values().forEach(criteria::add);view.add("criteria",criteria);JsonArray listed=new JsonArray();faults.values().forEach(listed::add);view.add("faults",listed);
         if(full.has("measurements"))view.add("measurements",withoutEvidence(full.get("measurements")));
         JsonArray boundaries=new JsonArray();

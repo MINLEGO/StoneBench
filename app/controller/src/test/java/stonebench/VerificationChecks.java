@@ -63,20 +63,21 @@ public final class VerificationChecks {
         require(snapshot.getAsJsonArray("entries").get(0).getAsJsonObject().get("world_time").getAsInt()==35,"Boundary snapshot artifact stays readable");
         require(full.getAsJsonArray("criteria").get(0).getAsJsonObject().has("sources")&&full.getAsJsonObject("measurements").getAsJsonObject("dynamic_volume").has("sources"),"The report passed in is not altered");
 
-        // The same fault over several cycles is one entry even when its observed differs (it keeps the first); evidence already at the root is not repeated.
+        // The same fault over several cycles is one entry even when its observed differs (it keeps the first non-null); evidence already at the root is not repeated.
         JsonObject cycles=full.deepCopy();JsonArray more=cycles.getAsJsonArray("criteria");
         more.add(row("continuable","indeterminate",true,"repeater",2,"closed",JsonParser.parseString("{\"rest\":2}")));
         more.add(row("continuable","indeterminate",true,"repeater",3,"closed",JsonParser.parseString("{\"rest\":3}")));
         JsonArray comparisons=JsonParser.parseString("[{\"cycle\":1,\"equal\":false}]").getAsJsonArray();cycles.add("recurrence_comparisons",comparisons);
         JsonObject recurrence=row("fixed_passage","failed",true,"repeater",1,"closed",comparisons.deepCopy());recurrence.addProperty("id","recurrence");more.add(recurrence);
+        JsonObject again=row("fixed_passage","failed",true,"repeater",2,"closed",JsonParser.parseString("{\"x\":1}"));again.addProperty("id","recurrence");more.add(again);
         JsonObject difference=JsonParser.parseString("{\"path\":\"blocks\"}").getAsJsonObject();
         JsonObject located=difference.deepCopy();located.addProperty("mode","direct");located.addProperty("boundary","open");located.addProperty("first_tick",9);cycles.add("first_difference",located);
         JsonObject equivalence=row("fixed_passage","failed",true,"direct",1,"open",difference.deepCopy());equivalence.addProperty("id","mode_equivalence_open");more.add(equivalence);
         JsonObject other=row("fixed_passage","failed",true,"direct",1,"closed",JsonParser.parseString("{\"path\":\"other\"}"));other.addProperty("id","mode_equivalence_closed");more.add(other);
         JsonObject grouped=Verification.agentReport(cycles);JsonArray listed=grouped.getAsJsonArray("faults");
         require(listed.size()==5,"One fault per id/mode/boundary: "+listed);
-        JsonObject repeated=listed.get(1).getAsJsonObject();require(repeated.get("id").getAsString().equals("continuable")&&repeated.getAsJsonArray("cycles").toString().equals("[1,2,3]")&&!repeated.has("cycle")&&repeated.get("observed").isJsonNull(),"Cycles are listed once with the first observed: "+repeated);
-        require(listed.get(2).getAsJsonObject().get("id").getAsString().equals("recurrence")&&!listed.get(2).getAsJsonObject().has("observed"),"The recurrence is shown at the root");
+        JsonObject repeated=listed.get(1).getAsJsonObject();require(repeated.get("id").getAsString().equals("continuable")&&repeated.getAsJsonArray("cycles").toString().equals("[1,2,3]")&&!repeated.has("cycle")&&repeated.get("observed").toString().equals("{\"rest\":2}"),"Cycles are listed once with the first non-null observed: "+repeated);
+        require(listed.get(2).getAsJsonObject().get("id").getAsString().equals("recurrence")&&!listed.get(2).getAsJsonObject().has("observed")&&listed.get(2).getAsJsonObject().getAsJsonArray("cycles").toString().equals("[1,2]"),"The recurrence is shown at the root, whatever the order of its rows");
         require(listed.get(3).getAsJsonObject().get("id").getAsString().equals("mode_equivalence_open")&&!listed.get(3).getAsJsonObject().has("observed"),"The first difference is shown at the root");
         require(listed.get(4).getAsJsonObject().get("observed").toString().equals("{\"path\":\"other\"}"),"A difference not at the root stays");
 
