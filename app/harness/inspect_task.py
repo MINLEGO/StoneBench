@@ -210,7 +210,8 @@ class Attempt:
             return {"status": "audit_error", "checkpoint_id": self.selected, "verification": report, "audit": {"error": str(exc)}}
         self.event("audit_read", **{key: local[key] for key in ("attempt_id", "request_id", "checkpoint_id", "manifest_sha256", "sha256", "complete", "missing")})
         return {"status": "submitted", "checkpoint_id": self.selected, "verification": report,
-                "audit": {key: local[key] for key in ("attempt_id", "request_id", "checkpoint_id", "manifest_sha256", "path", "sha256", "complete", "missing")},
+                # `verification` is what the agent saw; the complete local report (provenance, raw transitions, measurements) is the scorer's own record.
+                "audit": {key: local[key] for key in ("attempt_id", "request_id", "checkpoint_id", "manifest_sha256", "path", "sha256", "complete", "missing", "report")},
                 "audit_positive": audit.positive(local)}
 
 

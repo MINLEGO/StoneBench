@@ -232,6 +232,8 @@ def run(source, request_directory, java, execution, test, workers, base_mcp, bas
             initial = call(port, "verification_snapshot")
             closed = sourced(root, call(port, "check_geometry", dict(geometry_args, expected_state="closed")))
             preconditions = criteria(closed, closed, context["rest"], True, manifest["provenance"].get("memory_coverage", {}))
+            for row in preconditions:
+                row["boundary"] = "state0"
             report["criteria"] += preconditions
             if not compliant(preconditions):
                 report["stop_cause"] = "checkpoint_preconditions"
@@ -266,6 +268,8 @@ def run(source, request_directory, java, execution, test, workers, base_mcp, bas
                     snapshot = call(worker_port, "verification_snapshot")
                     geometry = sourced(worker_root, call(worker_port, "check_geometry", dict(geometry_args, expected_state=expected)))
                     rows = criteria(geometry, closed, rest_report, complete, manifest["provenance"].get("memory_coverage", {}))
+                    for row in rows:
+                        row.update(mode=mode, cycle=cycle, boundary=expected)  # where a fault happened, for the agent's fault list
                     report["criteria"] += rows
                     samples = chain([operation["initial"]], artifact(worker_root, operation["trace"]))
                     samples = ({"world_time": sample["world_time"], "blocks": artifact(worker_root, sample["state"]["blocks"])} for sample in samples)

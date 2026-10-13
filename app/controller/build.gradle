@@ -90,3 +90,16 @@ tasks.register('geometryChecks', JavaExec) {
     mainClass = 'stonebench.GeometryChecks'
 }
 tasks.named('check') { dependsOn tasks.named('geometryChecks') }
+
+def verificationChecksDir = layout.buildDirectory.dir("tmp/verificationChecks").get().asFile
+tasks.register("verificationChecks", JavaExec) {
+    group = "verification"
+    description = "Runs the MCP form of a completed verification report against synthetic sourced reports."
+    dependsOn tasks.named("testClasses")
+    classpath = sourceSets.test.output + sourceSets.main.output + configurations.testCompileClasspath
+    mainClass = "stonebench.VerificationChecks"
+    workingDir = verificationChecksDir
+    doFirst { project.delete(verificationChecksDir); verificationChecksDir.mkdirs() }
+    doLast { project.delete(verificationChecksDir) }
+}
+tasks.named("check") { dependsOn tasks.named("verificationChecks") }

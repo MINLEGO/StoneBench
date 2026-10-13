@@ -22,6 +22,8 @@ RULES_REFERENCE = (
 )
 # Tools whose responses the agent reads without rule documents or citation metadata (the local audit keeps them).
 SOURCE_FREE_TOOLS = ("start_attempt", "describe_task", "describe_rules", "check_geometry")
+# Verification answers are source-free too; they are scanned on every call, and their size is recorded (the 16 KiB harness threshold is asserted where it applies).
+VERIFICATION_TOOLS = ("verify_checkpoint", "verification_status", "cancel_verification")
 SOURCE_KEYS = {"source", "sources", "revision_id", "source_index", "locator", "locator_type", "authority",
                "native_cache_sha256", "rules_reference"}
 SOURCE_TEXT = ("docs.google.com", "github.com/MINLEGO", "AHj4eMT_", "e4a01f6d4795", "3d1e0b8b087", "0c022decbc75")
@@ -91,6 +93,11 @@ class StoneBenchRuntimeIntegration(unittest.IsolatedAsyncioTestCase):
             self.assertEqual(source_leaks(payload), [], f"{name} exposes rule sources")
             # Same direct-result threshold as the harness (16 KiB), not raised for these tools.
             self.assertLess(len(result.content[0].text.encode("utf-8")), 16384, name)
+        if name in VERIFICATION_TOOLS:
+            self.assertEqual(json.loads(result.content[0].text), payload, name)
+            self.assertEqual(source_leaks(payload), [], f"{name} exposes rule sources or a report identifier")
+            self.assertNotIn("full_report", json.dumps(payload), name)
+            self.__dict__.setdefault("response_sizes", {}).setdefault(name, []).append(len(result.content[0].text.encode("utf-8")))
         self.assertIs(result.isError, payload["status"] == "error")
         for key in ("operation_id", "attempt_id", "phase", "status"):
             self.assertIn(key, payload, f"{name} omitted {key}")
