@@ -97,7 +97,7 @@ public final class McpHttp implements AutoCloseable {
                 case "start_attempt"->"Initialize one fresh isolated regular DOOR attempt; budget in tokens is supplied by the caller.";
                 case "describe_task"->"Describe immutable task, effective clock, environment and chunk readiness.";
                 case "read_blocks"->"Read 1..256 actual block states in prepared chunks; larger reads must be split.";
-                case "describe_rules"->"Read the frozen sourced regular DOOR criteria and measurement event/exclusion contract.";
+                case "describe_rules"->"Read the frozen regular DOOR alpha criteria and measurement event/exclusion contract; documentary sources stay in the local audit.";
                 case "check_geometry"->"Observe fixed regular DOOR frame/passage, physical enclosure, continuation, material, input and entities without advancing time; unresolved functional/coverage criteria remain indeterminate.";
                 case "describe_blocks"->"Discover explicit construction coverage, in-game configurable parameters, computed states and inventory slots.";
                 case "modify_blocks"->"Validate an entire ordered lot, place all geometry/inventories with deferred callbacks then optionally notify in submitted order; errors report actual effects.";

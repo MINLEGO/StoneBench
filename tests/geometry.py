@@ -5,6 +5,8 @@ from pathlib import Path
 import unittest
 import integration
 TASK_ID = integration.TASK_ID
+from integration import source_leaks
+SOURCE_ROW_KEYS = {"sources", "source", "revision_id", "source_index"}
 from construction import point, placement
 
 
@@ -21,6 +23,16 @@ class GeometryRuntimeIntegration(integration.StoneBenchRuntimeIntegration):
         self.assertEqual(report["ticks_executed"], 0)
         self.assertFalse(report["mutated"])
         self.evidence.append(report)
+        full = self.audit_row(session, report)
+        # Presentation never changes a verdict: same statuses, observed evidence and explanations as the audit.
+        for key in ("geometry_status", "conforms_to_alpha", "measurement_roles", "coverage", "expected_state"):
+            self.assertEqual(report[key], full[key], key)
+        self.assertEqual(report["criteria"][-1]["id"], "record_eligibility")
+        self.assertEqual(len(report["criteria"]), 14)
+        self.assertEqual(report["criteria"][:-1], [{key: value for key, value in row.items() if key not in SOURCE_ROW_KEYS} for row in full["criteria"][:-3]])
+        self.assertEqual({row["status"] for row in full["criteria"][-3:]}, {report["criteria"][-1]["status"]})
+        self.assertTrue(all(row["sources"] and row["sources"][0]["revision_id"] and row["sources"][0]["locator"] for row in full["criteria"]))
+        self.assertTrue(source_leaks(full))
         return {row["id"]: row for row in report["criteria"]}
 
     async def test_real_mcp_server_contract(self):
@@ -36,20 +48,48 @@ class GeometryRuntimeIntegration(integration.StoneBenchRuntimeIntegration):
             self.assert_ok(rules)
             self.assertEqual(rules["protocol_version"], "regular-door-alpha-2026-10-11")
             table = {row["id"]: row for row in rules["criteria"]}
-            self.assertEqual(table["frame_state"]["source_index"], 30358)
-            self.assertEqual(table["continuable"]["source_index"], 14017)
-            self.assertEqual(table["door_composition"]["source_index"], 2932)
+            # Concise: the direct MCP result (both forms) fits the harness's 16 KiB threshold, which stays unchanged.
+            raw = await a.call_tool("describe_rules", {})
+            self.assertLess(len(raw.content[0].text.encode("utf-8")), 16384)
+            self.assertEqual(len(rules["criteria"]), 14)
+            self.assertNotIn("record_reliability", table)
+            self.assertEqual(table["record_eligibility"]["mandatory"], False)
+            self.assertIn("outside this alpha", table["record_eligibility"]["expected"])
+            for row in rules["criteria"]:
+                self.assertEqual(set(row), {"id", "expected", "observation", "coverage", "mandatory"}, row)
+                self.assertTrue(all(row[key] for key in ("expected", "observation", "coverage")), row)
+            self.assertEqual({row["id"] for row in rules["criteria"] if row["mandatory"]},
+                {"fixed_passage", "door_orientation", "regular_arrangement", "door_composition", "frame_state", "encadrement",
+                 "continuable", "input", "no_entities", "no_required_clock", "stable_state", "influence_coverage"})
+            self.assertFalse(table["hallway_composition"]["mandatory"])
+            self.assertEqual({"volume", "exclusions", "timing_origin", "opening_end", "closing_end", "movement_end", "rest"},
+                             set(rules["measurement_contract"]))
+            self.assertIn("ceil", rules["measurement_contract"]["volume"])
 
-            locator = "Implementation Decisions / Description d'une t\u00e2che et zone pertinente"
+            # The audit keeps the full sourced response; the agent form is that response without its citations.
+            audit = self.audit_row(a, rules)
+            full = {row["id"]: row for row in audit["criteria"]}
+            self.assertEqual(len(full), 16)
+            self.assertTrue(source_leaks(audit), "The audit must retain what the agent never sees")
+            self.assertEqual(audit["source"], integration.RULES_REFERENCE)
+            self.assertEqual(full["frame_state"]["source_index"], 30358)
+            self.assertEqual(full["continuable"]["source_index"], 14017)
+            self.assertEqual(full["door_composition"]["source_index"], 2932)
+            locator = "Implementation Decisions / Description d'une tâche et zone pertinente"
             for criterion in ("fixed_passage", "influence_coverage"):
-                alpha_source = next(r for r in table[criterion]["sources"] if r["authority"] == "alpha_scope")
+                alpha_source = next(r for r in full[criterion]["sources"] if r["authority"] == "alpha_scope")
                 self.assertEqual(alpha_source["locator"], locator)
-            self.assertNotIn("\ufffd", json.dumps(table, ensure_ascii=False), "Source strings must not contain replacement characters")
-            self.assertEqual(table["no_entities"]["sources"][0]["authority"], "alpha_scope")
-            self.assertEqual(table["influence_coverage"]["sources"][0]["authority"], "alpha_scope")
-            self.assertEqual({r["locator"] for r in table["door_composition"]["sources"]}, {"2932", "31749"})
-            self.assertEqual(table["encadrement"]["sources"][1]["locator"], "9641")
-            self.assertEqual(table["continuable"]["sources"][1]["locator"], "5274")
+            self.assertNotIn("�", json.dumps(full, ensure_ascii=False), "Source strings must not contain replacement characters")
+            self.assertEqual(full["no_entities"]["sources"][0]["authority"], "alpha_scope")
+            self.assertEqual(full["influence_coverage"]["sources"][0]["authority"], "alpha_scope")
+            self.assertEqual({r["locator"] for r in full["door_composition"]["sources"]}, {"2932", "31749"})
+            self.assertEqual(full["encadrement"]["sources"][1]["locator"], "9641")
+            self.assertEqual(full["continuable"]["sources"][1]["locator"], "5274")
+            self.assertEqual({r["locator"] for r in full["hallway_composition"]["sources"]}, {"3627", "3852"})
+            self.assertEqual(audit["measurement_contract"]["volume_source_index"], 23868)
+            for identifier, row in table.items():
+                if identifier != "record_eligibility":
+                    self.assertEqual(row, {key: value for key, value in full[identifier].items() if key not in SOURCE_ROW_KEYS}, identifier)
             empty_closed = await self.geometry(a, "closed")
             self.assertEqual(empty_closed["regular_arrangement"]["status"], "failed", "Observed air is not a closed rectangular door")
             self.assertEqual(empty_closed["frame_state"]["status"], "failed")
@@ -112,8 +152,8 @@ class GeometryRuntimeIntegration(integration.StoneBenchRuntimeIntegration):
             # No static evidence may certify cycles/clock necessity, and record rules stay unverified.
             for criterion in ("stable_state", "no_required_clock", "influence_coverage", "input"):
                 self.assertEqual(no_entities[criterion]["status"], "indeterminate")
-            for criterion in ("record_reliability", "record_isolation", "record_seamless"):
-                self.assertEqual(no_entities[criterion]["status"], "not_verified")
+            self.assertEqual(no_entities["record_eligibility"]["status"], "not_verified")
+            self.assertTrue({"record_reliability", "record_isolation", "record_seamless"}.isdisjoint(no_entities))
             exclusion_rejected = await self.call(a, "check_geometry", {"expected_state": "open", "exclude": [obstacle]})
             self.assert_error(exclusion_rejected, "validation")
 

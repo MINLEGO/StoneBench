@@ -14,9 +14,9 @@ public final class Rules {
         new Criterion("regular_arrangement",2336,"Rectangular regular arrangement with task width and height, measured inside frame; no universal depth inferred from the linked face image.","Declared layer(s) and rectangular occupancy","static; other regular shapes remain indeterminate",true),
         new Criterion("door_composition",2932,"Door blocks are quartz-like, including preserved functionality after quartz substitution.","Closed frame block properties; canonical quartz is identity substitution","static canonical quartz; non-quartz substitution needs behavioral evidence",true),
         new Criterion("frame_state",30358,"No door block inside the frame when open, all closed door blocks inside when closed.","Frame layer occupancy, independent of rest","static pattern only; stability separately required",true),
-        new Criterion("encadrement",30166,"Physical walls, floor and ceiling enclose the fixed frame; they are distinct from the interior cross-section.","Perimeter collision of declared layer(s); Dummies index 9641","static inward collision faces; unusual shapes indeterminate",true),
-        new Criterion("continuable",14017,"Fixed entrance pattern extends in either normal direction without colliding with wiring.","All observed blocks on passage rays, including positions outside declared layers; Dummies index 5274","snapshot plus temporal influence coverage required",true),
-        new Criterion("hallway_composition",3627,"Quartz-like hallway and air defaults are optional for this alpha without SUPER/FULL SEAMLESS.","Collision and wiring assessed separately; no mandatory quartz wall or air-id whitelist","not an alpha restriction; source exception index 3852",false),
+        new Criterion("encadrement",30166,"Physical walls, floor and ceiling enclose the fixed frame; they are distinct from the interior cross-section.","Perimeter collision of declared layer(s)","static inward collision faces; unusual shapes indeterminate",true),
+        new Criterion("continuable",14017,"Fixed entrance pattern extends in either normal direction without colliding with wiring.","All observed blocks on passage rays, including positions outside declared layers","snapshot plus temporal influence coverage required",true),
+        new Criterion("hallway_composition",3627,"Quartz-like hallway and air defaults are optional for this alpha without SUPER/FULL SEAMLESS.","Collision and wiring assessed separately; no mandatory quartz wall or air-id whitelist","not an alpha restriction",false),
         new Criterion("input",19273,"A supported button or lever on a lateral exterior surface has constant support; input block remains wiring.","Validated live input declaration; alpha forbids top/bottom attachment","input tool integration",true),
         new Criterion("no_entities",-1,"Alpha excludes constructions using entities.","Entities within observed construction bounds","presence fails conservatively; absence limited to tracked influence bounds",true),
         new Criterion("no_required_clock",20402,"Alpha excludes a permanently running internal clock required for operation.","Transition/rest behavior, not an invented component blacklist","transition proof required; snapshot cannot determine necessity",true),
@@ -41,9 +41,38 @@ public final class Rules {
         measures.addProperty("movement_end","Standard extension/retraction: start+2gt; instant retraction: start; 0..2gt pulse extension: start+pulse length.");
         measures.addProperty("rest","Rest recognition is distinct; no dynamic volume or timing measurement in geometry checks.");result.add("measurement_contract",measures);return result;
     }
+    private static final Set<String> OUTSIDE_ALPHA=Set.of("record_reliability","record_isolation","record_seamless");
+    private static final String OUTSIDE_ALPHA_SUMMARY="Community record eligibility (long-term reliability, isolation from player movement and external activations, seamless tier) is outside this alpha: reported not_verified, never satisfied.";
+    /** Agent-facing describe_rules: same criteria and measurement contract, without documents, revisions, hashes or locators. The full form is journaled. */
+    static JsonObject agentRules(JsonObject full) {
+        JsonObject view=full.deepCopy();
+        for(String key:List.of("source","revision_id","native_cache_sha256"))view.remove(key);
+        view.add("criteria",agentRows(view.getAsJsonArray("criteria")));
+        JsonObject measures=view.getAsJsonObject("measurement_contract");
+        for(String key:new ArrayList<>(measures.keySet()))if(key.contains("source_index"))measures.remove(key);
+        return view;
+    }
+    /** Agent-facing check_geometry: verdicts are already computed from the full rows, only their presentation changes. */
+    static JsonObject agentGeometry(JsonObject full) {
+        JsonObject view=full.deepCopy();view.add("criteria",agentRows(view.getAsJsonArray("criteria")));return view;
+    }
+    private static JsonArray agentRows(JsonArray rows) {
+        JsonArray view=new JsonArray();boolean summarized=false;
+        for(JsonElement item:rows) {
+            JsonObject row=item.getAsJsonObject().deepCopy();
+            for(String key:List.of("sources","source","revision_id","source_index"))row.remove(key);
+            if(OUTSIDE_ALPHA.contains(row.get("id").getAsString())) {
+                if(summarized)continue;
+                summarized=true;row.addProperty("id","record_eligibility");row.addProperty("expected",OUTSIDE_ALPHA_SUMMARY);row.addProperty("observation","Not covered by bounded alpha cycles");row.addProperty("coverage","outside alpha");
+            }
+            view.add(row);
+        }
+        return view;
+    }
     static JsonObject row(Criterion c) {
         JsonObject row=new JsonObject();row.addProperty("id",c.id);JsonArray sources=new JsonArray();
         if(c.index>=0)sources.add(reference(Task.RULES,"community",REVISION,"native_character_index",Integer.toString(c.index)));
+        if(c.id.equals("hallway_composition"))sources.add(reference(Task.RULES,"community",REVISION,"native_character_index","3852"));
         if(c.id.equals("door_composition"))sources.add(reference(Task.RULES,"community",REVISION,"native_character_index","31749"));
         if(c.id.equals("encadrement")||c.id.equals("continuable"))sources.add(reference("https://docs.google.com/document/d/1a0xI0Pj6lKlULCmVr9n4GH2jnpjDXal4HeiJGhzRF0s/edit","community_explanation","sha256:0c022decbc7532c0d2383e21bd6fb53d8554e94809be70dffc035e78a486aad9","native_character_index",c.id.equals("encadrement")?"9641":"5274"));
         if(Set.of("fixed_passage","door_orientation","input","no_entities","no_required_clock","influence_coverage").contains(c.id))sources.add(reference("https://github.com/MINLEGO/StoneBench/issues/4","alpha_scope","updated_at:2026-10-10T18:13:48Z;body_sha256:3d1e0b8b087ab007a377d35ed678c8b0faf99cdaafc2b6c53db846ff61422870","section",c.id.equals("influence_coverage")?"Implementation Decisions / Description d'une tâche et zone pertinente":c.id.equals("fixed_passage")?"Implementation Decisions / Description d'une tâche et zone pertinente":c.id.equals("input")?"User Stories / 18":"Solution / Chaque tentative commence"));

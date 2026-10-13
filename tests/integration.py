@@ -2,7 +2,9 @@ from contextlib import AsyncExitStack
 from datetime import timedelta
 from importlib.metadata import version
 import asyncio
+import json
 import os
+from pathlib import Path
 import time
 import unittest
 
@@ -17,6 +19,22 @@ RULES_REFERENCE = (
     "https://docs.google.com/document/d/"
     "1kDNXIvQ8uAMU5qRFXIk6nLxbVliIjcMu1MjHjLJrRH4/edit"
 )
+# Tools whose responses the agent reads without rule documents or citation metadata (the local audit keeps them).
+SOURCE_FREE_TOOLS = ("start_attempt", "describe_task", "describe_rules", "check_geometry")
+SOURCE_KEYS = {"source", "sources", "revision_id", "source_index", "locator", "locator_type", "authority",
+               "native_cache_sha256", "rules_reference"}
+SOURCE_TEXT = ("docs.google.com", "github.com/MINLEGO", "AHj4eMT_", "e4a01f6d4795", "3d1e0b8b087", "0c022decbc75")
+
+
+def source_leaks(value, path="$"):
+    """Every citation key or document/revision/hash text reachable in a decoded response."""
+    if isinstance(value, dict):
+        return [f"{path}.{key}" for key in value if key in SOURCE_KEYS or "source_index" in key] +             [leak for key, item in value.items() for leak in source_leaks(item, f"{path}.{key}")]
+    if isinstance(value, list):
+        return [leak for index, item in enumerate(value) for leak in source_leaks(item, f"{path}[{index}]")]
+    if isinstance(value, str):
+        return [f"{path}={value[:80]}" for marker in SOURCE_TEXT if marker in value]
+    return []
 BLOCK_POSITION = {"x": 1024, "y": 80, "z": 1024}
 EXPECTED_FRAME = {
     (1024, 80, 1024),
@@ -59,10 +77,24 @@ class StoneBenchRuntimeIntegration(unittest.IsolatedAsyncioTestCase):
         result = await session.call_tool(name, arguments or {})
         payload = result.structuredContent
         self.assertIsInstance(payload, dict, f"{name} did not return MCP structuredContent")
+        if name in SOURCE_FREE_TOOLS:
+            # Both MCP forms of the response: structuredContent and the text content block.
+            self.assertEqual(len(result.content), 1, name)
+            self.assertEqual(json.loads(result.content[0].text), payload, name)
+            self.assertEqual(source_leaks(payload), [], f"{name} exposes rule sources")
         self.assertIs(result.isError, payload["status"] == "error")
         for key in ("operation_id", "attempt_id", "phase", "status"):
             self.assertIn(key, payload, f"{name} omitted {key}")
         return payload
+
+    def audit_row(self, session, payload):
+        """The operation's full response from its server's local journal (never readable through MCP)."""
+        root = Path(os.environ["STONEBENCH_SERVER_ROOTS"].split(";")[self.sessions.index(session)])
+        for line in (root / "stonebench/operations.jsonl").read_text(encoding="utf-8").splitlines():
+            row = json.loads(line)
+            if row["operation_id"] == payload["operation_id"]:
+                return row
+        self.fail(f"No journal row for {payload['operation']} {payload['operation_id']}")
 
     def assert_ok(self, payload):
         self.assertEqual(payload["status"], "ok", payload)
@@ -111,7 +143,7 @@ class StoneBenchRuntimeIntegration(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(task.get("width"), 2, description)
         self.assertEqual(task.get("height"), 2, description)
         self.assertEqual(task.get("objective"), "minimize_volume", description)
-        self.assertEqual(task.get("rules_reference"), RULES_REFERENCE, description)
+        self.assertNotIn("rules_reference", task, description)
         self.assertEqual(task["budget_tokens"], known_budget, description)
         self.assertEqual(task.get("minecraft"), "1.21.11", description)
 
@@ -208,6 +240,13 @@ class StoneBenchRuntimeIntegration(unittest.IsolatedAsyncioTestCase):
         description_b = await self.wait_for_chunks(session_b, True)
         self.assert_description(description_a)
         self.assert_description(description_b, known_budget=None)
+        # The agent never reads the rules document; the local journal and attempt metadata still name it.
+        for session, start, description in ((session_a, start_a, description_a), (session_b, start_b, description_b)):
+            for response in (start, description):
+                self.assertEqual(self.audit_row(session, response)["task"]["rules_reference"], RULES_REFERENCE)
+            self.assertEqual(self.audit_row(session, description)["task"], {**description["task"], "rules_reference": RULES_REFERENCE})
+        for root in os.environ["STONEBENCH_SERVER_ROOTS"].split(";"):
+            self.assertEqual(json.loads((Path(root) / "stonebench/attempt.json").read_text(encoding="utf-8"))["task"]["rules_reference"], RULES_REFERENCE)
 
         await self.assert_air_at_fixture(session_a)
         await self.assert_air_at_fixture(session_b)
