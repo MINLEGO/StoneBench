@@ -132,7 +132,7 @@ class HarnessRuntimeIntegration(verification.VerificationRuntimeIntegration):
             # Exercise initialization through the harness on the untouched second server.
             cold_task, cold = stonebench_task(integration.server_urls()[1],
                 Budget(300000, 4000, 4000, 20000, 2000), root / "cold_initialize")
-            cold_script = Scenario("no_submission", chosen, latest_id, self, cold)
+            cold_script = Scenario("source_free", chosen, latest_id, self, cold)
             cold_logs = await eval_async(cold_task,
                 model=get_model("stonebench-scripted/cold-initialize", script=cold_script),
                 log_dir=str(root / "inspect-logs"), log_format="json", log_model_api=False,
@@ -140,6 +140,7 @@ class HarnessRuntimeIntegration(verification.VerificationRuntimeIntegration):
             self.assertEqual(cold_logs[0].status, "success", str(cold_logs[0].error))
             self.assertEqual(cold.report["status"], "no_submission")
             self.assertIsNone(cold.selected)
+            self.assert_source_free_inspect(cold, cold_logs[0], self.sessions[1])
             evidence["cold_initialize"] = {"phases": cold_script.phases,
                 "ledger_total": cold.ledger.total_tokens, "result": cold.report,
                 "initialization": json.loads((cold.root / "tool-000001.json").read_text(encoding="utf-8"))}
@@ -174,6 +175,54 @@ class HarnessRuntimeIntegration(verification.VerificationRuntimeIntegration):
         self.assertTrue(all(isinstance(row["snapshot"], dict) and "world_time" in row["snapshot"] for row in report["boundaries"]))
         self.assertTrue(all(source["revision_id"] and source["locator"] for row in report["criteria"] for source in row["sources"]))
         self.assertEqual(audit.positive(again), attempt.report["audit_positive"])
+
+    def assert_source_free_inspect(self, attempt, log, session):
+        """Inspect form of start_attempt, describe_task, describe_rules and check_geometry: what the model and the retained results hold."""
+        retained = {}
+        for line in (attempt.root / "events.jsonl").read_text(encoding="utf-8").splitlines():
+            event = json.loads(line)
+            if event["kind"] == "tool_result" and event["tool"] in integration.SOURCE_FREE_TOOLS:
+                data = (attempt.root / event["artifact"]).read_text(encoding="utf-8")
+                self.assertFalse(json.loads(data).get("result_output_bounded"), event)
+                retained.setdefault(event["tool"], []).append((data, json.loads(data)))
+        self.assertEqual(set(retained), set(integration.SOURCE_FREE_TOOLS))
+        # The scanned perimeter is explicit: this attempt calls only those four tools, so no verification report is among its files.
+        called = {json.loads(line).get("tool") for line in (attempt.root / "events.jsonl").read_text(encoding="utf-8").splitlines()}
+        self.assertEqual(called - {None}, set(integration.SOURCE_FREE_TOOLS))
+        # Every tool message the model received, in the form Inspect gave it.
+        seen = {}
+        for message in log.samples[0].messages:
+            if message.role == "tool" and message.function in integration.SOURCE_FREE_TOOLS:
+                self.assertIsInstance(message.content, str)
+                seen.setdefault(message.function, []).append(message.content)
+        self.assertEqual(set(seen), {"describe_task", "describe_rules", "check_geometry"})
+        for name, results in retained.items():
+            for data, value in results:
+                self.assertEqual(integration.source_leaks(value), [], name)
+                self.assertTrue(value["status"] == "ok" and value["operation"] == name, value)
+                self.assertLess(len(data.encode("utf-8")), attempt.output_bytes, name)
+                journal = self.audit_row(session, value)  # the local operation audit keeps what the model never saw
+                if name in ("describe_rules", "check_geometry"):
+                    self.assertTrue(integration.source_leaks(journal), name)
+                    self.assertTrue(all(row["sources"] for row in journal["criteria"]), name)
+                else:
+                    self.assertEqual(journal["task"]["rules_reference"], integration.RULES_REFERENCE, name)
+            for content in seen.get(name, []):
+                self.assertIn(content, [data for data, _ in results], name)
+        rules = retained["describe_rules"][0][1]
+        self.assertEqual(len(rules["criteria"]), 14)
+        self.assertTrue(all(row["expected"] and row["observation"] and row["coverage"] and isinstance(row["mandatory"], bool) for row in rules["criteria"]))
+        geometry = retained["check_geometry"][0][1]
+        self.assertEqual(geometry["expected_state"], "closed")
+        self.assertTrue(all(row["status"] and "observed" in row and row["diagnostic"] for row in geometry["criteria"]))
+        # No other file the harness keeps for the agent mentions the rules documents either.
+        files = sorted(attempt.root.glob("tool-*.json")) + [attempt.root / "events.jsonl", attempt.root / "run.json"]
+        self.assertEqual(len(files), len(retained["start_attempt"]) + len(retained["describe_task"]) + len(retained["describe_rules"]) + len(retained["check_geometry"]) + 2)
+        for file in files:
+            text = file.read_text(encoding="utf-8")
+            for marker in integration.SOURCE_TEXT:
+                self.assertNotIn(marker, text, file.name)
+            self.assertIsNone(integration.SOURCE_PROSE.search(text), file.name)
 
     def assert_separate_metrics(self, metrics):
         dynamic = metrics["dynamic_volume"]
@@ -259,6 +308,8 @@ class Scenario:
             calls = [("submit_checkpoint", {"checkpoint_id":"00000000-0000-0000-0000-000000000000"})]
         elif self.scenario in {"missing_usage", "long_reasoning"} and self.index == 1:
             calls = [("list_checkpoints", {})]
+        elif self.scenario == "source_free" and self.index == 1:
+            calls = [("describe_rules", {}), ("check_geometry", {"expected_state": "closed"})]
         usage = ModelUsage(input_tokens=50, output_tokens=50, total_tokens=100)
         if self.index == 0:
             usage = None if self.scenario == "missing_usage" else ModelUsage(input_tokens=258000, output_tokens=2000, total_tokens=260000, reasoning_tokens=1900)

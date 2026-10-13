@@ -33,7 +33,7 @@ public final class Task {
         task.addProperty("task_id", id); task.addProperty("minecraft", "1.21.11");
         task.addProperty("category", "regular DOOR"); task.addProperty("width", size); task.addProperty("height", size);
         task.addProperty("objective", id.endsWith("volume") ? "minimize_volume" : "minimize_opening_ticks");
-        task.addProperty("rules_reference", RULES); task.addProperty("budget_tokens", budget);
+        task.addProperty("budget_tokens", budget);
         JsonObject basis = new JsonObject();
         basis.add("origin", position(1024,80,1024)); basis.addProperty("vertical_axis", "+Y");
         basis.addProperty("horizontal_axis", "+X"); basis.addProperty("normal", "+Z");
@@ -46,5 +46,7 @@ public final class Task {
         task.add("prepared_region", scope);
         return task;
     }
+    /** A task persisted by an earlier build may still carry the rules link; the agent never receives it. */
+    public static JsonObject restored(JsonObject persisted) {JsonObject task=persisted.deepCopy();task.remove("rules_reference");return task;}
     public static JsonObject position(int x,int y,int z) { JsonObject p=new JsonObject();p.addProperty("x",x);p.addProperty("y",y);p.addProperty("z",z);return p; }
 }

@@ -72,7 +72,7 @@ public final class Controller implements ModInitializer {
                 if(!attempt.equals(Task.string(context,"attempt_id")) || !attempt.equals(Task.string(resume,"attempt_id"))) throw new IOException("Restored attempt identity mismatch");
                 if(context.get("format").getAsInt()!=1) throw new IOException("Unsupported checkpoint context format");
                 simulationTicks=context.get("simulation_ticks").getAsLong();preparationTicks=context.get("preparation_ticks").getAsLong();
-                task=context.getAsJsonObject("task").deepCopy();
+                task=Task.restored(context.getAsJsonObject("task"));
                 for(JsonElement item:context.getAsJsonArray("chunks")) {JsonObject chunk=item.getAsJsonObject();CHUNKS.add(ChunkPos.toLong(Task.integer(chunk,"x",-1875000,1875000),Task.integer(chunk,"z",-1875000,1875000)));}
                 Observation.restoreContext(context.getAsJsonObject("observation"),world());
                 resumeLoading=true;force(true);
@@ -171,10 +171,10 @@ public final class Controller implements ModInitializer {
                         // The whole generator is air. Preparation cannot tick a prior construction.
                         for (BlockPos pos:BlockPos.iterate(1024,64,1024,1039,111,1039))
                             if (!world().getBlockState(pos).isAir()) throw new IllegalStateException("Initial region is not empty");
-                        JsonObject metadata=description();
+                        JsonObject metadata=sourced(description());
                         Files.writeString(Path.of("stonebench/attempt.json"),JSON.toJson(metadata),StandardOpenOption.CREATE_NEW);
                     }
-                    if(active.continuation!=null) {freeze();active.phase="mutation";active.continuation.run();} else succeed(description());
+                    if(active.continuation!=null) {freeze();active.phase="mutation";active.continuation.run();} else succeedDescription();
                 } else if(active.continuation==null) step();
             } else if (active.phase.equals("simulation")) {
                 active.executed+=delta; simulationTicks+=delta;
@@ -281,12 +281,12 @@ public final class Controller implements ModInitializer {
                 active.preparationInitialLoaded=world().getChunkManager().getWorldChunk(64,64)!=null; active.preparationInitialReady=ready();
                 active.phase="preparation"; step();
             }
-            case "describe_task" -> succeed(description());
+            case "describe_task" -> succeedDescription();
             case "describe_blocks" -> succeed(BlockCatalog.describe());
-            case "describe_rules" -> succeed(Rules.describe());
+            case "describe_rules" -> {JsonObject full=Rules.describe();succeed(Rules.agentRules(full),full);}
             case "check_geometry" -> {
                 Set<ChunkPos> chunks=new LinkedHashSet<>();for(BlockPos p:RegularDoorGeometry.requiredPositions(task,active.args)) chunks.add(new ChunkPos(p));
-                Runnable check=()->{active.phase="geometry_observation";succeed(RegularDoorGeometry.check(world(),task,active.args,Inputs.declared()));};
+                Runnable check=()->{active.phase="geometry_observation";JsonObject full=RegularDoorGeometry.check(world(),task,active.args,Inputs.declared());succeed(Rules.agentGeometry(full),full);};
                 if(chunks.stream().allMatch(c->CHUNKS.contains(c.toLong()))&&ready())check.run();else prepareChunks(chunks,check);
             }
             case "__test_geometry_entity" -> {
@@ -498,19 +498,33 @@ public final class Controller implements ModInitializer {
         if(artifactRecovery) {result.addProperty("artifact_recovery",true);result.addProperty("simulation_resumable",false);result.addProperty("counters_source","last_persisted_operation");}
         return result;
     }
-    private static void finish(JsonObject result) {
+    private static void finish(JsonObject result) {finish(result,result);}
+    /** The agent receives result; the local journal keeps journaled, which may carry rule sources the agent never sees. */
+    private static void finish(JsonObject result,JsonObject journaled) {
         freeze();
         if(active.mutated && (active.transition==null || !active.transition.report().get("status").getAsString().equals("terminated"))) Checkpoints.invalidateRest();
         Inputs.stop();Observation.end();
-        try { Files.writeString(Path.of("stonebench/operations.jsonl"),JSON.toJson(result)+"\n",StandardOpenOption.CREATE,StandardOpenOption.APPEND); }
+        try { Files.writeString(Path.of("stonebench/operations.jsonl"),JSON.toJson(journaled)+"\n",StandardOpenOption.CREATE,StandardOpenOption.APPEND); }
         catch(IOException e) {
             result.addProperty("status","error");JsonObject error=new JsonObject();error.addProperty("kind","infrastructure");error.addProperty("code","journal_write_failed");error.addProperty("message",e.toString());result.add("error",error);
         }
         active.result.complete(result);active=null;
     }
-    private static void succeed(JsonObject payload) {
+    private static void succeed(JsonObject payload) {succeed(payload,payload);}
+    /** The agent receives payload; the operation journal keeps audit, the same response with its documentary sources. */
+    private static void succeed(JsonObject payload,JsonObject audit) {
         freeze();
-        JsonObject result=envelope("ok");for(var entry:payload.entrySet()) result.add(entry.getKey(),entry.getValue());finish(result);
+        JsonObject result=envelope("ok"),journaled=audit==payload?result:result.deepCopy();
+        for(var entry:payload.entrySet()) result.add(entry.getKey(),entry.getValue());
+        if(journaled!=result)for(var entry:audit.entrySet()) journaled.add(entry.getKey(),entry.getValue());
+        finish(result,journaled);
+    }
+    private static void succeedDescription() {JsonObject agent=description();succeed(agent,sourced(agent));}
+    /** Local-audit form of a description: the rules document stays out of the agent's task. */
+    private static JsonObject sourced(JsonObject description) {
+        JsonObject full=description.deepCopy();
+        if(task!=null)full.getAsJsonObject("task").addProperty("rules_reference",Task.RULES);
+        return full;
     }
     private static void fail(String kind,String code,String message) {
         if(active==null) return;
