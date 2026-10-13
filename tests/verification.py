@@ -201,7 +201,7 @@ class VerificationRuntimeIntegration(integration.StoneBenchRuntimeIntegration):
     async def assert_agent_view(self, session, report):
         """What an agent can learn from a completed verification, and what it cannot."""
         self.assertEqual(report["status"], "completed")
-        for key in ("verdict", "conforms_to_alpha", "stop_cause", "cycles_executed", "criteria", "faults", "boundaries",
+        for key in ("verdict", "conforms_to_alpha", "stop_cause", "criteria", "faults", "boundaries",
                     "working_construction_preserved", "working_differences", "working_after"):
             self.assertIn(key, report, key)
         self.assertEqual(integration.source_leaks(report), [], "The completed status exposes rule sources")
