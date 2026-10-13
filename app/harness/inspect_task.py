@@ -18,6 +18,7 @@ from inspect_ai.scorer import Score, scorer
 from inspect_ai.solver import solver
 from inspect_ai.tool import Tool, ToolDef, ToolError, mcp_server_http, tool
 
+from . import audit
 from .budget import Budget, Ledger
 
 READ_TOOLS = frozenset({"describe_task", "describe_blocks", "describe_rules", "read_blocks", "read_region",
@@ -51,7 +52,8 @@ def payload(result):
 
 
 class Attempt:
-    def __init__(self, budget: Budget, artifact_dir: Path, tool_output_bytes=16384):
+    def __init__(self, budget: Budget, artifact_dir: Path, tool_output_bytes=16384, server_root=None):
+        self.server_root = server_root
         self.ledger = Ledger(budget)
         self.root = Path(artifact_dir)
         self.root.mkdir(parents=True, exist_ok=False)
@@ -198,7 +200,18 @@ class Attempt:
         self.retain("score_verification_report", response)
         if report.get("checkpoint_id") != self.selected:
             raise RuntimeError("Verifier returned a different checkpoint identity")
-        return {"status": "submitted", "checkpoint_id": self.selected, "verification": report}
+        # The positive/negative decision comes from the complete local audit, never from the MCP response alone.
+        try:
+            if self.server_root is None:
+                raise audit.AuditError("No local server root configured for the audit")
+            local = audit.load(self.server_root, request, self.selected, report)
+        except audit.AuditError as exc:
+            self.event("audit_rejected", checkpoint_id=self.selected, request_id=request, error=str(exc))
+            return {"status": "audit_error", "checkpoint_id": self.selected, "verification": report, "audit": {"error": str(exc)}}
+        self.event("audit_read", **{key: local[key] for key in ("attempt_id", "request_id", "checkpoint_id", "manifest_sha256", "sha256", "complete", "missing")})
+        return {"status": "submitted", "checkpoint_id": self.selected, "verification": report,
+                "audit": {key: local[key] for key in ("attempt_id", "request_id", "checkpoint_id", "manifest_sha256", "path", "sha256", "complete", "missing")},
+                "audit_positive": audit.positive(local)}
 
 
 @agent
@@ -245,14 +258,17 @@ def budgeted_generation(attempt: Attempt, config: GenerateConfig):
 
 
 def stonebench_task(mcp_url: str, budget: Budget, artifact_dir: Path, task_id="2x2-volume",
-                    config: GenerateConfig | None = None, initialize=True, prompt=PROMPT):
-    """One task, one attempt, one server; create a fresh Task for each attempt."""
+                    config: GenerateConfig | None = None, initialize=True, prompt=PROMPT, server_root=None):
+    """One task, one attempt, one server; create a fresh Task for each attempt.
+
+    `server_root` is the server's local directory; the scorer reads its complete verification audit there.
+    Without it a selected checkpoint cannot score positively."""
     config = config or GenerateConfig()
     if config.extra_headers:
         raise ValueError("Pass authentication through the Inspect provider environment, not recorded GenerateConfig headers")
     if not isinstance(prompt, str):
         raise ValueError("Alpha harness requires a text prompt")
-    attempt = Attempt(budget, artifact_dir)
+    attempt = Attempt(budget, artifact_dir, server_root=server_root)
     server = mcp_server_http(url=mcp_url, name="stonebench", timeout=2450)
 
     @solver
@@ -299,8 +315,7 @@ def stonebench_task(mcp_url: str, budget: Budget, artifact_dir: Path, task_id="2
                     attempt.report = {"status": "verification_error", "checkpoint_id": attempt.selected,
                                       "diagnostic": str(exc)}
             (attempt.root / "result.json").write_text(encode(attempt.report), encoding="utf-8")
-            report = attempt.report.get("verification", {})
-            return Score(value=int(report.get("conforms_to_alpha") is True), answer=attempt.selected,
+            return Score(value=int(attempt.report.get("audit_positive") is True), answer=attempt.selected,
                          explanation=attempt.report["status"], metadata=attempt.report)
         return score
 
