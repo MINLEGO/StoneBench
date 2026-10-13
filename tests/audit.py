@@ -11,15 +11,16 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from app.harness import audit
 
 ATTEMPT, REQUEST, CHECKPOINT = "a" * 8, "r" * 8, "c" * 8
-SOURCE = {"source": "https://example.test/rules", "revision_id": "rev", "locator_type": "native_character_index", "locator": "1606"}
+def SOURCE():
+    return {"source": "https://example.test/rules", "revision_id": "rev", "locator_type": "native_character_index", "locator": "1606"}
 
 
 def volume():
-    return {"status": "indeterminate", "value": None, "gaps": ["conditional_role_exclusion_changes_dimensions"], "sources": [SOURCE]}
+    return {"status": "indeterminate", "value": None, "gaps": ["conditional_role_exclusion_changes_dimensions"], "sources": [SOURCE()]}
 
 
 def summary(status):
-    return {"status": status, "value": 6 if status == "measured" else None, "sources": [SOURCE]}
+    return {"status": status, "value": 6 if status == "measured" else None, "sources": [SOURCE()]}
 
 
 def transition(mode, timing):
@@ -27,7 +28,7 @@ def transition(mode, timing):
     return {"mode": mode, "purpose": "reference", "dynamic_volume": volume(), "movements": [{"start": stamp}], "transition_ticks": 9,
             "objectives_combined": False,
             timing: {"status": "measured", "value": 6, "interaction": stamp, "signal_at_input_block": stamp,
-                     "rest_recognition": {"world_time": 9}, "gaps": [], "sources": [SOURCE]}}
+                     "rest_recognition": {"world_time": 9}, "gaps": [], "sources": [SOURCE()]}}
 
 
 def report(manifest):
@@ -37,7 +38,7 @@ def report(manifest):
             "copies": [{"mode": "repeater"}], "limits": {"x": 1}, "comparison_policy": "exact", "cycles_executed": 1,
             "stop_cause": "first_return_to_state0", "verdict": "conforms_to_alpha", "conforms_to_alpha": True,
             "working_construction_preserved": True, "working_differences": [],
-            "criteria": [{"id": "fixed_passage", "mandatory": True, "status": "satisfied", "sources": [SOURCE]}],
+            "criteria": [{"id": "fixed_passage", "mandatory": True, "status": "satisfied", "sources": [SOURCE()]}],
             "boundaries": [{"mode": "repeater", "operation": {"operation_id": "o"}, "snapshot": {"world_time": 7},
                             "criteria": [{"id": "fixed_passage", "status": "satisfied"}]}],
             "measurements": {"dynamic_volume": volume(), "opening_time": summary("measured"), "closing_time": summary("measured"),
@@ -141,10 +142,22 @@ class LocalAudit(unittest.TestCase):
         def timing_without_sources(full): full["measurements"]["transitions"][0]["opening_time"]["sources"] = []
         def volume_without_sources(full): del full["measurements"]["transitions"][0]["dynamic_volume"]["sources"]
         def unexplained_volume(full): full["measurements"]["transitions"][1]["dynamic_volume"]["gaps"] = []
-        def summary_indeterminate_value(full): full["measurements"]["opening_time"] = {"status": "measured", "value": None, "sources": [SOURCE]}
+        def summary_indeterminate_value(full): full["measurements"]["opening_time"] = {"status": "measured", "value": None, "sources": [SOURCE()]}
         def no_summary(full): del full["measurements"]["closing_time"]
         def fused_objectives(full): full["measurements"]["transitions"][0]["objectives_combined"] = True
-        for damage in (no_source, no_locator, no_criteria, artifact_snapshot, no_boundaries, no_measurements,
+        def volume_no_gaps_key(full): del full["measurements"]["dynamic_volume"]["gaps"]
+        def volume_empty_gaps(full): full["measurements"]["dynamic_volume"]["gaps"] = []
+        def transition_volume_no_gaps_key(full): del full["measurements"]["transitions"][0]["dynamic_volume"]["gaps"]
+        def no_movements(full): full["measurements"]["transitions"][0]["movements"] = []
+        def junk_movements(full): full["measurements"]["transitions"][0]["movements"] = [1, "x"]
+        def movement_without_start_time(full): full["measurements"]["transitions"][0]["movements"] = [{"start": {"world_time": None}}]
+        def interaction_without_time(full): full["measurements"]["transitions"][0]["opening_time"]["interaction"] = {"world_time": None}
+        def rest_without_time(full): full["measurements"]["transitions"][0]["opening_time"]["rest_recognition"] = {"world_time": None}
+        def signal_not_a_stamp(full): full["measurements"]["transitions"][0]["opening_time"]["signal_at_input_block"] = "t"
+        def boolean_value(full): full["measurements"]["transitions"][0]["opening_time"]["value"] = True
+        for damage in (volume_no_gaps_key, volume_empty_gaps, transition_volume_no_gaps_key, no_movements, junk_movements,
+                       movement_without_start_time, interaction_without_time, rest_without_time, signal_not_a_stamp,
+                       boolean_value, no_source, no_locator, no_criteria, artifact_snapshot, no_boundaries, no_measurements,
                        no_provenance, no_transition_operation, changed_working, infrastructure, running,
                        null_world_time, float_world_time, bare_transition, no_repeater, no_timing_provenance,
                        no_rest_recognition, unexplained_timing, timing_without_sources, volume_without_sources,
@@ -164,18 +177,43 @@ class LocalAudit(unittest.TestCase):
         self.write(full)
         self.assertTrue(audit.positive(self.load(full)))
 
-    def test_malformed_report_is_an_audit_error(self):
+    def test_legitimate_variants_stay_positive(self):
+        def float_value(full): full["measurements"]["transitions"][0]["opening_time"]["value"] = 6.0
+        def closing_only(full):
+            full["measurements"]["transitions"] = [transition("repeater", "closing_time")]
+            full["measurements"]["opening_time"] = {"status": "indeterminate", "value": None, "sources": [SOURCE()]}
+        def summaries_without_gaps(full):
+            full["measurements"]["opening_time"] = summary("indeterminate")
+            full["measurements"]["closing_time"] = summary("indeterminate")
+        def explained_volume(full): full["measurements"]["dynamic_volume"]["gaps"] = ["conditional_role_exclusion_changes_dimensions"]
+        def unmeasured_without_movements(full):
+            full["measurements"]["transitions"][0]["movements"] = []
+            full["measurements"]["transitions"][0]["opening_time"].update(status="indeterminate", value=None, gaps=["last_pertinent_movement_missing"])
+        for variant in (float_value, closing_only, summaries_without_gaps, explained_volume, unmeasured_without_movements):
+            full = report(self.manifest)
+            variant(full)
+            self.write(full)
+            local = self.load(full)
+            self.assertTrue(audit.positive(local), (variant.__name__, local["missing"]))
+
+    def test_malformed_content_is_incomplete_and_never_positive(self):
         for damage in (lambda full: full.update(criteria=["x"]), lambda full: full["criteria"][0].update(sources=["x"]),
                        lambda full: full.update(boundaries=["x"]), lambda full: full["measurements"].update(transitions=[1]),
-                       lambda full: full.update(measurements="x"), lambda full: full.update(audit="x")):
+                       lambda full: full.update(measurements="x")):
             full = report(self.manifest)
             damage(full)
             self.write(full)
-            try:
-                local = self.load(full)
-            except audit.AuditError:
-                continue
+            local = self.load(full)
+            self.assertFalse(local["complete"])
+            self.assertTrue(local["missing"])
             self.assertFalse(audit.positive(local))
+
+    def test_unreadable_or_unbound_file_is_an_audit_error(self):
+        full = report(self.manifest)
+        full["audit"] = "x"
+        self.write(full)
+        with self.assertRaises(audit.AuditError):
+            self.load(full)
         (self.root / "stonebench/verifications" / REQUEST / "completed.json").write_text("[]")
         with self.assertRaises(audit.AuditError):
             audit.load(self.root, REQUEST, CHECKPOINT, visible(report(self.manifest)))
