@@ -65,13 +65,17 @@ final class Verification {
         JsonObject current=snapshot.get();
         if(Files.exists(directory.resolve("cancel.json"))){JsonObject marker=CheckpointStorage.read(directory.resolve("cancel.json"));String reason=marker.has("reason")?marker.get("reason").getAsString():"user_cancelled";JsonObject error=new JsonObject();error.addProperty("kind",reason.startsWith("individual_phase_watchdog:")?"phase_timeout":"cancelled");error.addProperty("diagnostic",reason);if(report.has("infrastructure_error"))error.add("worker_error",report.get("infrastructure_error"));report.add("infrastructure_error",error);report.addProperty("verdict","infrastructure_error");report.addProperty("conforms_to_alpha",false);report.addProperty("stop_cause",reason.startsWith("individual_phase_watchdog:")?"individual_phase_watchdog":reason.equals("owner_heartbeat_lost")?reason:"verification_interrupted");}
         report.addProperty("status","completed");
+        // Local audit binding, taken from the controller-owned request rather than the worker report.
+        JsonObject request=CheckpointStorage.read(directory.resolve("request.json")),audit=new JsonObject();
+        for(String key:List.of("attempt_id","request_id","checkpoint_id","manifest_sha256"))audit.add(key,request.get(key));
+        report.add("audit",audit);
         JsonArray differences=ObservationComparison.fields(before,current);
         report.addProperty("working_construction_preserved",differences.isEmpty());
         report.add("working_differences",differences);report.add("working_after",current.deepCopy());
         if(!differences.isEmpty()) {report.addProperty("verdict","infrastructure_error");report.addProperty("conforms_to_alpha",false);}
         if(report.has("measurements")) report.getAsJsonObject("measurements").addProperty("interpretation",report.get("conforms_to_alpha").getAsBoolean()?"conforms_to_alpha_measurements":"alpha_diagnostic");
         CheckpointStorage.writeAtomic(directory.resolve("completed.json"),report);
-        JsonObject visible=report.deepCopy();visible.add("full_report",Artifacts.write("verification_report",List.of(report)));
+        JsonObject visible=report.deepCopy();visible.remove("audit");visible.add("full_report",Artifacts.write("verification_report",List.of(report)));
         visible.add("working_after",Artifacts.write("verification_working_after",List.of(current)));
         if(visible.has("boundaries")) for(JsonElement item:visible.getAsJsonArray("boundaries")) {
             JsonObject boundary=item.getAsJsonObject();
