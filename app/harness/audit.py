@@ -20,6 +20,35 @@ def _json(path):
         raise AuditError(f"Audit file unavailable: {path.name}") from exc
 
 
+def _sources(rows):
+    return isinstance(rows, list) and bool(rows) and all(isinstance(row, dict) and all(row.get(field) for field in SOURCE_FIELDS) for row in rows)
+
+
+def _integer(value):
+    return type(value) is int
+
+
+def _metric(metric, provenance, explained=True):
+    """A measured value carries its numbers and provenance; an unmeasured one states why (gaps), never silently."""
+    if not isinstance(metric, dict) or not _sources(metric.get("sources")) or not isinstance(metric.get("gaps", []), list):
+        return False
+    if metric.get("status") == "measured":
+        return type(metric.get("value")) in (int, float) and all(metric.get(key) for key in provenance)
+    # Summaries aggregate the transitions' gaps instead of repeating them.
+    return metric.get("status") == "indeterminate" and metric.get("value") is None and (bool(metric.get("gaps")) or not explained)
+
+
+def _transition(row):
+    if not isinstance(row, dict):
+        return False
+    timing = "opening_time" if "opening_time" in row else "closing_time"
+    return (row.get("mode") in ("repeater", "direct") and row.get("purpose")
+            and _metric(row.get("dynamic_volume"), ()) and ("opening_time" in row) != ("closing_time" in row)
+            and _metric(row.get(timing), ("interaction", "signal_at_input_block", "rest_recognition"))
+            and isinstance(row.get("movements"), list) and _integer(row.get("transition_ticks"))
+            and row.get("objectives_combined") is False)
+
+
 def missing(report):
     """Mandatory audit evidence absent from a completed report; any entry forbids a positive result."""
     gaps = [name for name in ("protocol_version", "checkpoint_provenance", "copies", "limits", "comparison_policy")
@@ -35,20 +64,30 @@ def missing(report):
         gaps.append("criteria")
     else:
         for row in criteria:
-            sources = row.get("sources")
-            if not sources or any(not source.get(field) for source in sources for field in SOURCE_FIELDS):
-                gaps.append(f"criteria.{row.get('id')}.sources")
+            if not isinstance(row, dict) or not _sources(row.get("sources")):
+                gaps.append(f"criteria.{row.get('id') if isinstance(row, dict) else row}.sources")
     boundaries = report.get("boundaries")
-    if not boundaries or any(not isinstance(row.get("snapshot"), dict) or "world_time" not in row["snapshot"]
-                             or not row.get("operation") or not row.get("criteria") for row in boundaries):
+    if not boundaries or not isinstance(boundaries, list) or any(
+            not isinstance(row, dict) or not isinstance(row.get("snapshot"), dict) or not _integer(row["snapshot"].get("world_time"))
+            or not isinstance(row.get("operation"), dict) or not row["operation"] or not row.get("criteria") for row in boundaries):
         gaps.append("boundaries")
     measurements = report.get("measurements")
-    if not isinstance(measurements, dict) or not measurements.get("transitions"):
+    transitions = measurements.get("transitions") if isinstance(measurements, dict) else None
+    if (not transitions or not isinstance(transitions, list) or not all(_transition(row) for row in transitions)
+            or not any(row["mode"] == "repeater" for row in transitions)
+            or not all(_metric(measurements.get(key), (), False) for key in ("dynamic_volume", "opening_time", "closing_time"))):
         gaps.append("measurements")
     return gaps
 
 
 def load(server_root, request_id, checkpoint_id, visible):
+    try:
+        return _load(server_root, request_id, checkpoint_id, visible)
+    except (AttributeError, TypeError, KeyError, ValueError) as exc:
+        raise AuditError(f"Malformed audit: {exc!r}") from exc
+
+
+def _load(server_root, request_id, checkpoint_id, visible):
     """Read `<server_root>/stonebench/verifications/<request_id>/completed.json`.
 
     Binding comes only from files written by the controller/checkpoint store: the local attempt identity,

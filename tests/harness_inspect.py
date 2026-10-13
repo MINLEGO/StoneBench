@@ -48,15 +48,15 @@ class HarnessRuntimeIntegration(verification.VerificationRuntimeIntegration):
             root = Path(os.environ.get("STONEBENCH_HARNESS_EVIDENCE", "app/harness/.runtime/evidence"))
             root.mkdir(parents=True, exist_ok=True)
 
-            for scenario in ("selected_older", "selected_during_copy", "audit_unbound", "cancel_copy", "invalid_id", "no_submission", "missing_usage", "long_reasoning", "overshoot"):
+            for scenario in ("selected_older", "selected_during_copy", "audit_absent", "cancel_copy", "invalid_id", "no_submission", "missing_usage", "long_reasoning", "overshoot"):
                 roots = [Path(root) for root in os.environ["STONEBENCH_SERVER_ROOTS"].split(";")]
                 server_root = roots[0]
                 journal = server_root / "stonebench/operations.jsonl"
                 journal_start = len(journal.read_text(encoding="utf-8").splitlines())
                 task, attempt = stonebench_task(url, Budget(300000, 4000, 4000, 20000, 2000, final_calls=120),
                     root / scenario, initialize=False,
-                    # A different server's directory can neither contain nor be bound to this attempt's audit.
-                    server_root=roots[1] if scenario == "audit_unbound" else server_root)
+                    # Server 2 holds no attempt or verification of this task: the audit is absent there. (Identity mismatches are covered by tests/audit.py.)
+                    server_root=roots[1] if scenario == "audit_absent" else server_root)
                 script = Scenario(scenario, chosen, latest_id, self, attempt)
                 model = get_model(f"stonebench-scripted/controlled-{scenario}", script=script)
                 logs = await eval_async(task, model=model, log_dir=str(root / "inspect-logs"), log_format="json",
@@ -82,7 +82,7 @@ class HarnessRuntimeIntegration(verification.VerificationRuntimeIntegration):
                     self.assertNotEqual(attempt.report["verification"]["verdict"], "conforms_to_alpha")
                     self.assertFalse(attempt.report["audit_positive"])
                     self.assertEqual(log.samples[0].scores["selected_checkpoint"].value, 0)
-                    self.assert_local_audit(attempt, server_root, chosen, positive=False)
+                    await self.assert_local_audit(first, attempt, server_root, chosen, positive=False)
                     self.assertEqual(attempt.report["verification"]["checkpoint_id"], chosen)
                     refused = [json.loads(line) for line in (attempt.root / "events.jsonl").read_text().splitlines() if '"tool_refused"' in line]
                     self.assertGreaterEqual(len(refused), 7, refused)
@@ -92,7 +92,7 @@ class HarnessRuntimeIntegration(verification.VerificationRuntimeIntegration):
                     self.assertTrue(snapshots)
                     for snapshot in snapshots:
                         self.assertIsNone(verification.first_difference(baseline, self.frozen_snapshot(snapshot)))
-                elif scenario == "audit_unbound":
+                elif scenario == "audit_absent":
                     self.assertEqual(attempt.selected, latest_id)
                     self.assertEqual(attempt.report["status"], "audit_error", attempt.report)
                     self.assertEqual(attempt.report["verification"]["verdict"], "conforms_to_alpha")
@@ -107,7 +107,7 @@ class HarnessRuntimeIntegration(verification.VerificationRuntimeIntegration):
                     self.assert_separate_metrics(metrics)
                     self.assertEqual(log.samples[0].scores["selected_checkpoint"].metadata["verification"]["measurements"], metrics)
                     self.assertEqual(log.samples[0].scores["selected_checkpoint"].value, 1)
-                    self.assert_local_audit(attempt, server_root, latest_id, positive=True)
+                    await self.assert_local_audit(first, attempt, server_root, latest_id, positive=True)
                 else:
                     self.assertIsNone(attempt.selected)
                     self.assertEqual(attempt.report["status"], "no_submission")
@@ -150,8 +150,9 @@ class HarnessRuntimeIntegration(verification.VerificationRuntimeIntegration):
             output.parent.mkdir(parents=True, exist_ok=True)
             output.write_text(json.dumps(evidence, indent=2), encoding="utf-8")
             await self.stack.aclose()
-    def assert_local_audit(self, attempt, server_root, checkpoint_id, positive):
-        """Re-read the audit from local files alone: no MCP call and no artifact identifier."""
+
+    async def assert_local_audit(self, first, attempt, server_root, checkpoint_id, positive):
+        """Re-read the audit from local files alone, then check what an agent can read of it through MCP."""
         local = attempt.report["audit"]
         directory = server_root / "stonebench/verifications" / local["request_id"]
         self.assertEqual(local["checkpoint_id"], checkpoint_id)
@@ -164,7 +165,12 @@ class HarnessRuntimeIntegration(verification.VerificationRuntimeIntegration):
         self.assertEqual(report["audit"]["attempt_id"], json.loads((server_root / "stonebench/attempt.json").read_text())["attempt_id"])
         self.assertEqual(report["measurements"], attempt.report["verification"]["measurements"])
         self.assertEqual(report["verdict"], attempt.report["verification"]["verdict"])
-        self.assertNotIn("full_report", report)
+        # The agent can read full_report with read_artifact: it must be the audit minus the local binding.
+        page = await self.call(first, "read_artifact", {"artifact_id": attempt.report["verification"]["full_report"]["artifact_id"], "offset": 0, "limit": 1})
+        self.assert_ok(page)
+        self.assertEqual(len(page["entries"]), 1)
+        self.assertNotIn("audit", page["entries"][0])
+        self.assertEqual(page["entries"][0], {key: value for key, value in report.items() if key != "audit"})
         self.assertTrue(all(isinstance(row["snapshot"], dict) and "world_time" in row["snapshot"] for row in report["boundaries"]))
         self.assertTrue(all(source["revision_id"] and source["locator"] for row in report["criteria"] for source in row["sources"]))
         self.assertEqual(audit.positive(again), attempt.report["audit_positive"])
@@ -237,7 +243,7 @@ class Scenario:
                     if self.index == 2:
                         calls += [("verification_snapshot", {}), ("restore_checkpoint", {"checkpoint_id":self.latest}),
                                   ("modify_blocks", {}), ("__test_verification_mutate", {})]
-        elif self.scenario in {"selected_during_copy", "audit_unbound"}:
+        elif self.scenario in {"selected_during_copy", "audit_absent"}:
             if self.index == 1:
                 calls = [("verify_checkpoint", {"checkpoint_id": self.latest}),
                          ("submit_checkpoint", {"checkpoint_id": self.latest})]
