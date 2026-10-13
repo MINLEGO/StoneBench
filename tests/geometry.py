@@ -4,10 +4,10 @@ import os
 from pathlib import Path
 import unittest
 import integration
-TASK_ID = integration.TASK_ID
 from integration import source_leaks
-SOURCE_ROW_KEYS = {"sources", "source", "revision_id", "source_index"}
 from construction import point, placement
+TASK_ID = integration.TASK_ID
+SOURCE_ROW_KEYS = {"sources", "source", "revision_id", "source_index"}
 
 
 class GeometryRuntimeIntegration(integration.StoneBenchRuntimeIntegration):

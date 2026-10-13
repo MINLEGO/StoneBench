@@ -5,6 +5,7 @@ import asyncio
 import json
 import os
 from pathlib import Path
+import re
 import time
 import unittest
 
@@ -24,17 +25,23 @@ SOURCE_FREE_TOOLS = ("start_attempt", "describe_task", "describe_rules", "check_
 SOURCE_KEYS = {"source", "sources", "revision_id", "source_index", "locator", "locator_type", "authority",
                "native_cache_sha256", "rules_reference"}
 SOURCE_TEXT = ("docs.google.com", "github.com/MINLEGO", "AHj4eMT_", "e4a01f6d4795", "3d1e0b8b087", "0c022decbc75")
+# Citation prose such as "Rules 23868 requires", "Dummies index 9641" or "source exception index 3852".
+SOURCE_PROSE = re.compile(r"(?:Rules|Dummies|index)\s+(?:index\s+)?\d{3,}")
 
 
 def source_leaks(value, path="$"):
     """Every citation key or document/revision/hash text reachable in a decoded response."""
     if isinstance(value, dict):
-        return [f"{path}.{key}" for key in value if key in SOURCE_KEYS or "source_index" in key] +             [leak for key, item in value.items() for leak in source_leaks(item, f"{path}.{key}")]
+        leaks = [f"{path}.{key}" for key in value if key in SOURCE_KEYS or "source_index" in key]
+        return leaks + [leak for key, item in value.items() for leak in source_leaks(item, f"{path}.{key}")]
     if isinstance(value, list):
         return [leak for index, item in enumerate(value) for leak in source_leaks(item, f"{path}[{index}]")]
     if isinstance(value, str):
-        return [f"{path}={value[:80]}" for marker in SOURCE_TEXT if marker in value]
+        leaks = [f"{path}={value[:80]}" for marker in SOURCE_TEXT if marker in value]
+        return leaks + ([f"{path}={value[:80]}"] if SOURCE_PROSE.search(value) else [])
     return []
+
+
 BLOCK_POSITION = {"x": 1024, "y": 80, "z": 1024}
 EXPECTED_FRAME = {
     (1024, 80, 1024),
@@ -82,6 +89,8 @@ class StoneBenchRuntimeIntegration(unittest.IsolatedAsyncioTestCase):
             self.assertEqual(len(result.content), 1, name)
             self.assertEqual(json.loads(result.content[0].text), payload, name)
             self.assertEqual(source_leaks(payload), [], f"{name} exposes rule sources")
+            # Same direct-result threshold as the harness (16 KiB), not raised for these tools.
+            self.assertLess(len(result.content[0].text.encode("utf-8")), 16384, name)
         self.assertIs(result.isError, payload["status"] == "error")
         for key in ("operation_id", "attempt_id", "phase", "status"):
             self.assertIn(key, payload, f"{name} omitted {key}")

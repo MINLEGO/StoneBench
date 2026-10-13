@@ -17,7 +17,10 @@ class SourceFreeTests(unittest.TestCase):
         self.assertEqual(len(source_leaks({"task": {"rules_reference": RULES_REFERENCE}})), 2)
         self.assertEqual(len(source_leaks({"a": ["see https://github.com/MINLEGO/StoneBench/issues/4"]})), 1)
         self.assertEqual(len(source_leaks({"a": "revision AHj4eMT_keZ9"})), 1)
+        for prose in ("Perimeter collision; Dummies index 9641", "Rules 23868 requires the union", "not an alpha restriction; source exception index 3852"):
+            self.assertEqual(len(source_leaks({"observation": prose})), 1, prose)
         self.assertEqual(source_leaks({"criteria": [{"id": "frame_state", "expected": "closed", "observed": []}]}), [])
+        self.assertEqual(source_leaks({"observed": {"x": 1024, "y": 80, "z": 1024, "block": "minecraft:quartz_block"}}), [])
 
     def test_worker_reads_the_full_row_from_the_copy_journal(self):
         with tempfile.TemporaryDirectory() as directory:

@@ -72,7 +72,7 @@ public final class Controller implements ModInitializer {
                 if(!attempt.equals(Task.string(context,"attempt_id")) || !attempt.equals(Task.string(resume,"attempt_id"))) throw new IOException("Restored attempt identity mismatch");
                 if(context.get("format").getAsInt()!=1) throw new IOException("Unsupported checkpoint context format");
                 simulationTicks=context.get("simulation_ticks").getAsLong();preparationTicks=context.get("preparation_ticks").getAsLong();
-                task=context.getAsJsonObject("task").deepCopy();
+                task=Task.restored(context.getAsJsonObject("task"));
                 for(JsonElement item:context.getAsJsonArray("chunks")) {JsonObject chunk=item.getAsJsonObject();CHUNKS.add(ChunkPos.toLong(Task.integer(chunk,"x",-1875000,1875000),Task.integer(chunk,"z",-1875000,1875000)));}
                 Observation.restoreContext(context.getAsJsonObject("observation"),world());
                 resumeLoading=true;force(true);

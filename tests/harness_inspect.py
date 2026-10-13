@@ -186,6 +186,9 @@ class HarnessRuntimeIntegration(verification.VerificationRuntimeIntegration):
                 self.assertFalse(json.loads(data).get("result_output_bounded"), event)
                 retained.setdefault(event["tool"], []).append((data, json.loads(data)))
         self.assertEqual(set(retained), set(integration.SOURCE_FREE_TOOLS))
+        # The scanned perimeter is explicit: this attempt calls only those four tools, so no verification report is among its files.
+        called = {json.loads(line).get("tool") for line in (attempt.root / "events.jsonl").read_text(encoding="utf-8").splitlines()}
+        self.assertEqual(called - {None}, set(integration.SOURCE_FREE_TOOLS))
         # Every tool message the model received, in the form Inspect gave it.
         seen = {}
         for message in log.samples[0].messages:
@@ -213,10 +216,13 @@ class HarnessRuntimeIntegration(verification.VerificationRuntimeIntegration):
         self.assertEqual(geometry["expected_state"], "closed")
         self.assertTrue(all(row["status"] and "observed" in row and row["diagnostic"] for row in geometry["criteria"]))
         # No other file the harness keeps for the agent mentions the rules documents either.
-        for file in attempt.root.iterdir():
+        files = sorted(attempt.root.glob("tool-*.json")) + [attempt.root / "events.jsonl", attempt.root / "run.json"]
+        self.assertEqual(len(files), len(retained["start_attempt"]) + len(retained["describe_task"]) + len(retained["describe_rules"]) + len(retained["check_geometry"]) + 2)
+        for file in files:
             text = file.read_text(encoding="utf-8")
             for marker in integration.SOURCE_TEXT:
                 self.assertNotIn(marker, text, file.name)
+            self.assertIsNone(integration.SOURCE_PROSE.search(text), file.name)
 
     def assert_separate_metrics(self, metrics):
         dynamic = metrics["dynamic_volume"]

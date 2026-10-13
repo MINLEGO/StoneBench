@@ -46,5 +46,7 @@ public final class Task {
         task.add("prepared_region", scope);
         return task;
     }
+    /** A task persisted by an earlier build may still carry the rules link; the agent never receives it. */
+    public static JsonObject restored(JsonObject persisted) {JsonObject task=persisted.deepCopy();task.remove("rules_reference");return task;}
     public static JsonObject position(int x,int y,int z) { JsonObject p=new JsonObject();p.addProperty("x",x);p.addProperty("y",y);p.addProperty("z",z);return p; }
 }

@@ -14,9 +14,13 @@ public final class GeometryChecks {
         if(value.isJsonObject())for(var entry:value.getAsJsonObject().entrySet()){
             require(!Set.of("source","sources","revision_id","source_index","locator","locator_type","authority","native_cache_sha256","rules_reference").contains(entry.getKey())&&!entry.getKey().contains("source_index"),"Citation key "+path+"."+entry.getKey());noSources(entry.getValue(),path+"."+entry.getKey());}
         else if(value.isJsonArray())for(JsonElement item:value.getAsJsonArray())noSources(item,path+"[]");
-        else if(value.isJsonPrimitive()&&value.getAsJsonPrimitive().isString())for(String marker:List.of("docs.google.com","github.com","sha256","index ","Dummies"))require(!value.getAsString().contains(marker),"Citation text "+path+": "+value.getAsString());
+        else if(value.isJsonPrimitive()&&value.getAsJsonPrimitive().isString())for(String marker:List.of("docs.google.com","github.com","sha256"))require(!value.getAsString().contains(marker),"Citation text "+path+": "+value.getAsString());
+        if(value.isJsonPrimitive()&&value.getAsJsonPrimitive().isString())require(!java.util.regex.Pattern.compile("(Rules|Dummies|index)\\s+(index\\s+)?\\d{3,}").matcher(value.getAsString()).find(),"Citation prose "+path+": "+value.getAsString());
     }
     static void presentation(JsonObject closed,JsonObject open){
+        JsonObject persisted=Task.describe("2x2-volume",null);persisted.addProperty("rules_reference",Task.RULES);JsonObject restored=Task.restored(persisted);
+        require(!restored.has("rules_reference")&&persisted.has("rules_reference")&&restored.get("width").equals(persisted.get("width"))&&restored.get("passage").equals(persisted.get("passage")),"A task restored from an earlier checkpoint loses its rules link without mutating the stored context");
+        noSources(restored,"restored_task");
         JsonObject full=Rules.describe(),agent=Rules.agentRules(full);noSources(agent,"describe_rules");
         require(full.getAsJsonArray("criteria").size()==16&&agent.getAsJsonArray("criteria").size()==14,"Three community criteria become one summary");
         for(JsonElement item:agent.getAsJsonArray("criteria")){JsonObject row=item.getAsJsonObject();require(row.has("expected")&&row.has("observation")&&row.has("coverage")&&row.has("mandatory"),"Agent criterion keeps behavior, scope, limits and mandatory status: "+row);}
@@ -25,6 +29,9 @@ public final class GeometryChecks {
         require(JsonParser.parseString(full.toString()).getAsJsonObject().getAsJsonArray("criteria").get(0).getAsJsonObject().has("sources"),"The audit form keeps its sources");
         require(agent.toString().getBytes(java.nio.charset.StandardCharsets.UTF_8).length<8192,"describe_rules payload leaves ample margin below 16 KiB: "+agent.toString().getBytes(java.nio.charset.StandardCharsets.UTF_8).length);
         for(JsonObject report:List.of(closed,open)){
+            JsonArray rows=report.getAsJsonArray("criteria");
+            for(int i=rows.size()-2;i<rows.size();i++){JsonObject a=rows.get(rows.size()-3).getAsJsonObject(),b=rows.get(i).getAsJsonObject();require(a.get("status").equals(b.get("status"))&&a.get("diagnostic").equals(b.get("diagnostic"))&&a.get("observed").equals(b.get("observed")),"The three outside-alpha rows must stay identical to be summarized as one");}
+            require(rows.get(rows.size()-3).getAsJsonObject().get("id").getAsString().equals("record_reliability")&&rows.get(rows.size()-1).getAsJsonObject().get("id").getAsString().equals("record_seamless"),"Outside-alpha rows come last");
             JsonObject view=Rules.agentGeometry(report);noSources(view,"check_geometry");
             for(String key:List.of("geometry_status","conforms_to_alpha","measurement_roles","coverage"))require(view.get(key).equals(report.get(key)),"Unchanged "+key);
             for(JsonElement item:view.getAsJsonArray("criteria")){JsonObject row=item.getAsJsonObject();require(row.has("status")&&row.has("observed")&&row.has("diagnostic")&&row.has("expected"),"Diagnostic keeps status, explanation and observed evidence: "+row);require(row.get("status").getAsString().equals(row.get("id").getAsString().equals("record_eligibility")?"not_verified":status(report,row.get("id").getAsString())),"Status unchanged "+row.get("id"));}
