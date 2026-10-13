@@ -86,7 +86,7 @@ class VerificationRuntimeIntegration(integration.StoneBenchRuntimeIntegration):
             open_boundary = self.boundary(self.local(first, bad_open)[0], "repeater", 1, "open")
             self.assertEqual(self.criterion_status(open_boundary["geometry"], "frame_state"), "failed", self.report_context(bad_open))
             fault = next(row for row in bad_open["faults"] if row["id"] == "frame_state")  # the agent's own view of that same fault
-            self.assertEqual((fault["status"], fault["mode"], fault["cycle"], fault["boundary"]), ("failed", "repeater", 1, "open"))
+            self.assertEqual((fault["status"], fault["mode"], fault["cycles"], fault["boundary"]), ("failed", "repeater", [1], "open"))
             self.assertTrue(fault["expected"] and fault["diagnostic"] and "observed" in fault)
             self.assertEqual(self.report_criterion(bad_open, "frame_state")["status"], "failed")
             self.assertTrue(bad_open["faults"] and all(row["status"] in ("failed", "indeterminate") for row in bad_open["faults"]))
@@ -222,7 +222,8 @@ class VerificationRuntimeIntegration(integration.StoneBenchRuntimeIntegration):
         else:
             self.assertEqual(report["criteria"], [])
         self.assertEqual(len(full["boundaries"]), len(report["boundaries"]))
-        self.assertEqual(len([row for row in full["criteria"] if row["mandatory"] and row["status"] != "satisfied"]), len(report["faults"]))
+        self.assertEqual(len([row for row in full["criteria"] if row["mandatory"] and row["status"] != "satisfied"]),
+                         sum(len(row.get("cycles", [None])) for row in report["faults"]))  # one entry per fault, listing its cycles
         if full.get("measurements", {}).get("transitions"):
             self.assertTrue(all(row["movements"] for row in full["measurements"]["transitions"]))
             self.assertEqual(len(full["measurements"]["transitions"]), len(report["measurements"]["transitions"]))

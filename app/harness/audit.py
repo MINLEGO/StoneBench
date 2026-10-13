@@ -30,13 +30,26 @@ def outcomes(rows):
     return list(result.values())
 
 
-FAULT_KEYS = ("id", "status", "mode", "cycle", "boundary", "expected", "observed", "diagnostic")
+FAULT_KEYS = ("id", "status", "mode", "boundary", "expected", "observed", "diagnostic")
 EVIDENCE_KEYS = ("sources", "movements", "excluded", "conditional_roles")
 
 
-def faults(rows):
-    """The agent's fault list: mandatory rows not satisfied, minus citations."""
-    return [{key: row[key] for key in FAULT_KEYS if key in row} for row in rows if row["mandatory"] and row["status"] != "satisfied"]
+def faults(rows, report):
+    """The agent's fault list: mandatory rows not satisfied, minus citations. Evidence already at the root of the answer is
+    not repeated, and the same fault over several cycles is one entry listing them."""
+    difference = report.get("first_difference")
+    if isinstance(difference, dict):
+        difference = {key: item for key, item in difference.items() if key not in ("mode", "boundary", "first_tick")}
+    listed = {}
+    for row in rows:
+        if row["mandatory"] and row["status"] != "satisfied":
+            fault = {key: row[key] for key in FAULT_KEYS if key in row}
+            if fault.get("observed") is not None and fault["observed"] in (report.get("recurrence_comparisons"), difference):
+                del fault["observed"]
+            entry = listed.setdefault(json.dumps(fault, sort_keys=True), fault)
+            if "cycle" in row:
+                entry.setdefault("cycles", []).append(row["cycle"])
+    return list(listed.values())
 
 
 def lean(value):
@@ -150,8 +163,8 @@ def _load(server_root, request_id, checkpoint_id, visible):
         if report.get(key) != visible.get(key):
             raise AuditError(f"Audit and MCP verification status disagree on {key}")
     # The MCP status is the concise form of the local rows: outcomes, faults and measurements are derived, never trusted.
-    rows = report.get("criteria")
-    if not isinstance(rows, list) or visible.get("criteria") != outcomes(rows) or visible.get("faults") != faults(rows):
+    rows = report.get("criteria", [])  # absent in an infrastructure fallback: no rows, reported as missing evidence below
+    if not isinstance(rows, list) or visible.get("criteria") != outcomes(rows) or visible.get("faults") != faults(rows, report):
         raise AuditError("Audit and MCP verification status disagree on criteria")
     if visible.get("measurements") != lean(report.get("measurements")):
         raise AuditError("Audit and MCP verification status disagree on measurements")

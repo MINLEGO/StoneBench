@@ -37,7 +37,15 @@ final class Verification {
     private static JsonObject envelope(String id,String status){JsonObject value=new JsonObject();value.addProperty("request_id",id);value.addProperty("status",status);JsonObject result=new JsonObject();result.add("verification",value);return result;}
     static JsonObject status(JsonObject args) throws IOException {
         String id=UUID.fromString(Task.string(args,"request_id")).toString();Path path=Path.of("stonebench/verifications",id);
-        if(Files.exists(path.resolve("visible.json"))){JsonObject result=new JsonObject();result.add("verification",CheckpointStorage.read(path.resolve("visible.json")));return result;}
+        if(Files.exists(path.resolve("visible.json"))){
+            JsonObject visible=CheckpointStorage.read(path.resolve("visible.json"));
+            // A visible.json from a build before the concise form has no `faults`: rebuild it from the local report, never serve it.
+            if(!visible.has("faults")){
+                if(!Files.exists(path.resolve("completed.json")))throw new IllegalArgumentException("Unknown verification request");
+                visible=publish(path,CheckpointStorage.read(path.resolve("completed.json")));
+            }
+            JsonObject result=new JsonObject();result.add("verification",visible);return result;
+        }
         if(directory==null || !directory.equals(path))throw new IllegalArgumentException("Unknown verification request");
         JsonObject result=envelope(id,Files.exists(path.resolve("cancel.json"))?"cancelling":"running");
         if(Files.exists(path.resolve("heartbeat.json")))result.getAsJsonObject("verification").add("progress",CheckpointStorage.read(path.resolve("heartbeat.json")));
@@ -60,18 +68,22 @@ final class Verification {
     static JsonObject agentReport(JsonObject full) {
         JsonObject view=new JsonObject();
         for(String key:SHOWN)if(full.has(key))view.add(key,full.get(key).deepCopy());
-        Map<String,JsonObject> outcomes=new LinkedHashMap<>();JsonArray faults=new JsonArray();
+        Map<String,JsonObject> outcomes=new LinkedHashMap<>(),faults=new LinkedHashMap<>();
+        JsonElement recurrence=full.get("recurrence_comparisons"),difference=withoutLocation(full.get("first_difference"));
         if(full.has("criteria"))for(JsonElement item:full.getAsJsonArray("criteria")) {
             JsonObject row=item.getAsJsonObject();String id=row.get("id").getAsString(),status=row.get("status").getAsString();
             JsonObject outcome=outcomes.computeIfAbsent(id,key->{JsonObject value=new JsonObject();value.addProperty("id",key);value.add("mandatory",row.get("mandatory"));value.addProperty("status",status);return value;});
             if(SEVERITY.indexOf(status)>SEVERITY.indexOf(outcome.get("status").getAsString()))outcome.addProperty("status",status);
             if(row.get("mandatory").getAsBoolean() && !status.equals("satisfied")) {
                 JsonObject fault=new JsonObject();
-                for(String key:List.of("id","status","mode","cycle","boundary","expected","observed","diagnostic"))if(row.has(key))fault.add(key,row.get(key).deepCopy());
-                faults.add(fault);
+                for(String key:List.of("id","status","mode","boundary","expected","observed","diagnostic"))if(row.has(key))fault.add(key,row.get(key).deepCopy());
+                // Evidence already at the root of the answer is not repeated per fault; the same fault over several cycles is one entry.
+                if(fault.has("observed") && (fault.get("observed").equals(recurrence) || fault.get("observed").equals(difference)))fault.remove("observed");
+                JsonObject entry=faults.computeIfAbsent(fault.toString(),key->fault);
+                if(row.has("cycle")){if(!entry.has("cycles"))entry.add("cycles",new JsonArray());entry.getAsJsonArray("cycles").add(row.get("cycle"));}
             }
         }
-        JsonArray criteria=new JsonArray();outcomes.values().forEach(criteria::add);view.add("criteria",criteria);view.add("faults",faults);
+        JsonArray criteria=new JsonArray();outcomes.values().forEach(criteria::add);view.add("criteria",criteria);JsonArray listed=new JsonArray();faults.values().forEach(listed::add);view.add("faults",listed);
         if(full.has("measurements"))view.add("measurements",withoutEvidence(full.get("measurements")));
         JsonArray boundaries=new JsonArray();
         if(full.has("boundaries"))for(JsonElement item:full.getAsJsonArray("boundaries")) {
@@ -84,6 +96,11 @@ final class Verification {
             boundaries.add(shown);
         }
         view.add("boundaries",boundaries);return view;
+    }
+    /** first_difference minus where the verifier found it: what a mode_equivalence fault reports as observed. */
+    private static JsonElement withoutLocation(JsonElement value) {
+        if(value==null || !value.isJsonObject())return null;
+        JsonObject copy=value.getAsJsonObject().deepCopy();for(String key:List.of("mode","boundary","first_tick"))copy.remove(key);return copy;
     }
     /** Measurements keep status, value, gaps, envelopes and timestamps; citations, per-movement samples and exclusion/role lists stay local. */
     private static JsonElement withoutEvidence(JsonElement value) {
@@ -114,9 +131,12 @@ final class Verification {
         if(!differences.isEmpty()) {report.addProperty("verdict","infrastructure_error");report.addProperty("conforms_to_alpha",false);}
         if(report.has("measurements")) report.getAsJsonObject("measurements").addProperty("interpretation",report.get("conforms_to_alpha").getAsBoolean()?"conforms_to_alpha_measurements":"alpha_diagnostic");
         CheckpointStorage.writeAtomic(directory.resolve("completed.json"),report);
+        JsonObject result=new JsonObject();result.add("verification",publish(directory,report));directory=null;before=null;return result;
+    }
+    /** Writes the concise answer beside the local report and returns it. */
+    private static JsonObject publish(Path request,JsonObject report) throws IOException {
         JsonObject visible=agentReport(report);
-        visible.add("working_after",Artifacts.write("verification_working_after",List.of(current)));
-        CheckpointStorage.writeAtomic(directory.resolve("visible.json"),visible);
-        JsonObject result=new JsonObject();result.add("verification",visible);directory=null;before=null;return result;
+        visible.add("working_after",Artifacts.write("verification_working_after",List.of(report.get("working_after"))));
+        CheckpointStorage.writeAtomic(request.resolve("visible.json"),visible);return visible;
     }
 }

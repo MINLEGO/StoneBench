@@ -63,6 +63,30 @@ public final class VerificationChecks {
         require(snapshot.getAsJsonArray("entries").get(0).getAsJsonObject().get("world_time").getAsInt()==35,"Boundary snapshot artifact stays readable");
         require(full.getAsJsonArray("criteria").get(0).getAsJsonObject().has("sources")&&full.getAsJsonObject("measurements").getAsJsonObject("dynamic_volume").has("sources"),"The report passed in is not altered");
 
+        // The same fault over several cycles is one entry; evidence already at the root is not repeated.
+        JsonObject cycles=full.deepCopy();JsonArray more=cycles.getAsJsonArray("criteria");
+        more.add(row("continuable","indeterminate",true,"repeater",2,"closed",JsonNull.INSTANCE));
+        JsonArray comparisons=JsonParser.parseString("[{\"cycle\":1,\"equal\":false}]").getAsJsonArray();cycles.add("recurrence_comparisons",comparisons);
+        JsonObject recurrence=row("fixed_passage","failed",true,"repeater",1,"closed",comparisons.deepCopy());recurrence.addProperty("id","recurrence");more.add(recurrence);
+        JsonObject grouped=Verification.agentReport(cycles);JsonArray listed=grouped.getAsJsonArray("faults");
+        require(listed.size()==3,"One fault per id/mode/boundary: "+listed);
+        JsonObject repeated=listed.get(1).getAsJsonObject();require(repeated.get("id").getAsString().equals("continuable")&&repeated.getAsJsonArray("cycles").toString().equals("[1,2]")&&!repeated.has("cycle"),"Cycles are listed once: "+repeated);
+        require(listed.get(2).getAsJsonObject().get("id").getAsString().equals("recurrence")&&!listed.get(2).getAsJsonObject().has("observed"),"Evidence shown at the root is not repeated");
+
+        // A visible.json written before the concise form is rebuilt from the local report, never served.
+        String id=UUID.randomUUID().toString();java.nio.file.Path directory=java.nio.file.Path.of("stonebench","verifications",id);
+        try {
+            java.nio.file.Files.createDirectories(directory);
+            JsonObject legacy=new JsonObject();legacy.add("full_report",new JsonObject());legacy.add("criteria",full.getAsJsonArray("criteria").deepCopy());
+            CheckpointStorage.writeAtomic(directory.resolve("visible.json"),legacy);
+            JsonObject request=new JsonObject();request.addProperty("request_id",id);
+            boolean refused=false;try{Verification.status(request);}catch(IllegalArgumentException expected){refused=true;}require(refused,"A legacy answer without its local report is refused");
+            CheckpointStorage.writeAtomic(directory.resolve("completed.json"),full);
+            JsonObject served=Verification.status(request).getAsJsonObject("verification");
+            GeometryChecks.noSources(served,"legacy visible.json");require(!served.has("full_report")&&served.has("faults")&&served.get("verdict").getAsString().equals("failed"),"The legacy answer is rebuilt concise");
+            require(CheckpointStorage.read(directory.resolve("visible.json")).has("faults"),"The rebuilt answer replaces the legacy file");
+        } catch(java.io.IOException error){throw new AssertionError(error);}
+
         // Incomplete attempts: an infrastructure fallback has no criteria, boundaries or measurements.
         JsonObject lost=new JsonObject();lost.addProperty("request_id","r");lost.addProperty("verdict","infrastructure_error");lost.addProperty("conforms_to_alpha",false);lost.addProperty("stop_cause","owner_heartbeat_lost");lost.addProperty("infrastructure_error","Supervisor heartbeat absent");lost.addProperty("status","completed");
         JsonObject incomplete=Verification.agentReport(lost);GeometryChecks.noSources(incomplete,"incomplete");

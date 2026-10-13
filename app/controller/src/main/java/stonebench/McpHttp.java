@@ -91,9 +91,9 @@ public final class McpHttp implements AutoCloseable {
             JsonObject tool=new JsonObject(),schema=property("object"),properties=new JsonObject();JsonArray required=new JsonArray();
             tool.addProperty("name",name);tool.addProperty("description",switch(name) {
                 case "verification_snapshot"->"Read complete raw state, construction partition, clocks and declared adapter without advancing time.";
-                case "verification_status"->"Read an asynchronous verification job progress or immutable final report by request_id; no game ticks.";
+                case "verification_status"->"Read an asynchronous verification job progress or the concise final result (verdict, criteria outcomes, faults, measurements) by request_id; no game ticks.";
                 case "cancel_verification"->"Cancel an asynchronous job; the owning supervisor stops only its copy processes and preserves evidence.";
-                case "verify_checkpoint"->"Start an independent-copy verification job and return request_id immediately; poll verification_status for the final report.";
+                case "verify_checkpoint"->"Start an independent-copy verification job and return request_id immediately; poll verification_status for the result.";
                 case "start_attempt"->"Initialize one fresh isolated regular DOOR attempt; budget in tokens is supplied by the caller.";
                 case "describe_task"->"Describe immutable task, effective clock, environment and chunk readiness.";
                 case "read_blocks"->"Read 1..256 actual block states in prepared chunks; larger reads must be split.";

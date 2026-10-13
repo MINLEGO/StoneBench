@@ -55,16 +55,27 @@ def visible(full):
     """What the MCP status shows (written independently of audit.outcomes): decisive fields, one outcome per criterion id,
     mandatory faults without citations, measurements without evidence lists. No full_report identifier exists."""
     shown = {key: deepcopy(full.get(key)) for key in audit.COHERENT}
-    rows = full["criteria"] if isinstance(full["criteria"], list) and all(isinstance(row, dict) for row in full["criteria"]) else []
+    rows = full.get("criteria") if isinstance(full.get("criteria"), list) and all(isinstance(row, dict) for row in full["criteria"]) else []
     order = ("satisfied", "not_verified", "indeterminate", "failed")
     outcomes = {}
     for row in rows:
         outcome = outcomes.setdefault(row["id"], {"id": row["id"], "mandatory": row["mandatory"], "status": row["status"]})
         outcome["status"] = max(outcome["status"], row["status"], key=order.index)
     shown["criteria"] = list(outcomes.values())
-    keys = ("id", "status", "mode", "cycle", "boundary", "expected", "observed", "diagnostic")
-    shown["faults"] = [{key: row[key] for key in keys if key in row} for row in rows if row["mandatory"] and row["status"] != "satisfied"]
-    shown["measurements"] = without_evidence(full["measurements"])
+    keys = ("id", "status", "mode", "boundary", "expected", "observed", "diagnostic")
+    shown["faults"] = []
+    for row in rows:
+        if row["mandatory"] and row["status"] != "satisfied":
+            fault = {key: row[key] for key in keys if key in row}
+            if fault.get("observed") is not None and fault["observed"] == full.get("recurrence_comparisons"):
+                del fault["observed"]  # already shown at the root
+            twin = next((other for other in shown["faults"] if {k: v for k, v in other.items() if k != "cycles"} == fault), None)
+            if twin is None:
+                shown["faults"].append(twin := fault)
+            if "cycle" in row:
+                twin.setdefault("cycles", []).append(row["cycle"])
+    if "measurements" in full:
+        shown["measurements"] = without_evidence(full["measurements"])
     return shown
 
 
@@ -249,6 +260,37 @@ class LocalAudit(unittest.TestCase):
             damage(changed)
             with self.assertRaises(audit.AuditError):
                 audit.load(self.root, REQUEST, CHECKPOINT, changed)
+
+    def test_faults_group_cycles_and_omit_evidence_shown_at_the_root(self):
+        full = report(self.manifest)
+        again = {"id": "continuable", "mandatory": True, "status": "indeterminate", "mode": "repeater", "boundary": "closed", "diagnostic": "d", "sources": [SOURCE()]}
+        full["criteria"] += [dict(again, cycle=1), dict(again, cycle=2), dict(again, cycle=2, boundary="open"),
+                             {"id": "recurrence", "mandatory": True, "status": "failed", "observed": [{"cycle": 1}], "diagnostic": "d", "sources": [SOURCE()]}]
+        full["recurrence_comparisons"] = [{"cycle": 1}]
+        full.update(verdict="failed", conforms_to_alpha=False)
+        self.write(full)
+        shown = visible(full)
+        self.assertEqual([(row["id"], row["boundary"] if "boundary" in row else None, row.get("cycles")) for row in shown["faults"]],
+                         [("continuable", "closed", [1, 2]), ("continuable", "open", [2]), ("recurrence", None, None)])
+        self.assertNotIn("observed", shown["faults"][2])
+        self.assertTrue(audit.load(self.root, REQUEST, CHECKPOINT, shown)["complete"])  # the derivation agrees
+        shown["faults"][0]["cycles"] = [1]
+        with self.assertRaises(audit.AuditError):
+            audit.load(self.root, REQUEST, CHECKPOINT, shown)
+
+    def test_infrastructure_fallback_without_criteria_is_missing_evidence_not_an_error(self):
+        """The heartbeat-lost fallback has no criteria, boundaries or measurements: incomplete, never positive, never an audit error."""
+        full = {key: report(self.manifest)[key] for key in ("request_id", "checkpoint_id", "manifest_sha256", "audit")}
+        full.update(status="completed", verdict="infrastructure_error", conforms_to_alpha=False, stop_cause="owner_heartbeat_lost",
+                    infrastructure_error="Supervisor heartbeat absent")
+        self.write(full)
+        shown = dict(visible(full), criteria=[], faults=[])
+        local = audit.load(self.root, REQUEST, CHECKPOINT, shown)
+        self.assertFalse(local["complete"])
+        self.assertIn("criteria", local["missing"])
+        self.assertFalse(audit.positive(local))
+        with self.assertRaises(audit.AuditError):
+            audit.load(self.root, REQUEST, CHECKPOINT, dict(shown, criteria=[{"id": "x", "mandatory": True, "status": "satisfied"}]))
 
     def test_unreadable_or_unbound_file_is_an_audit_error(self):
         full = report(self.manifest)
