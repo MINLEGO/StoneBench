@@ -32,6 +32,11 @@ WRITE_TOOLS = frozenset({"modify_blocks", "advance", "transition", "declare_inpu
 PROMPT = """Construct the task's regular DOOR using the discovered StoneBench MCP tools.
 Read the task, rules and diagnostic limits. List block ids with describe_blocks; call describe_block only for a block whose details you need. Game ticks and wall time are separate.
 Save immutable checkpoints only at established rest; incomplete constructions may be saved.
+Work in short loops: decide only the next small step, place it with modify_blocks, observe the real result
+(advance or transition, read_region, check_geometry), then correct. Do not design the whole door in your head:
+reasoning that was never tested in the world is unreliable and counts against your budget. A simple door that
+you built and observed is worth more than an optimal design that exists only in thought. Once something
+stands at rest, save a checkpoint, then improve it.
 The harness reports phase and budget before each model call. Reported tokens include construction
 and finalization (including reasoning). Forecasts are estimates. In finalization you may consult,
 verify independent copies and select an existing checkpoint, but cannot mutate, actuate, advance
