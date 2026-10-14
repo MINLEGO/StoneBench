@@ -10,7 +10,7 @@ from pathlib import Path
 import sys
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
-from app.campaign.plan import BUDGET, CALIBRATION_BUDGET, GENERATION_RETRY_WAITS, MODEL, PINS, PROVIDER, digest, load_secret, plan_hash, require_authorization
+from app.campaign.plan import BUDGET, CALIBRATION_BUDGET, GENERATION_RETRY_WAITS, MODEL, REASONING_REQUEST, PINS, PROVIDER, digest, load_secret, plan_hash, require_authorization
 from app.harness.inspect_task import stonebench_task, encode
 import app.harness.scripted
 from inspect_ai import eval_async
@@ -80,7 +80,7 @@ def resolve_provider_evidence(row,mode="paid"):
     request_bound=row.get("requested_model")==slug and row.get("requested_provider")==PROVIDER
     if not request_bound:gaps.append("requested_model_or_provider_outside_plan")
     reasoning=row.get("requested_reasoning") or {}
-    if reasoning!={"enabled":True} or reasoning.get("enabled") is not True:gaps.append("requested_reasoning_outside_plan")
+    if reasoning!=REASONING_REQUEST:gaps.append("requested_reasoning_outside_plan")
     allowed_caps={CALIBRATION_BUDGET.final_completion} if mode=="calibration" else {BUDGET.construction_output,BUDGET.final_completion}
     if not token_count(row.get("requested_max_tokens")) or row["requested_max_tokens"] not in allowed_caps:
         gaps.append("requested_completion_bound_outside_plan")
@@ -116,6 +116,7 @@ def resolve_provider_evidence(row,mode="paid"):
     for field,raw in (("native_tokens_prompt","prompt_tokens"),("native_tokens_completion","completion_tokens")):
         if metadata.get(field) is not None and metadata[field]!=usage.get(raw):gaps.append("provider_usage_sources_disagree")
     reasoning=(usage.get("completion_tokens_details") or {}).get("reasoning_tokens")
+    if token_count(reasoning) and reasoning>REASONING_REQUEST["max_tokens"]:gaps.append("reasoning_cap_exceeded_observed")
     if metadata.get("native_tokens_reasoning") is not None and reasoning is not None and metadata["native_tokens_reasoning"]!=reasoning:
         gaps.append("provider_reasoning_sources_disagree")
     if not metadata and direct is None:gaps.append("provider_identity_unavailable_or_unexpected")
@@ -289,6 +290,7 @@ async def run():
             save(root,"reset-check.json",{"checked":True,"preparation_ticks":description["preparation_ticks"],
                 "world_time":snapshot["checkpoint_state"]["world_time"],"sampled_positions":empty_positions})
         config = GenerateConfig(temperature=0, parallel_tool_calls=False, max_retries=0, cache_prompt=False,
+            reasoning_tokens=REASONING_REQUEST["max_tokens"],
             extra_headers={"X-OpenRouter-Metadata":"enabled"})
         task, attempt = stonebench_task(url, budget, root / "harness", task_id=task_id, config=config, initialize=False,
             max_context_bytes=524288,stop_on_missing_usage=True,server_root=server_root,

@@ -18,6 +18,9 @@ CALIBRATION_BUDGET = Budget(total=400000, construction_output=32768, final_outpu
 # Waits before each resend of an identical request after a transient provider/transport failure (connection loss,
 # timeout, 429, 5xx). Calibration never resends: it must show the provider's raw behaviour.
 GENERATION_RETRY_WAITS = (10, 30)
+# Cap on reasoning tokens per request (user decision 2026-10-14): without it the model spent its whole completion
+# bound designing in thought. Whether the route honours it is checked on every observed response.
+REASONING_REQUEST = {"enabled": True, "max_tokens": 8000}
 SECRET_FILE = Path(r"C:\Users\minle\Documents\projets\StoneBench\.runtime\openrouter.env")
 PINS = {"minecraft": "1.21.11", "yarn": "1.21.11+build.3", "fabric_loader": "0.19.5",
         "inspect_ai": "0.3.278", "mcp": "1.26.0", "controller": "0.1.0", "protocol": "alpha-issue12-13",
@@ -33,7 +36,7 @@ def plan():
     # No cache discount assumed. Reasoning is completion, never a second charge.
     return {"schema": 1, "status": "provisional_offline_not_provider_calibrated", "tasks": list(TASKS),
             "model": MODEL, "provider": PROVIDER, "pins": PINS, "budget": asdict(BUDGET),
-            "reasoning_request":{"enabled":True},
+            "reasoning_request":dict(REASONING_REQUEST),
             "max_context_bytes":524288,"stop_on_missing_usage":True,
             "generation_retry_waits_seconds":list(GENERATION_RETRY_WAITS),
             "retry_accounting":"a request lost without a response is never counted as usage: total_tokens becomes null, its context+completion bound counts against the budget",

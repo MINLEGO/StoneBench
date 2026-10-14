@@ -4,7 +4,7 @@ from pathlib import Path
 from unittest.mock import patch
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]))
 import httpx
-from app.campaign.plan import PROVIDER
+from app.campaign.plan import PROVIDER, REASONING_REQUEST
 from app.campaign.run_attempt import validate_provider
 
 FIXTURES=Path(__file__).resolve().parents[1]/"docs/evidence/issue-15/calibration"
@@ -13,7 +13,7 @@ FIXTURES=Path(__file__).resolve().parents[1]/"docs/evidence/issue-15/calibration
 def response_rows():
     # The real responses were requested under the earlier two-endpoint plan: only the recorded request is rebound to the current plan.
     rows=json.loads((FIXTURES/"response-fixtures.json").read_text())
-    for row in rows:row["requested_provider"]=copy.deepcopy(PROVIDER)
+    for row in rows:row["requested_provider"]=copy.deepcopy(PROVIDER);row["requested_reasoning"]=dict(REASONING_REQUEST)
     return rows
 
 class RevalidationTests(unittest.IsolatedAsyncioTestCase):
@@ -86,5 +86,13 @@ class RevalidationTests(unittest.IsolatedAsyncioTestCase):
         construction=copy.deepcopy(base);construction[0]["requested_max_tokens"]=32768
         self.assertTrue((await self.check_rows(copy.deepcopy(construction),fetched,"paid"))["accepted"])
         self.assertFalse((await self.check_rows(construction,fetched,"calibration"))["accepted"])
+
+    async def test_reasoning_above_the_requested_cap_is_rejected(self):
+        rows=response_rows()
+        rows[0]["raw_provider_usage"].update(completion_tokens=9000,total_tokens=3122+9000)
+        rows[0]["raw_provider_usage"]["completion_tokens_details"]["reasoning_tokens"]=REASONING_REQUEST["max_tokens"]+1
+        validation=await self.check_rows(rows)
+        self.assertFalse(validation["accepted"])
+        self.assertIn("reasoning_cap_exceeded_observed",validation["gaps"])
 
 if __name__=="__main__":unittest.main()
