@@ -17,7 +17,7 @@ class InputRuntimeIntegration(ObservationRuntimeIntegration):
                 self.assert_ok(await self.call(s, "start_attempt", {"task_id": TASK_ID}))
             session = self.sessions[0]
             catalog = await self.call(session, "describe_blocks")
-            buttons = [row["id"] for row in catalog["catalog"] if row["id"].endswith("_button") and row["id"] != "minecraft:stone_button"]
+            buttons = [block for block in catalog["catalog"] if block.endswith("_button") and block != "minecraft:stone_button"]
             self.assertTrue(buttons)
             await self.negatives(session)
             await self.lateral_and_partial(self.sessions[1])
@@ -57,14 +57,14 @@ class InputRuntimeIntegration(ObservationRuntimeIntegration):
         cleanup = [placement(point(x,y,z), "minecraft:air") for x in range(1025,1039) for y in range(79,83) for z in range(1029,1034)]
         for offset in range(0,len(cleanup),256):
             await self.modify(s, cleanup[offset:offset+256], False)
-        floor = [placement(point(x,79,z), "minecraft:stone") for x in range(1028,1039) for z in range(1029,1034)]
-        blocks = floor + [placement(point(1028,80,1030), "minecraft:stone"), placement(point(1027,80,1030), device, {"face":"wall", "facing":"west"}), placement(point(1029,80,1032), "minecraft:chest", inventory=[{"slot":0,"item":"minecraft:diamond","count":7}])]
+        floor = [placement(point(x,79,z), "minecraft:quartz_block") for x in range(1028,1039) for z in range(1029,1034)]
+        blocks = floor + [placement(point(1028,80,1030), "minecraft:quartz_block"), placement(point(1027,80,1030), device, {"face":"wall", "facing":"west"}), placement(point(1029,80,1032), "minecraft:chest", inventory=[{"slot":0,"item":"minecraft:diamond","count":7}])]
         if name.startswith("repeater"):
             blocks.append(placement(point(1029,80,1030), "minecraft:repeater", {"facing":"west", "delay":"4" if name.endswith("4") else "1"}))
         else:
             blocks.append(placement(point(1029,80,1030), "minecraft:redstone_wall_torch", {"facing":"east"}))
         if name == "piston":
-            blocks += [placement(point(1030,80,1030), "minecraft:redstone_wire"), placement(point(1031,80,1030), "minecraft:sticky_piston", {"facing":"east"}), placement(point(1032,80,1030), "minecraft:stone")]
+            blocks += [placement(point(1030,80,1030), "minecraft:redstone_wire"), placement(point(1031,80,1030), "minecraft:sticky_piston", {"facing":"east"}), placement(point(1032,80,1030), "minecraft:quartz_block")]
         await self.modify(s, blocks)
         self.assert_ok(await self.call(s, "advance", {"ticks":12}))
         if not declare:
@@ -149,7 +149,7 @@ class InputRuntimeIntegration(ObservationRuntimeIntegration):
             source=point(1030+dx,80,1030+dz)
             output=point(1030-dx,80,1030-dz)
             opposite={"west":"east","east":"west","north":"south","south":"north"}[orientation]
-            await self.modify(s,[placement(support,"minecraft:stone"),placement(source,"minecraft:stone_button",{"face":"wall","facing":orientation}),placement(output,"minecraft:redstone_wall_torch",{"facing":opposite})])
+            await self.modify(s,[placement(support,"minecraft:quartz_block"),placement(source,"minecraft:stone_button",{"face":"wall","facing":orientation}),placement(output,"minecraft:redstone_wall_torch",{"facing":opposite})])
             self.assert_ok(await self.call(s,"advance",{"ticks":4}))
             declared=await self.call(s,"declare_input",{"device":"minecraft:stone_button","position":source,"orientation":orientation,"input_block":support})
             self.assert_ok(declared)
@@ -174,7 +174,7 @@ class InputRuntimeIntegration(ObservationRuntimeIntegration):
             self.assertFalse(refused["mutated"])
             old=[support,source,output]
         support,source=point(1300,-64,1300),point(1301,-64,1300)
-        await self.modify(s,[placement(support,"minecraft:stone"),placement(source,"minecraft:lever",{"face":"wall","facing":"east"})])
+        await self.modify(s,[placement(support,"minecraft:quartz_block"),placement(source,"minecraft:lever",{"face":"wall","facing":"east"})])
         self.assert_ok(await self.call(s,"declare_input",{"device":"minecraft:lever","position":source,"orientation":"east","input_block":support}))
         below=await self.call(s,"prepare_input",{"mode":"repeater"})
         self.assert_error(below,"validation")
@@ -197,13 +197,13 @@ class InputRuntimeIntegration(ObservationRuntimeIntegration):
         differences=await self.pages(s,changed["diff"],256)
         self.assertTrue(any("inventory" in row["field"] for row in differences))
         self.evidence["negative_controls"].append({"inventory_fields":differences})
-        await self.modify(s,[placement(point(1026,80,1030),"minecraft:stone")],False)
+        await self.modify(s,[placement(point(1026,80,1030),"minecraft:quartz_block")],False)
         rejected=await self.call(s,"prepare_input",{"mode":"repeater"})
         self.assert_error(rejected,"validation")
         self.assertFalse(rejected["mutated"])
         self.evidence["negative_controls"].append(rejected)
         await self.fixture(s,"torch","minecraft:lever",False)
-        await self.modify(s,[placement(point(1026,80,1030),"minecraft:stone")],False)
+        await self.modify(s,[placement(point(1026,80,1030),"minecraft:quartz_block")],False)
         exterior=await self.call(s,"declare_input",args)
         self.assert_error(exterior,"validation")
         self.assertIn("exterior",exterior["error"]["message"])

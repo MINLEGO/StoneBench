@@ -9,12 +9,15 @@ from app.harness.inspect_task import PROMPT
 
 TASKS = tuple(f"{size}x{size}-{objective}" for size in range(2, 6) for objective in ("volume", "speed"))
 MODEL = "openrouter/xiaomi/mimo-v2.6-flash"
-PROVIDER = {"order": ["makora/fp8", "xiaomi/fp8"], "only": ["makora/fp8", "xiaomi/fp8"],
+PROVIDER = {"order": ["makora/fp8"], "only": ["makora/fp8"],
             "allow_fallbacks": False, "quantizations": ["fp8"]}
 BUDGET = Budget(total=2000000, construction_output=32768, final_output=8192,
                 final_reasoning=57344, margin=32768, final_calls=8)
 CALIBRATION_BUDGET = Budget(total=400000, construction_output=32768, final_output=8192,
                            final_reasoning=57344, margin=32768, final_calls=2)
+# Waits before each resend of an identical request after a transient provider/transport failure (connection loss,
+# timeout, 429, 5xx). Calibration never resends: it must show the provider's raw behaviour.
+GENERATION_RETRY_WAITS = (10, 30)
 SECRET_FILE = Path(r"C:\Users\minle\Documents\projets\StoneBench\.runtime\openrouter.env")
 PINS = {"minecraft": "1.21.11", "yarn": "1.21.11+build.3", "fabric_loader": "0.19.5",
         "inspect_ai": "0.3.278", "mcp": "1.26.0", "controller": "0.1.0", "protocol": "alpha-issue12-13",
@@ -32,14 +35,16 @@ def plan():
             "model": MODEL, "provider": PROVIDER, "pins": PINS, "budget": asdict(BUDGET),
             "reasoning_request":{"enabled":True},
             "max_context_bytes":524288,"stop_on_missing_usage":True,
+            "generation_retry_waits_seconds":list(GENERATION_RETRY_WAITS),
+            "retry_accounting":"a request lost without a response is never counted as usage: total_tokens becomes null, its context+completion bound counts against the budget",
             "calibration_budget": asdict(CALIBRATION_BUDGET), "prompt": PROMPT,
-            "input_usd_per_million": {"makora/fp8": .13, "xiaomi/fp8": .14},
+            "input_usd_per_million": {"makora/fp8": .13},
             "completion_usd_per_million": .28, "cache_discount_assumed": False,
             "forecast": {"tokens_per_attempt": BUDGET.total, "campaign_tokens": BUDGET.total * len(TASKS),
                 "worst_split_usd_per_attempt": .56, "worst_split_campaign_usd": 4.48,
                 "example_input_fraction": .8, "example_completion_fraction": .2,
-                "example_makora_usd_per_attempt": .32, "example_xiaomi_usd_per_attempt": .336,
-                "example_makora_campaign_usd": 2.56, "example_xiaomi_campaign_usd": 2.688,
+                "example_makora_usd_per_attempt": .32,
+                "example_makora_campaign_usd": 2.56,
                 "calibration_worst_split_usd": .112,
                 "conditional_one_inflight_excess_tokens_per_attempt":1114112,
                 "conditional_campaign_plus_excess_usd":6.97561088,

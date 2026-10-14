@@ -9,6 +9,34 @@ public final class GeometryChecks {
     static String status(JsonObject report,String id){for(JsonElement row:report.getAsJsonArray("criteria"))if(row.getAsJsonObject().get("id").getAsString().equals(id))return row.getAsJsonObject().get("status").getAsString();throw new AssertionError(id);}
     static List<RegularDoorGeometry.Cell> fixture(boolean closed,int depth){List<RegularDoorGeometry.Cell> cells=new ArrayList<>();for(int z=1024;z<1024+depth;z++)for(int y=79;y<=82;y++)for(int x=1023;x<=1026;x++){boolean filled=closed||x==1023||x==1026||y==79||y==82;cells.add(new RegularDoorGeometry.Cell(x,y,z,filled?"minecraft:quartz_block":"minecraft:air",filled,filled,filled));}return cells;}
     static JsonObject check(boolean closed,List<RegularDoorGeometry.Cell> cells){JsonObject args=new JsonObject();args.addProperty("expected_state",closed?"closed":"open");JsonObject coverage=new JsonObject();coverage.addProperty("status","observed");coverage.addProperty("chunks_ready",true);coverage.addProperty("certification",false);return RegularDoorGeometry.evaluate(Task.describe("2x2-volume",null),args,cells,coverage,null,new JsonArray());}
+    /** Agent-facing text may carry neither documents nor citation metadata; verdicts and diagnostics are those of the full rows. */
+    static void noSources(JsonElement value,String path){
+        if(value.isJsonObject())for(var entry:value.getAsJsonObject().entrySet()){
+            require(!Set.of("source","sources","revision_id","source_index","locator","locator_type","authority","native_cache_sha256","rules_reference").contains(entry.getKey())&&!entry.getKey().contains("source_index"),"Citation key "+path+"."+entry.getKey());noSources(entry.getValue(),path+"."+entry.getKey());}
+        else if(value.isJsonArray())for(JsonElement item:value.getAsJsonArray())noSources(item,path+"[]");
+        else if(value.isJsonPrimitive()&&value.getAsJsonPrimitive().isString())for(String marker:List.of("docs.google.com","github.com","sha256"))require(!value.getAsString().contains(marker),"Citation text "+path+": "+value.getAsString());
+        if(value.isJsonPrimitive()&&value.getAsJsonPrimitive().isString())require(!java.util.regex.Pattern.compile("(Rules|Dummies|index)\\s+(index\\s+)?\\d{3,}").matcher(value.getAsString()).find(),"Citation prose "+path+": "+value.getAsString());
+    }
+    static void presentation(JsonObject closed,JsonObject open){
+        JsonObject persisted=Task.describe("2x2-volume",null);persisted.addProperty("rules_reference",Task.RULES);JsonObject restored=Task.restored(persisted);
+        require(!restored.has("rules_reference")&&persisted.has("rules_reference")&&restored.get("width").equals(persisted.get("width"))&&restored.get("passage").equals(persisted.get("passage")),"A task restored from an earlier checkpoint loses its rules link without mutating the stored context");
+        noSources(restored,"restored_task");
+        JsonObject full=Rules.describe(),agent=Rules.agentRules(full);noSources(agent,"describe_rules");
+        require(full.getAsJsonArray("criteria").size()==16&&agent.getAsJsonArray("criteria").size()==14,"Three community criteria become one summary");
+        for(JsonElement item:agent.getAsJsonArray("criteria")){JsonObject row=item.getAsJsonObject();require(row.has("expected")&&row.has("observation")&&row.has("coverage")&&row.has("mandatory"),"Agent criterion keeps behavior, scope, limits and mandatory status: "+row);}
+        require(!agent.getAsJsonArray("criteria").get(13).getAsJsonObject().get("mandatory").getAsBoolean()&&agent.getAsJsonArray("criteria").get(13).getAsJsonObject().get("id").getAsString().equals("record_eligibility"),"Outside-alpha summary");
+        JsonObject contract=agent.getAsJsonObject("measurement_contract");for(String key:List.of("volume","exclusions","opening_end","closing_end","movement_end","timing_origin","rest"))require(contract.has(key),"Measurement definition "+key);
+        require(JsonParser.parseString(full.toString()).getAsJsonObject().getAsJsonArray("criteria").get(0).getAsJsonObject().has("sources"),"The audit form keeps its sources");
+        require(agent.toString().getBytes(java.nio.charset.StandardCharsets.UTF_8).length<8192,"describe_rules payload leaves ample margin below 16 KiB: "+agent.toString().getBytes(java.nio.charset.StandardCharsets.UTF_8).length);
+        for(JsonObject report:List.of(closed,open)){
+            JsonArray rows=report.getAsJsonArray("criteria");
+            for(int i=rows.size()-2;i<rows.size();i++){JsonObject a=rows.get(rows.size()-3).getAsJsonObject(),b=rows.get(i).getAsJsonObject();require(a.get("status").equals(b.get("status"))&&a.get("diagnostic").equals(b.get("diagnostic"))&&a.get("observed").equals(b.get("observed")),"The three outside-alpha rows must stay identical to be summarized as one");}
+            require(rows.get(rows.size()-3).getAsJsonObject().get("id").getAsString().equals("record_reliability")&&rows.get(rows.size()-1).getAsJsonObject().get("id").getAsString().equals("record_seamless"),"Outside-alpha rows come last");
+            JsonObject view=Rules.agentGeometry(report);noSources(view,"check_geometry");
+            for(String key:List.of("geometry_status","conforms_to_alpha","measurement_roles","coverage"))require(view.get(key).equals(report.get(key)),"Unchanged "+key);
+            for(JsonElement item:view.getAsJsonArray("criteria")){JsonObject row=item.getAsJsonObject();require(row.has("status")&&row.has("observed")&&row.has("diagnostic")&&row.has("expected"),"Diagnostic keeps status, explanation and observed evidence: "+row);require(row.get("status").getAsString().equals(row.get("id").getAsString().equals("record_eligibility")?"not_verified":status(report,row.get("id").getAsString())),"Status unchanged "+row.get("id"));}
+        }
+    }
     public static void main(String[] args){
         JsonObject closed=check(true,fixture(true,1)),open=check(false,fixture(false,1));
         require(status(closed,"frame_state").equals("satisfied"),"Principal 30358 all frame cells closed");require(status(open,"frame_state").equals("satisfied"),"Principal 30358 frame opened");require(status(closed,"door_composition").equals("satisfied"),"Principal 31749 canonical quartz identity replacement");
@@ -22,6 +50,7 @@ public final class GeometryChecks {
         JsonObject task=Task.describe("2x2-volume",null),request=new JsonObject();request.addProperty("expected_state","closed");request.addProperty("frame_min_z",1024);request.addProperty("frame_max_z",1025);require(RegularDoorGeometry.requiredPositions(task,request).size()==32,"Dummies 9641 layer(s), no universal single-block depth");
         request.addProperty("frame_min_z",1025);try{RegularDoorGeometry.requiredPositions(task,request);throw new AssertionError("Shift accepted");}catch(IllegalArgumentException expected){}
         for(JsonElement row:Rules.describe().getAsJsonArray("criteria")){JsonObject c=row.getAsJsonObject();require(c.has("sources")&&c.has("expected")&&c.has("observation")&&c.has("coverage"),"Table completeness");}
+        presentation(closed,open);
         System.out.println("GeometryChecks: source interpretation and negative controls passed; Minecraft/MCP not exercised.");
     }
 }

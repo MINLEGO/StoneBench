@@ -1,8 +1,10 @@
 """Small native-Inspect checks supplement, rather than replace, real MCP suite."""
+import json
 from pathlib import Path
 import sys
 import tempfile
 import unittest
+import uuid
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from app.harness.budget import Budget
@@ -98,6 +100,54 @@ class NativeInspectTests(unittest.IsolatedAsyncioTestCase):
             self.assertEqual(attempt.ledger.phase,"finalization")
             self.assertIsNone(attempt.ledger.total_tokens)
             self.assertTrue(all(row["usage"] is None for row in attempt.ledger.calls))
+
+    async def _run_with_failures(self, tmp, failures, waits, error=ConnectionError("peer closed connection")):
+        attempt = Attempt(Budget(300000, 1000, 1000, 4000, 500), Path(tmp)/"attempt", generation_retry_waits=waits)
+        requests = []
+        def scripted(messages, tools, config):
+            requests.append([message.text for message in messages])
+            if len(requests) <= failures:
+                raise error
+            output = ModelOutput.from_content(model="stonebench-scripted/retry", content="done")
+            output.usage = ModelUsage(input_tokens=100, output_tokens=50, total_tokens=150)
+            return output
+        task = Task(dataset=[Sample(input="Retry")], solver=react(submit=False,
+            model=budgeted_generation(attempt, GenerateConfig(max_retries=0))), token_limit=300000)
+        log = (await eval_async(task, model=get_model(f"stonebench-scripted/retry-{uuid.uuid4().hex}", script=scripted),
+            log_dir=str(Path(tmp)/"logs"), log_model_api=False, ctl_server=False))[0]
+        return attempt, requests, log
+
+    async def test_lost_request_is_resent_unchanged_and_accounted(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            attempt, requests, log = await self._run_with_failures(tmp, 1, (0, 0))
+            self.assertEqual(log.status, "success", log.error)
+            self.assertEqual(len(requests), 2)
+            self.assertEqual(requests[0], requests[1], "the resent request must be identical")
+            self.assertEqual(len(attempt.ledger.lost), 1)
+            self.assertEqual(attempt.ledger.lost[0]["failure_type"], "ConnectionError")
+            self.assertEqual(attempt.ledger.known_tokens, 150)
+            self.assertIsNone(attempt.ledger.total_tokens, "a possibly billed request leaves the total unknown")
+            self.assertGreater(attempt.ledger.committed_tokens, 150)
+            events = [json.loads(line) for line in (attempt.root/"events.jsonl").read_text().splitlines()]
+            lost = [event for event in events if event["kind"] == "generation_request_lost"]
+            self.assertEqual(len(lost), 1)
+            self.assertTrue(lost[0]["started_utc"] < lost[0]["ended_utc"])
+
+    async def test_resends_are_bounded_and_failure_is_still_reported(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            attempt, requests, log = await self._run_with_failures(tmp, 99, (0, 0))
+            self.assertEqual(log.status, "error")
+            self.assertEqual(len(requests), 3)
+            self.assertEqual(len(attempt.ledger.lost), 2)
+            self.assertIsNone(attempt.ledger.calls[-1]["usage"])
+
+    async def test_nontransient_and_default_never_resend(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            _, requests, log = await self._run_with_failures(tmp, 1, (0, 0), error=RuntimeError("not transient"))
+            self.assertEqual((log.status, len(requests)), ("error", 1))
+        with tempfile.TemporaryDirectory() as tmp:
+            _, requests, log = await self._run_with_failures(tmp, 1, ())
+            self.assertEqual((log.status, len(requests)), ("error", 1))
 
 
 if __name__ == "__main__":

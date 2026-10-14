@@ -36,10 +36,20 @@ class Ledger:
     calls: list = field(default_factory=list)
     final_calls: int = 0
     transition_reason: str | None = None
+    lost: list = field(default_factory=list)
 
     @property
     def total_tokens(self):
-        return self.known_tokens if self.usage_complete else None
+        return self.known_tokens if self.usage_complete and not self.lost else None
+
+    @property
+    def committed_tokens(self):
+        # A request lost mid-response may still have been billed: its bound counts against the budget, never as usage.
+        return self.known_tokens + sum(row["upper_bound_tokens"] for row in self.lost)
+
+    def record_lost(self, upper_bound_tokens, wall_seconds, failure_type, started_utc, ended_utc):
+        self.lost.append({"phase": self.phase, "upper_bound_tokens": upper_bound_tokens, "wall_seconds": wall_seconds,
+                          "failure_type": failure_type, "started_utc": started_utc, "ended_utc": ended_utc})
 
     def finalize(self, reason):
         if self.phase == "construction":
@@ -51,12 +61,13 @@ class Ledger:
         forecast = context_estimate + self.budget.construction_output
         if not self.usage_complete:
             self.finalize("usage_unavailable")
-        elif self.known_tokens + forecast + reserve > self.budget.total:
+        elif self.committed_tokens + forecast + reserve > self.budget.total:
             self.finalize("next_construction_call_would_enter_reserve")
         if self.phase == "finalization":
             self.final_calls += 1
         return {"phase": self.phase, "total_budget": self.budget.total,
                 "used_tokens": self.total_tokens, "known_tokens_subtotal": self.known_tokens,
+                "lost_requests": len(self.lost), "lost_upper_bound_tokens": self.committed_tokens - self.known_tokens,
                 "reserve_estimate": reserve, "context_estimate": context_estimate,
                 "next_construction_forecast": forecast, "transition_reason": self.transition_reason}
 
@@ -72,9 +83,9 @@ class Ledger:
                            "budget_exceeded_observed": self.known_tokens > self.budget.total})
         if not self.usage_complete:
             self.finalize("usage_unavailable")
-        elif self.known_tokens >= self.budget.total:
+        elif self.committed_tokens >= self.budget.total:
             self.finalize("observed_budget_exhausted")
 
     def can_continue(self):
-        return ((not self.usage_complete or self.known_tokens < self.budget.total)
+        return ((not self.usage_complete or self.committed_tokens < self.budget.total)
                 and (self.phase != "finalization" or self.final_calls < self.budget.final_calls))

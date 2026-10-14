@@ -94,6 +94,16 @@ def artifact(root, reference):
     return rows
 
 
+def sourced(root, response):
+    """check_geometry answers the agent without rule sources; the copy's local operation journal keeps the full row."""
+    with (root / "stonebench/operations.jsonl").open(encoding="utf-8") as journal:
+        for line in journal:
+            row = json.loads(line)
+            if row["operation_id"] == response["operation_id"]:
+                return row
+    raise RuntimeError("Operation journal lacks the sourced geometry report")
+
+
 def trace_complete(root, operation):
     rows = artifact(root, operation["trace"])
     if len(rows) != operation["ticks_executed"]:
@@ -220,8 +230,10 @@ def run(source, request_directory, java, execution, test, workers, base_mcp, bas
 
             root, port = copy("repeater", 0)
             initial = call(port, "verification_snapshot")
-            closed = call(port, "check_geometry", dict(geometry_args, expected_state="closed"))
+            closed = sourced(root, call(port, "check_geometry", dict(geometry_args, expected_state="closed")))
             preconditions = criteria(closed, closed, context["rest"], True, manifest["provenance"].get("memory_coverage", {}))
+            for row in preconditions:
+                row["boundary"] = "state0"
             report["criteria"] += preconditions
             if not compliant(preconditions):
                 report["stop_cause"] = "checkpoint_preconditions"
@@ -254,8 +266,10 @@ def run(source, request_directory, java, execution, test, workers, base_mcp, bas
                         complete = trace_complete(worker_root, post_fault) and complete
                         rest_report = post_fault["transition"]
                     snapshot = call(worker_port, "verification_snapshot")
-                    geometry = call(worker_port, "check_geometry", dict(geometry_args, expected_state=expected))
+                    geometry = sourced(worker_root, call(worker_port, "check_geometry", dict(geometry_args, expected_state=expected)))
                     rows = criteria(geometry, closed, rest_report, complete, manifest["provenance"].get("memory_coverage", {}))
+                    for row in rows:
+                        row.update(mode=mode, cycle=cycle, boundary=expected)  # where a fault happened, for the agent's fault list
                     report["criteria"] += rows
                     samples = chain([operation["initial"]], artifact(worker_root, operation["trace"]))
                     samples = ({"world_time": sample["world_time"], "blocks": artifact(worker_root, sample["state"]["blocks"])} for sample in samples)

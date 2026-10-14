@@ -10,7 +10,7 @@ from pathlib import Path
 import sys
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
-from app.campaign.plan import BUDGET, CALIBRATION_BUDGET, MODEL, PINS, PROVIDER, digest, load_secret, plan_hash, require_authorization
+from app.campaign.plan import BUDGET, CALIBRATION_BUDGET, GENERATION_RETRY_WAITS, MODEL, PINS, PROVIDER, digest, load_secret, plan_hash, require_authorization
 from app.harness.inspect_task import stonebench_task, encode
 import app.harness.scripted
 from inspect_ai import eval_async
@@ -87,7 +87,7 @@ def resolve_provider_evidence(row,mode="paid"):
     direct=None
     if routing:
         if (routing.get("strategy")=="direct" and routing.get("requested")==slug and len(selected)==1
-            and selected[0].get("provider") in {"Makora","Xiaomi"}
+            and selected[0].get("provider")=="Makora"
             and (selected[0].get("model")==slug or selected[0].get("model","").startswith(slug+"-"))
             and row.get("requested_model")==slug and row.get("requested_provider")==PROVIDER):
             direct=selected[0]["provider"]
@@ -98,7 +98,7 @@ def resolve_provider_evidence(row,mode="paid"):
         gaps.append("generation_model_outside_requested_model")
     if served_model is not None and direct is not None and served_model!=selected[0].get("model"):
         gaps.append("provider_model_sources_disagree")
-    if metadata and provider not in {"Makora","Xiaomi"}:gaps.append("provider_identity_unavailable_or_unexpected")
+    if metadata and provider!="Makora":gaps.append("provider_identity_unavailable_or_unexpected")
     if provider is not None and direct is not None and provider!=direct:gaps.append("provider_sources_disagree")
     cost=(row.get("raw_provider_usage") or {}).get("cost")
     numeric=lambda value:isinstance(value,(int,float)) and not isinstance(value,bool) and math.isfinite(value) and value>=0
@@ -124,7 +124,7 @@ def resolve_provider_evidence(row,mode="paid"):
         "cost":fetched_cost if metadata else cost,
         "provider_source":"generation_get" if metadata else "direct_response_bound_to_exact_request",
         "cost_source":"generation_get" if metadata else "response_usage_cost",
-        "endpoint_tag":("makora/fp8" if (provider or direct)=="Makora" else "xiaomi/fp8" if (provider or direct)=="Xiaomi" else None) if request_bound else None,
+        "endpoint_tag":("makora/fp8" if (provider or direct)=="Makora" else None) if request_bound else None,
         "endpoint_tag_is_inferred_from_exact_request_allowlist":request_bound}
     return gaps
 
@@ -208,7 +208,7 @@ def assert_clean(snapshot, listing, description):
 
 
 class Rehearsal:
-    """Incomplete stone/chest checkpoint exercises retention; it is not a solver."""
+    """Incomplete quartz/chest checkpoint exercises retention; it is not a solver."""
     def __init__(self, attempt, budget, mode):
         self.attempt, self.budget, self.mode = attempt, budget, mode
         self.index = 0
@@ -219,7 +219,7 @@ class Rehearsal:
             "tools": [tool.model_dump(mode="json") for tool in tools]}).encode()))
         rows = [("describe_task", {}), ("describe_rules", {}), ("describe_blocks", {})]
         sequence = [rows,
-            [("modify_blocks", {"blocks": [{"x":1024,"y":79,"z":1024,"block":"minecraft:stone"},
+            [("modify_blocks", {"blocks": [{"x":1024,"y":79,"z":1024,"block":"minecraft:quartz_block"},
                 {"x":1025,"y":79,"z":1024,"block":"minecraft:chest", "parameters":{"facing":"north"},
                  "inventory":[{"slot":0,"item":"minecraft:diamond","count":7}]},
                  {"x":1023,"y":79,"z":1024,"block":"minecraft:lever","parameters":{"face":"wall","facing":"west"}}], "notify_neighbors":True})],
@@ -291,7 +291,8 @@ async def run():
         config = GenerateConfig(temperature=0, parallel_tool_calls=False, max_retries=0, cache_prompt=False,
             extra_headers={"X-OpenRouter-Metadata":"enabled"})
         task, attempt = stonebench_task(url, budget, root / "harness", task_id=task_id, config=config, initialize=False,
-            max_context_bytes=524288,stop_on_missing_usage=True)
+            max_context_bytes=524288,stop_on_missing_usage=True,server_root=server_root,
+            generation_retry_waits=() if mode == "calibration" else GENERATION_RETRY_WAITS)
         if mode == "calibration":
             # At most two provider calls in a read-only phase with the actual schema/context.
             attempt.ledger.finalize("provider_calibration_read_only")
@@ -311,7 +312,7 @@ async def run():
             save(attempt.root,"result.json",attempt.report)
         status.update(status=log.status, result=attempt.report, selected_checkpoint_id=attempt.selected,
             total_tokens=attempt.ledger.total_tokens, known_tokens_subtotal=attempt.ledger.known_tokens,
-            calls=attempt.ledger.calls, error=log.error.model_dump(mode="json") if log.error else None)
+            calls=attempt.ledger.calls, lost_requests=attempt.ledger.lost, error=log.error.model_dump(mode="json") if log.error else None)
         status["provider_records"] = provider_records(log)
         status["tool_catalogue_sha256"] = digest(encode(catalogue).encode())
         if mode != "rehearsal":

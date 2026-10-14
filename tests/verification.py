@@ -8,7 +8,9 @@ import sys
 import unittest
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from verification_protocol import first_difference
+from app.harness import audit
 import integration
 
 
@@ -55,8 +57,10 @@ class VerificationRuntimeIntegration(integration.StoneBenchRuntimeIntegration):
                 self.assertEqual(report["cycles_executed"], cycles, self.report_context(report))
                 recurrence = self.report_criterion(report, "recurrence")
                 self.assertEqual(recurrence["status"], recurrence_status, self.report_context(report))
-                self.assert_boundaries_ran_in_minecraft(report)
+                self.assert_boundaries_ran_in_minecraft(first, report)
                 if scenario == "none":
+                    # The usual completed answer fits the harness's direct-result threshold (larger multi-cycle reports are paged there).
+                    self.assertLess(self.completed_sizes["none"], 16384, self.completed_sizes)
                     self.assert_mode_equivalence(report, "satisfied")
                     self.assertEqual(report["verdict"], "conforms_to_alpha", self.report_context(report))
                 elif scenario == "recurrence2":
@@ -79,8 +83,13 @@ class VerificationRuntimeIntegration(integration.StoneBenchRuntimeIntegration):
                 evidence["scenarios"].append(self.evidence_summary(report))
 
             bad_open = await self.verify(first, checkpoint_id, "bad_open")
-            open_boundary = self.boundary(bad_open, "repeater", 1, "open")
+            open_boundary = self.boundary(self.local(first, bad_open)[0], "repeater", 1, "open")
             self.assertEqual(self.criterion_status(open_boundary["geometry"], "frame_state"), "failed", self.report_context(bad_open))
+            fault = next(row for row in bad_open["faults"] if row["id"] == "frame_state")  # the agent's own view of that same fault
+            self.assertEqual((fault["status"], fault["mode"], fault["cycles"], fault["boundary"]), ("failed", "repeater", [1], "open"))
+            self.assertTrue(fault["expected"] and fault["diagnostic"] and "observed" in fault)
+            self.assertEqual(self.report_criterion(bad_open, "frame_state")["status"], "failed")
+            self.assertTrue(bad_open["faults"] and all(row["status"] in ("failed", "indeterminate") for row in bad_open["faults"]))
             self.assertEqual(bad_open["stop_cause"], "invalid_repeater_boundary", self.report_context(bad_open))
             self.assertEqual(bad_open["verdict"], "failed", self.report_context(bad_open))
             evidence["scenarios"].append(self.evidence_summary(bad_open))
@@ -96,7 +105,7 @@ class VerificationRuntimeIntegration(integration.StoneBenchRuntimeIntegration):
             self.assertEqual(powered_report["verdict"], "conforms_to_alpha", self.report_context(powered_report))
             self.assertEqual(powered_report["cycles_executed"], 1, self.report_context(powered_report))
             self.assertEqual(powered_report["stop_cause"], "first_return_to_state0", self.report_context(powered_report))
-            self.assert_boundaries_ran_in_minecraft(powered_report)
+            self.assert_boundaries_ran_in_minecraft(second, powered_report)
             self.assert_mode_equivalence(powered_report, "satisfied")
             evidence["powered_checkpoint"] = {
                 "checkpoint_id": powered_checkpoint["checkpoint_id"],
@@ -131,6 +140,8 @@ class VerificationRuntimeIntegration(integration.StoneBenchRuntimeIntegration):
             interrupted = await self.interrupt_worker(first, checkpoint_id)
             evidence["worker_interruption"] = interrupted
         finally:
+            evidence["completed_status_bytes"] = getattr(self, "completed_sizes", {})
+            evidence["response_bytes_max"] = {name: max(sizes) for name, sizes in getattr(self, "response_sizes", {}).items()}
             output = Path(os.environ.get("STONEBENCH_VERIFICATION_EVIDENCE", ".runtime/verification-summary.json"))
             output.parent.mkdir(parents=True, exist_ok=True)
             output.write_text(json.dumps(evidence, indent=2), encoding="utf-8")
@@ -149,6 +160,7 @@ class VerificationRuntimeIntegration(integration.StoneBenchRuntimeIntegration):
         request_id = job.get("request_id")
         self.assertTrue(request_id, started)
         report = await self.wait_for_verification(session, request_id)
+        self.__dict__.setdefault("completed_sizes", {})[scenario] = self.response_sizes["verification_status"][-1]
         self.assertIn(report.get("verdict"), {"conforms_to_alpha", "failed", "indeterminate", "infrastructure_error"}, self.report_context(report))
         self.assertTrue(report.get("working_construction_preserved"), self.report_context(report))
         self.assertFalse(report.get("working_differences"), self.report_context(report))
@@ -156,6 +168,7 @@ class VerificationRuntimeIntegration(integration.StoneBenchRuntimeIntegration):
         self.assert_ok(after)
         difference = first_difference(self.frozen_snapshot(before), self.frozen_snapshot(after))
         self.assertIsNone(difference, f"{scenario} changed the frozen source world: {difference}")
+        await self.assert_agent_view(session, report)
         report["_source_preservation_difference"] = difference
         return report
 
@@ -176,6 +189,61 @@ class VerificationRuntimeIntegration(integration.StoneBenchRuntimeIntegration):
                 self.assertGreaterEqual(progress.get("phase_remaining_seconds", -1), 0, result)
             await asyncio.sleep(0.25)
         self.fail(f"Verification {request_id} did not finish within {timeout} seconds")
+
+    def server_root(self, session):
+        return Path(os.environ["STONEBENCH_SERVER_ROOTS"].split(";")[self.sessions.index(session)])
+
+    def local(self, session, report):
+        """The complete local report, bound and cross-checked against the MCP status (audit.load raises on any disagreement)."""
+        local = audit.load(self.server_root(session), report["request_id"], report["checkpoint_id"], report)
+        return local["report"], local
+
+    async def assert_agent_view(self, session, report):
+        """What an agent can learn from a completed verification, and what it cannot."""
+        self.assertEqual(report["status"], "completed")
+        for key in ("verdict", "conforms_to_alpha", "stop_cause", "criteria", "faults", "boundaries",
+                    "working_construction_preserved", "working_differences", "working_after"):
+            self.assertIn(key, report, key)
+        self.assertEqual(integration.source_leaks(report), [], "The completed status exposes rule sources")
+        self.assertNotIn("full_report", report)
+        for key in ("copies", "checkpoint_provenance", "preparations", "adapter_preparation", "direct_preparation", "audit", "test_plan"):
+            self.assertNotIn(key, report, key)
+        self.assertTrue(all(row["status"] and "mandatory" in row and set(row) == {"id", "mandatory", "status"} for row in report["criteria"]))
+        self.assertEqual(len({row["id"] for row in report["criteria"]}), len(report["criteria"]))
+        for row in report["boundaries"]:
+            self.assertEqual(set(row), {"mode", "cycle", "expected_state", "trace_complete", "ticks_executed", "rest", "snapshot"})
+        full, local = self.local(session, report)  # raises if the concise form disagrees with completed.json
+        self.assertEqual(full["audit"]["request_id"], report["request_id"])
+        self.assertEqual(full["status"], "completed")
+        if full["criteria"]:
+            self.assertTrue(all(row["sources"] for row in full["criteria"]), "The local report keeps the sources")
+            self.assertTrue(integration.source_leaks(full))
+            self.assertEqual({row["id"] for row in full["criteria"]}, {row["id"] for row in report["criteria"]})
+        else:
+            self.assertEqual(report["criteria"], [])
+        self.assertEqual(len(full["boundaries"]), len(report["boundaries"]))
+        self.assertEqual(len([row for row in full["criteria"] if row["mandatory"] and row["status"] != "satisfied"]),
+                         sum(len(row.get("cycles", [None])) for row in report["faults"]))  # one entry per fault, listing its cycles
+        if full.get("measurements", {}).get("transitions"):
+            self.assertTrue(all(row["movements"] for row in full["measurements"]["transitions"]))
+            self.assertEqual(len(full["measurements"]["transitions"]), len(report["measurements"]["transitions"]))
+            self.assertFalse(any("movements" in row or "sources" in row for row in report["measurements"]["transitions"]))
+        for reference in [report["working_after"]] + [row["snapshot"] for row in report["boundaries"]]:  # artifacts of the report stay readable
+            page = await self.call(session, "read_artifact", {"artifact_id": reference["artifact_id"], "offset": 0, "limit": 1})
+            self.assert_ok(page)
+            self.assertEqual(len(page["entries"]), 1, reference)
+            self.assertEqual(integration.source_leaks(page), [])
+        if full["boundaries"]:  # construction traces and diffs are still readable, and no readable artifact is the report
+            trace = full["boundaries"][0]["operation"]["trace"]
+            page = await self.call(session, "read_artifact", {"artifact_id": trace["artifact_id"], "offset": 0, "limit": 2})
+            self.assert_ok(page)
+            self.assertTrue(page["entries"])
+        kinds = {json.loads(path.read_text(encoding="utf-8"))["kind"] for path in (self.server_root(session) / "stonebench/artifacts").glob("*.meta")}
+        self.assertNotIn("verification_report", kinds)
+        # Neither the status nor a second look through cancel_verification can reach the report or its sources.
+        again = await self.call(session, "cancel_verification", {"request_id": report["request_id"]})
+        self.assertEqual(again["verification"], report)
+        self.assertEqual((await self.call(session, "verification_status", {"request_id": report["request_id"]}))["verification"], report)
 
     @staticmethod
     def frozen_snapshot(snapshot):
@@ -268,6 +336,7 @@ class VerificationRuntimeIntegration(integration.StoneBenchRuntimeIntegration):
         self.assertEqual(report["verdict"], "infrastructure_error", self.report_context(report))
         self.assertTrue(report.get("working_construction_preserved"), self.report_context(report))
         self.assertFalse(report.get("working_differences"), self.report_context(report))
+        await self.assert_agent_view(session, report)
         after = await self.call(session, "verification_snapshot")
         self.assert_ok(after)
         difference = first_difference(self.frozen_snapshot(before), self.frozen_snapshot(after))
@@ -307,6 +376,7 @@ class VerificationRuntimeIntegration(integration.StoneBenchRuntimeIntegration):
         self.assertEqual(report["verdict"], "infrastructure_error", self.report_context(report))
         self.assertIn(report["stop_cause"], {"verification_interrupted", "infrastructure_failure"}, self.report_context(report))
         self.assertIsNotNone(report["infrastructure_error"], report)
+        await self.assert_agent_view(session, report)
         self.assertTrue(report.get("working_construction_preserved"), self.report_context(report))
         self.assertFalse(report.get("working_differences"), self.report_context(report))
         after = await self.call(session, "verification_snapshot")
@@ -318,24 +388,30 @@ class VerificationRuntimeIntegration(integration.StoneBenchRuntimeIntegration):
                 "infrastructure_error": report["infrastructure_error"],
                 "source_preservation_difference": difference}
 
-    def assert_boundaries_ran_in_minecraft(self, report):
+    def assert_boundaries_ran_in_minecraft(self, session, report):
+        """The independent-copy evidence (copies, operations, geometry rows) comes from the complete local report: MCP no longer carries it."""
         context = self.report_context(report)
+        full, _ = self.local(session, report)
         self.assertIsNone(report.get("infrastructure_error"), context)
         self.assertTrue(report.get("worker_artifacts_available_via_mcp"), context)
-        self.assertEqual(len(report["copies"]), 2, context)
-        self.assertEqual({copy["mode"] for copy in report["copies"]}, {"repeater", "direct"}, context)
-        self.assertEqual(len({copy["server_root"] for copy in report["copies"]}), 2, context)
-        self.assertEqual(len({copy["mcp_port"] for copy in report["copies"]}), 2, context)
-        self.assertTrue(all(copy["restoration"]["status"] == "equal" for copy in report["copies"]), context)
+        self.assertEqual(len(full["copies"]), 2, context)
+        self.assertEqual({copy["mode"] for copy in full["copies"]}, {"repeater", "direct"}, context)
+        self.assertEqual(len({copy["server_root"] for copy in full["copies"]}), 2, context)
+        self.assertEqual(len({copy["mcp_port"] for copy in full["copies"]}), 2, context)
+        self.assertTrue(all(copy["restoration"]["status"] == "equal" for copy in full["copies"]), context)
         self.assertTrue(0 < report["transition_ticks"] <= 432000, context)
         required = {("repeater", 1, "open"), ("repeater", 1, "closed"),
                     ("direct", 1, "open"), ("direct", 1, "closed")}
         available = {(row["mode"], row["cycle"], row["expected_state"]) for row in report["boundaries"]}
         self.assertTrue(required.issubset(available), context)
         for key in required:
-            row = self.boundary(report, *key)
+            shown = self.boundary(report, *key)
+            self.assertEqual(shown["rest"]["status"], "terminated", context)  # rest evidence in the agent's own view
+            self.assertGreater(shown["ticks_executed"], 0, context)
+            row = self.boundary(full, *key)
             operation = row["operation"]
             self.assertEqual(operation["transition"]["status"], "terminated", context)
+            self.assertEqual(operation["ticks_executed"], shown["ticks_executed"], context)
             self.assertGreater(operation["ticks_executed"], 0, context)
             self.assertLessEqual(operation["ticks_executed"], 36000, context)
             self.assertTrue(row["trace_complete"], context)
@@ -377,21 +453,17 @@ class VerificationRuntimeIntegration(integration.StoneBenchRuntimeIntegration):
         return {key: report.get(key) for key in (
             "request_id", "checkpoint_id", "verdict", "cycles_executed", "stop_cause",
             "transition_ticks", "recurrence_comparisons", "first_difference", "criteria",
-            "boundaries", "copies", "worker_artifacts_available_via_mcp", "infrastructure_error",
+            "faults", "boundaries", "worker_artifacts_available_via_mcp", "infrastructure_error",
         )}
 
     def report_context(self, report):
         criteria = [{key: row.get(key) for key in ("id", "status", "diagnostic")}
                     for row in report.get("criteria", []) if row.get("status") != "satisfied"]
-        copies = [{"mode": row.get("mode"), "server_root": row.get("server_root"),
-                   "mcp_port": row.get("mcp_port"), "pid": row.get("pid"),
-                   "restoration_status": row.get("restoration", {}).get("status")}
-                  for row in report.get("copies", [])]
         summary = {key: report.get(key) for key in (
             "request_id", "verdict", "cycles_executed", "stop_cause", "first_difference",
             "infrastructure_error", "limits")}
         summary["non_satisfied_criteria"] = criteria
-        summary["copies"] = copies
+        summary["faults"] = report.get("faults")
         return json.dumps(summary, ensure_ascii=False, default=str)
 
 

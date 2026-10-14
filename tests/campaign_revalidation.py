@@ -4,9 +4,17 @@ from pathlib import Path
 from unittest.mock import patch
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]))
 import httpx
+from app.campaign.plan import PROVIDER
 from app.campaign.run_attempt import validate_provider
 
 FIXTURES=Path(__file__).resolve().parents[1]/"docs/evidence/issue-15/calibration"
+
+
+def response_rows():
+    # The real responses were requested under the earlier two-endpoint plan: only the recorded request is rebound to the current plan.
+    rows=json.loads((FIXTURES/"response-fixtures.json").read_text())
+    for row in rows:row["requested_provider"]=copy.deepcopy(PROVIDER)
+    return rows
 
 class RevalidationTests(unittest.IsolatedAsyncioTestCase):
     async def check_rows(self,rows,fetched=None,mode="paid"):
@@ -20,14 +28,14 @@ class RevalidationTests(unittest.IsolatedAsyncioTestCase):
             return await validate_provider(rows,mode)
 
     async def test_actual_direct_response_and_later_get_agree(self):
-        rows=json.loads((FIXTURES/"response-fixtures.json").read_text())
+        rows=response_rows()
         self.assertTrue((await self.check_rows(copy.deepcopy(rows)))["accepted"])
         fetched={r["id"]:r["data"] for r in json.loads((FIXTURES/"generation-reread.json").read_text())}
         self.assertTrue((await self.check_rows(rows,fetched))["accepted"])
         self.assertTrue(all(r["resolved_provider_evidence"]["provider_source"]=="generation_get" for r in rows))
 
     async def test_invalid_direct_binding_and_conflicting_get_rejected(self):
-        base=json.loads((FIXTURES/"response-fixtures.json").read_text())
+        base=response_rows()
         for mutation in ("request","ambiguous","provider","model","cost","identity"):
             rows=copy.deepcopy(base)
             if mutation=="request":rows[0]["requested_provider"]["allow_fallbacks"]=True
@@ -44,7 +52,7 @@ class RevalidationTests(unittest.IsolatedAsyncioTestCase):
             with self.subTest(disagreement=mutation):self.assertFalse((await self.check_rows(rows,fetched))["accepted"])
 
     async def test_bool_negative_and_excess_detail_counts_rejected_without_get(self):
-        base=json.loads((FIXTURES/"response-fixtures.json").read_text())
+        base=response_rows()
         self.assertTrue((await self.check_rows(copy.deepcopy(base)))["accepted"])
         for prompt,completion,total in ((True,99,100),(-1,99,98),(200,True,201),(0,1,True),(-1,-1,-2)):
             rows=copy.deepcopy(base);rows[0]["raw_provider_usage"].update(prompt_tokens=prompt,completion_tokens=completion,total_tokens=total)
@@ -65,7 +73,7 @@ class RevalidationTests(unittest.IsolatedAsyncioTestCase):
                     self.assertFalse((await self.check_rows(rows,fetched))["accepted"])
 
     async def test_valid_get_cannot_override_wrong_request_without_routing(self):
-        base=json.loads((FIXTURES/"response-fixtures.json").read_text())
+        base=response_rows()
         fetched={r["id"]:r["data"].copy() for r in json.loads((FIXTURES/"generation-reread.json").read_text())}
         for row in base:row["routing_metadata"]=None
         self.assertTrue((await self.check_rows(copy.deepcopy(base),fetched))["accepted"])

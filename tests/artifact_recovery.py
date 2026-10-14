@@ -125,7 +125,7 @@ class ArtifactRecoveryIntegration(StoneBenchRuntimeIntegration):
             modified = await self.call(
                 session,
                 "modify_blocks",
-                {"blocks": [placement(point(1024, 80, 1024), "minecraft:stone")],
+                {"blocks": [placement(point(1024, 80, 1024), "minecraft:quartz_block")],
                  "notify_neighbors": False},
             )
             self.assert_refused_without_mutation(modified, attempt_id, clock, "modify_blocks")

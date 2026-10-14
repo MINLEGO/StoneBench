@@ -60,6 +60,17 @@ class HarnessBudgetTests(unittest.TestCase):
         ledger.before_call(1)
         self.assertFalse(ledger.can_continue())
 
+    def test_lost_request_counts_against_budget_but_never_as_usage(self):
+        ledger = Ledger(Budget(1000, 100, 100, 200, 50))
+        ledger.record_lost(600, .5, "APIConnectionError", "a", "b")
+        self.assertIsNone(ledger.total_tokens)
+        self.assertEqual(ledger.known_tokens, 0)
+        self.assertEqual(ledger.committed_tokens, 600)
+        self.assertTrue(ledger.usage_complete, "a lost request is not a response lacking usage")
+        notice = ledger.before_call(100)
+        self.assertEqual((notice["lost_requests"], notice["lost_upper_bound_tokens"], notice["used_tokens"]), (1, 600, None))
+        self.assertEqual(notice["phase"], "finalization", "600 bound + forecast + reserve exceeds the total")
+
 
 if __name__ == "__main__":
     unittest.main()

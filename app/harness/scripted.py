@@ -18,3 +18,7 @@ class ScriptedProvider(ModelAPI):
         if not isinstance(output, ModelOutput):
             raise TypeError("Script must supply a ModelOutput with controlled usage (or explicit missing usage)")
         return output
+
+    def should_retry(self, ex):
+        # Lets tests exercise transient-failure handling; real providers classify their own exceptions.
+        return isinstance(ex, ConnectionError)

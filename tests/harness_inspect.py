@@ -7,6 +7,7 @@ import sys
 import unittest
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from app.harness import audit
 from app.harness.budget import Budget
 from app.harness.inspect_task import stonebench_task, WRITE_TOOLS
 import app.harness.scripted
@@ -25,7 +26,7 @@ class HarnessRuntimeIntegration(verification.VerificationRuntimeIntegration):
             first = self.sessions[0]
             self.assert_ok(await self.call(first, "start_attempt", {"task_id": integration.TASK_ID, "budget_tokens": 300000}))
             # Early incomplete checkpoint; then a real conforming door and a newer checkpoint.
-            self.assert_ok(await self.call(first, "modify_blocks", {"blocks": [{"x": 1024, "y": 79, "z": 1024, "block": "minecraft:stone"}], "notify_neighbors": True}))
+            self.assert_ok(await self.call(first, "modify_blocks", {"blocks": [{"x": 1024, "y": 79, "z": 1024, "block": "minecraft:quartz_block"}], "notify_neighbors": True}))
             self.assert_ok(await self.call(first, "transition", {"max_ticks": 20, "trace": True}))
             early = await self.call(first, "create_checkpoint")
             self.assert_ok(early)
@@ -47,12 +48,15 @@ class HarnessRuntimeIntegration(verification.VerificationRuntimeIntegration):
             root = Path(os.environ.get("STONEBENCH_HARNESS_EVIDENCE", "app/harness/.runtime/evidence"))
             root.mkdir(parents=True, exist_ok=True)
 
-            for scenario in ("selected_older", "selected_during_copy", "cancel_copy", "invalid_id", "no_submission", "missing_usage", "long_reasoning", "overshoot"):
-                server_root = Path(os.environ["STONEBENCH_SERVER_ROOTS"].split(";")[0])
+            for scenario in ("selected_older", "selected_during_copy", "audit_absent", "cancel_copy", "invalid_id", "no_submission", "missing_usage", "long_reasoning", "overshoot"):
+                roots = [Path(root) for root in os.environ["STONEBENCH_SERVER_ROOTS"].split(";")]
+                server_root = roots[0]
                 journal = server_root / "stonebench/operations.jsonl"
                 journal_start = len(journal.read_text(encoding="utf-8").splitlines())
                 task, attempt = stonebench_task(url, Budget(300000, 4000, 4000, 20000, 2000, final_calls=120),
-                    root / scenario, initialize=False)
+                    root / scenario, initialize=False,
+                    # Server 2 holds no attempt or verification of this task: the audit is absent there. (Identity mismatches are covered by tests/audit.py.)
+                    server_root=roots[1] if scenario == "audit_absent" else server_root)
                 script = Scenario(scenario, chosen, latest_id, self, attempt)
                 model = get_model(f"stonebench-scripted/controlled-{scenario}", script=script)
                 logs = await eval_async(task, model=model, log_dir=str(root / "inspect-logs"), log_format="json",
@@ -76,15 +80,26 @@ class HarnessRuntimeIntegration(verification.VerificationRuntimeIntegration):
                     self.assertEqual(attempt.selected, chosen)
                     self.assertEqual(attempt.report["checkpoint_id"], chosen)
                     self.assertNotEqual(attempt.report["verification"]["verdict"], "conforms_to_alpha")
+                    self.assertFalse(attempt.report["audit_positive"])
+                    self.assertEqual(log.samples[0].scores["selected_checkpoint"].value, 0)
+                    await self.assert_local_audit(first, attempt, server_root, chosen, positive=False)
                     self.assertEqual(attempt.report["verification"]["checkpoint_id"], chosen)
                     refused = [json.loads(line) for line in (attempt.root / "events.jsonl").read_text().splitlines() if '"tool_refused"' in line]
                     self.assertGreaterEqual(len(refused), 7, refused)
                     self.assertTrue(script.verification_finished)
                     during = [json.loads(file.read_text(encoding="utf-8")) for file in attempt.root.glob("tool-*.json")]
+                    pages = [item for item in during if item.get("operation") == "read_artifact"]
+                    self.assertEqual([(page["status"], len(page["entries"])) for page in pages], [("ok", 1)])
                     snapshots = [item for item in during if item.get("operation") == "verification_snapshot"]
                     self.assertTrue(snapshots)
                     for snapshot in snapshots:
                         self.assertIsNone(verification.first_difference(baseline, self.frozen_snapshot(snapshot)))
+                elif scenario == "audit_absent":
+                    self.assertEqual(attempt.selected, latest_id)
+                    self.assertEqual(attempt.report["status"], "audit_error", attempt.report)
+                    self.assertEqual(attempt.report["verification"]["verdict"], "conforms_to_alpha")
+                    self.assertNotIn("audit_positive", attempt.report)
+                    self.assertEqual(log.samples[0].scores["selected_checkpoint"].value, 0)
                 elif scenario == "selected_during_copy":
                     self.assertEqual(attempt.selected, latest_id)
                     self.assertEqual(attempt.report["checkpoint_id"], latest_id)
@@ -93,11 +108,16 @@ class HarnessRuntimeIntegration(verification.VerificationRuntimeIntegration):
                     metrics = attempt.report["verification"]["measurements"]
                     self.assert_separate_metrics(metrics)
                     self.assertEqual(log.samples[0].scores["selected_checkpoint"].metadata["verification"]["measurements"], metrics)
+                    self.assertEqual(log.samples[0].scores["selected_checkpoint"].value, 1)
+                    await self.assert_local_audit(first, attempt, server_root, latest_id, positive=True)
                 else:
                     self.assertIsNone(attempt.selected)
                     self.assertEqual(attempt.report["status"], "no_submission")
+                    self.assertEqual(log.samples[0].scores["selected_checkpoint"].value, 0)
+                self.assert_agent_files_source_free(attempt, log)
                 if scenario == "cancel_copy":
                     cancelled = await self.wait_for_verification(first, script.request_id)
+                    await self.assert_agent_view(first, cancelled)
                     self.assertEqual(cancelled["verdict"], "infrastructure_error", self.report_context(cancelled))
                     self.assertFalse(cancelled["conforms_to_alpha"])
                     evidence["cancelled_copy"] = cancelled
@@ -108,7 +128,7 @@ class HarnessRuntimeIntegration(verification.VerificationRuntimeIntegration):
                 run = json.loads((attempt.root / "run.json").read_text(encoding="utf-8"))
                 self.assertIn("submit_checkpoint", {item["name"] for item in run["tool_catalogue"]})
                 self.assertFalse(any(item["name"].startswith("__test") for item in run["tool_catalogue"]))
-                evidence["scenarios"].append({"scenario": scenario, "selected": attempt.selected, "result": attempt.report,
+                evidence["scenarios"].append({"scenario": scenario, "selected": attempt.selected, "result": {**attempt.report, "audit": {key: value for key, value in attempt.report.get("audit", {}).items() if key != "report"}},
                     "phases": script.phases, "inspect_usage": {key: value.model_dump() for key, value in usage.items()},
                     "ledger_total": recorded, "known_subtotal": attempt.ledger.known_tokens,
                     "working_difference": None, "calls": attempt.ledger.calls,
@@ -116,7 +136,7 @@ class HarnessRuntimeIntegration(verification.VerificationRuntimeIntegration):
             # Exercise initialization through the harness on the untouched second server.
             cold_task, cold = stonebench_task(integration.server_urls()[1],
                 Budget(300000, 4000, 4000, 20000, 2000), root / "cold_initialize")
-            cold_script = Scenario("no_submission", chosen, latest_id, self, cold)
+            cold_script = Scenario("source_free", chosen, latest_id, self, cold)
             cold_logs = await eval_async(cold_task,
                 model=get_model("stonebench-scripted/cold-initialize", script=cold_script),
                 log_dir=str(root / "inspect-logs"), log_format="json", log_model_api=False,
@@ -124,6 +144,7 @@ class HarnessRuntimeIntegration(verification.VerificationRuntimeIntegration):
             self.assertEqual(cold_logs[0].status, "success", str(cold_logs[0].error))
             self.assertEqual(cold.report["status"], "no_submission")
             self.assertIsNone(cold.selected)
+            self.assert_source_free_inspect(cold, cold_logs[0], self.sessions[1])
             evidence["cold_initialize"] = {"phases": cold_script.phases,
                 "ledger_total": cold.ledger.total_tokens, "result": cold.report,
                 "initialization": json.loads((cold.root / "tool-000001.json").read_text(encoding="utf-8"))}
@@ -134,7 +155,109 @@ class HarnessRuntimeIntegration(verification.VerificationRuntimeIntegration):
             output.parent.mkdir(parents=True, exist_ok=True)
             output.write_text(json.dumps(evidence, indent=2), encoding="utf-8")
             await self.stack.aclose()
-    def assert_separate_metrics(self, metrics):
+
+    async def assert_local_audit(self, first, attempt, server_root, checkpoint_id, positive):
+        """Re-read the audit from local files alone, then check what an agent can read of it through MCP."""
+        local = attempt.report["audit"]
+        directory = server_root / "stonebench/verifications" / local["request_id"]
+        self.assertEqual(local["checkpoint_id"], checkpoint_id)
+        if positive:  # only a conforming verdict needs the complete evidence set
+            self.assertTrue(local["complete"], local["missing"])
+        status = json.loads((directory / "visible.json").read_text(encoding="utf-8"))
+        again = audit.load(server_root, local["request_id"], checkpoint_id, status)
+        self.assertEqual(again["sha256"], local["sha256"])
+        report = again["report"]
+        self.assertEqual(report["audit"]["attempt_id"], json.loads((server_root / "stonebench/attempt.json").read_text())["attempt_id"])
+        shown = attempt.report["verification"]
+        self.assertEqual(status, shown)  # what the agent was shown is what visible.json holds
+        self.assertEqual(audit.lean(report["measurements"]), shown["measurements"])
+        self.assertEqual(report["verdict"], shown["verdict"])
+        # The agent has no route to the complete report: no identifier, no sources, no citation anywhere in what it saw.
+        self.assertNotIn("full_report", shown)
+        self.assertEqual(integration.source_leaks(shown), [])
+        self.assertTrue(integration.source_leaks(report))
+        self.assertTrue(all(row["sources"] for row in report["criteria"]))
+        # The scorer's own metadata keeps the complete local record (provenance, raw transitions, measurements, selected checkpoint).
+        record = attempt.report["audit"]["report"]
+        self.assertEqual(record, report)
+        self.assertEqual(attempt.report["checkpoint_id"], checkpoint_id)
+        self.assertEqual(record["checkpoint_id"], checkpoint_id)
+        self.assertTrue(record["checkpoint_provenance"] and record["copies"] and record["audit"]["manifest_sha256"])
+        self.assertTrue(all(row["operation"]["transition"] for row in record["boundaries"]))
+        if positive:
+            self.assert_separate_metrics(record["measurements"], raw=True)
+        self.assertTrue(all(isinstance(row["snapshot"], dict) and "world_time" in row["snapshot"] for row in report["boundaries"]))
+        await self.assert_agent_view(first, shown)
+        self.assertEqual(audit.positive(again), attempt.report["audit_positive"])
+
+    def assert_source_free_inspect(self, attempt, log, session):
+        """Inspect form of start_attempt, describe_task, describe_rules and check_geometry: what the model and the retained results hold."""
+        retained = {}
+        for line in (attempt.root / "events.jsonl").read_text(encoding="utf-8").splitlines():
+            event = json.loads(line)
+            if event["kind"] == "tool_result" and event["tool"] in integration.SOURCE_FREE_TOOLS:
+                data = (attempt.root / event["artifact"]).read_text(encoding="utf-8")
+                self.assertFalse(json.loads(data).get("result_output_bounded"), event)
+                retained.setdefault(event["tool"], []).append((data, json.loads(data)))
+        self.assertEqual(set(retained), set(integration.SOURCE_FREE_TOOLS))
+        # The scanned perimeter is explicit: this attempt calls only those four tools, so no verification report is among its files.
+        called = {json.loads(line).get("tool") for line in (attempt.root / "events.jsonl").read_text(encoding="utf-8").splitlines()}
+        self.assertEqual(called - {None}, set(integration.SOURCE_FREE_TOOLS))
+        # Every tool message the model received, in the form Inspect gave it.
+        seen = {}
+        for message in log.samples[0].messages:
+            if message.role == "tool" and message.function in integration.SOURCE_FREE_TOOLS:
+                self.assertIsInstance(message.content, str)
+                seen.setdefault(message.function, []).append(message.content)
+        self.assertEqual(set(seen), {"describe_task", "describe_rules", "check_geometry"})
+        for name, results in retained.items():
+            for data, value in results:
+                self.assertEqual(integration.source_leaks(value), [], name)
+                self.assertTrue(value["status"] == "ok" and value["operation"] == name, value)
+                self.assertLess(len(data.encode("utf-8")), attempt.output_bytes, name)
+                journal = self.audit_row(session, value)  # the local operation audit keeps what the model never saw
+                if name in ("describe_rules", "check_geometry"):
+                    self.assertTrue(integration.source_leaks(journal), name)
+                    self.assertTrue(all(row["sources"] for row in journal["criteria"]), name)
+                else:
+                    self.assertEqual(journal["task"]["rules_reference"], integration.RULES_REFERENCE, name)
+            for content in seen.get(name, []):
+                self.assertIn(content, [data for data, _ in results], name)
+        rules = retained["describe_rules"][0][1]
+        self.assertEqual(len(rules["criteria"]), 14)
+        self.assertTrue(all(row["expected"] and row["observation"] and row["coverage"] and isinstance(row["mandatory"], bool) for row in rules["criteria"]))
+        geometry = retained["check_geometry"][0][1]
+        self.assertEqual(geometry["expected_state"], "closed")
+        self.assertTrue(all(row["status"] and "observed" in row and row["diagnostic"] for row in geometry["criteria"]))
+        # No other file the harness keeps for the agent mentions the rules documents either.
+        files = sorted(attempt.root.glob("tool-*.json")) + [attempt.root / "events.jsonl", attempt.root / "run.json"]
+        self.assertEqual(len(files), len(retained["start_attempt"]) + len(retained["describe_task"]) + len(retained["describe_rules"]) + len(retained["check_geometry"]) + 2)
+        for file in files:
+            text = file.read_text(encoding="utf-8")
+            for marker in integration.SOURCE_TEXT:
+                self.assertNotIn(marker, text, file.name)
+            self.assertIsNone(integration.SOURCE_PROSE.search(text), file.name)
+
+    def assert_agent_files_source_free(self, attempt, log):
+        """Everything the model received or the harness retained for it, whole (the retained files hold results the model saw only as pages)."""
+        files = sorted(attempt.root.glob("tool-*.json")) + [attempt.root / "events.jsonl", attempt.root / "run.json"]
+        for file in files:
+            text = file.read_text(encoding="utf-8")
+            for marker in integration.SOURCE_TEXT:
+                self.assertNotIn(marker, text, file.name)
+            self.assertIsNone(integration.SOURCE_PROSE.search(text), file.name)
+            if file.name.startswith("tool-"):
+                self.assertEqual(integration.source_leaks(json.loads(text)), [], file.name)
+        for message in log.samples[0].messages:
+            if message.role == "tool":
+                self.assertEqual(integration.source_leaks(message.content), [], message.function)
+        # The model reads a completed verification directly (not as a paged reference) when it fits the unchanged threshold.
+        completed = [json.loads(message.content) for message in log.samples[0].messages
+                     if message.role == "tool" and message.function == "verification_status" and '"verdict"' in message.content]
+        self.assertTrue(all("result_output_bounded" not in value and "faults" in value["verification"] for value in completed))
+
+    def assert_separate_metrics(self, metrics, raw=False):
+        """`raw`: the complete local measurements (per-movement evidence and sources); otherwise the agent's concise form."""
         dynamic = metrics["dynamic_volume"]
         self.assertEqual(dynamic["status"], "indeterminate")
         self.assertIsNone(dynamic["value"])
@@ -145,6 +268,8 @@ class HarnessRuntimeIntegration(verification.VerificationRuntimeIntegration):
         self.assertEqual(metrics["opening_time"]["value"], 6)
         self.assertEqual(metrics["closing_time"]["value"], 6)
         self.assertEqual(metrics["record_eligibility"], "not_verified")
+        if not raw:
+            self.assertEqual(integration.source_leaks(metrics), [])
         self.assertEqual({row["mode"] for row in metrics["transitions"]}, {"repeater", "direct"})
         for row in metrics["transitions"]:
             timing = row["opening_time" if row["state"] == "open" else "closing_time"]
@@ -156,7 +281,11 @@ class HarnessRuntimeIntegration(verification.VerificationRuntimeIntegration):
             self.assertEqual(timing["value"], timing["completion_world_time"] - timing["interaction"]["world_time"])
             self.assertIsNotNone(timing["signal_at_input_block"])
             self.assertIsNotNone(timing["rest_recognition"])
-            self.assertTrue(row["movements"])
+            if raw:
+                self.assertTrue(row["movements"])
+                self.assertTrue(all(source["locator"] for source in timing["sources"]))
+            else:
+                self.assertFalse({"movements", "sources", "excluded", "conditional_roles"} & (row.keys() | row["dynamic_volume"].keys() | timing.keys()))
             self.assertFalse(row["objectives_combined"])
 
 
@@ -193,16 +322,19 @@ class Scenario:
                 jobs = [item.get("verification",{}) for item in retained if isinstance(item,dict) and item.get("verification")]
                 if self.request_id is None:
                     self.request_id = next(job["request_id"] for job in reversed(jobs) if "request_id" in job)
-                if any("verdict" in job for job in jobs):
+                finished = next((job for job in jobs if "verdict" in job), None)
+                if finished:
                     self.verification_finished = True
-                    calls = [("submit_checkpoint", {"checkpoint_id":self.chosen})]
+                    # Construction evidence stays readable after the report is complete; the report itself has no artifact.
+                    calls = [("read_artifact", {"artifact_id": finished["working_after"]["artifact_id"], "offset": 0, "limit": 1}),
+                             ("submit_checkpoint", {"checkpoint_id":self.chosen})]
                 else:
                     await asyncio.sleep(2)
                     calls = [("verification_status", {"request_id":self.request_id})]
                     if self.index == 2:
                         calls += [("verification_snapshot", {}), ("restore_checkpoint", {"checkpoint_id":self.latest}),
                                   ("modify_blocks", {}), ("__test_verification_mutate", {})]
-        elif self.scenario == "selected_during_copy":
+        elif self.scenario in {"selected_during_copy", "audit_absent"}:
             if self.index == 1:
                 calls = [("verify_checkpoint", {"checkpoint_id": self.latest}),
                          ("submit_checkpoint", {"checkpoint_id": self.latest})]
@@ -218,6 +350,8 @@ class Scenario:
             calls = [("submit_checkpoint", {"checkpoint_id":"00000000-0000-0000-0000-000000000000"})]
         elif self.scenario in {"missing_usage", "long_reasoning"} and self.index == 1:
             calls = [("list_checkpoints", {})]
+        elif self.scenario == "source_free" and self.index == 1:
+            calls = [("describe_rules", {}), ("check_geometry", {"expected_state": "closed"})]
         usage = ModelUsage(input_tokens=50, output_tokens=50, total_tokens=100)
         if self.index == 0:
             usage = None if self.scenario == "missing_usage" else ModelUsage(input_tokens=258000, output_tokens=2000, total_tokens=260000, reasoning_tokens=1900)

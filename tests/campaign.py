@@ -32,7 +32,8 @@ class CampaignTests(unittest.TestCase):
 
     def test_exact_endpoint_allowlist(self):
         self.assertEqual(MODEL,"openrouter/xiaomi/mimo-v2.6-flash")
-        self.assertEqual(PROVIDER["order"],["makora/fp8","xiaomi/fp8"])
+        self.assertEqual(PROVIDER["order"],["makora/fp8"])
+        self.assertEqual(PROVIDER["only"],["makora/fp8"])
         self.assertEqual(PROVIDER["only"],PROVIDER["order"])
         self.assertEqual(PROVIDER["quantizations"],["fp8"])
         self.assertNotIn("reasoning",PROVIDER)

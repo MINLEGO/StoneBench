@@ -1,11 +1,14 @@
 """Native Inspect execution with a local, irreversible tool guard."""
 import asyncio
 from dataclasses import asdict
+from datetime import datetime, timezone
 from hashlib import sha256
 from importlib.metadata import version
 import json
 from pathlib import Path
 import time
+
+from tenacity import RetryError
 
 from inspect_ai import Task
 from inspect_ai.agent import AgentState, agent, as_solver, react
@@ -18,15 +21,16 @@ from inspect_ai.scorer import Score, scorer
 from inspect_ai.solver import solver
 from inspect_ai.tool import Tool, ToolDef, ToolError, mcp_server_http, tool
 
+from . import audit
 from .budget import Budget, Ledger
 
-READ_TOOLS = frozenset({"describe_task", "describe_blocks", "describe_rules", "read_blocks", "read_region",
+READ_TOOLS = frozenset({"describe_task", "describe_blocks", "describe_block", "describe_rules", "read_blocks", "read_region",
     "read_artifact", "compare_traces", "check_geometry", "list_checkpoints", "verification_snapshot",
     "verify_checkpoint", "verification_status", "cancel_verification"})
 WRITE_TOOLS = frozenset({"modify_blocks", "advance", "transition", "declare_input", "prepare_input",
     "act_input", "create_checkpoint", "restore_checkpoint"})
 PROMPT = """Construct the task's regular DOOR using the discovered StoneBench MCP tools.
-Read the task, rules, block catalogue and diagnostic limits. Game ticks and wall time are separate.
+Read the task, rules and diagnostic limits. List block ids with describe_blocks; call describe_block only for a block whose details you need. Game ticks and wall time are separate.
 Save immutable checkpoints only at established rest; incomplete constructions may be saved.
 The harness reports phase and budget before each model call. Reported tokens include construction
 and finalization (including reasoning). Forecasts are estimates. In finalization you may consult,
@@ -52,7 +56,10 @@ def payload(result):
 
 class Attempt:
     def __init__(self, budget: Budget, artifact_dir: Path, tool_output_bytes=16384,
-                 max_context_bytes=None, stop_on_missing_usage=False):
+                 max_context_bytes=None, stop_on_missing_usage=False, server_root=None, generation_retry_waits=()):
+        self.server_root = server_root
+        # One entry per resend of the same request after a transient transport/provider failure; empty means never resend.
+        self.generation_retry_waits = tuple(generation_retry_waits)
         self.ledger = Ledger(budget)
         self.root = Path(artifact_dir)
         self.root.mkdir(parents=True, exist_ok=False)
@@ -201,7 +208,30 @@ class Attempt:
         self.retain("score_verification_report", response)
         if report.get("checkpoint_id") != self.selected:
             raise RuntimeError("Verifier returned a different checkpoint identity")
-        return {"status": "submitted", "checkpoint_id": self.selected, "verification": report}
+        # The positive/negative decision comes from the complete local audit, never from the MCP response alone.
+        try:
+            if self.server_root is None:
+                raise audit.AuditError("No local server root configured for the audit")
+            local = audit.load(self.server_root, request, self.selected, report)
+        except audit.AuditError as exc:
+            self.event("audit_rejected", checkpoint_id=self.selected, request_id=request, error=str(exc))
+            return {"status": "audit_error", "checkpoint_id": self.selected, "verification": report, "audit": {"error": str(exc)}}
+        self.event("audit_read", **{key: local[key] for key in ("attempt_id", "request_id", "checkpoint_id", "manifest_sha256", "sha256", "complete", "missing")})
+        return {"status": "submitted", "checkpoint_id": self.selected, "verification": report,
+                # `verification` is what the agent saw; the complete local report (provenance, raw transitions, measurements) is the scorer's own record.
+                "audit": {key: local[key] for key in ("attempt_id", "request_id", "checkpoint_id", "manifest_sha256", "path", "sha256", "complete", "missing", "report")},
+                "audit_positive": audit.positive(local)}
+
+
+def unwrap_failure(exc):
+    # With Inspect's own retries off, tenacity wraps the provider's exception in a RetryError.
+    return exc.last_attempt.exception() if isinstance(exc, RetryError) else exc
+
+
+def transient_failure(exc):
+    """Only the provider's own transient classification (connection loss, timeouts, 429, 5xx) is resent."""
+    cause = unwrap_failure(exc)
+    return isinstance(cause, Exception) and bool(get_model().api.should_retry(cause))
 
 
 @agent
@@ -221,27 +251,40 @@ def budgeted_generation(attempt: Attempt, config: GenerateConfig):
         state.messages.append(ChatMessageUser(content=notice))
         bound = attempt.ledger.budget.final_completion if attempt.ledger.phase == "finalization" else attempt.ledger.budget.construction_output
         attempt.event("before_generation", **status, max_tokens=bound)
-        started = time.monotonic()
         history_start = len(transcript().events)
-        try:
-            state.output = await get_model().generate(state.messages, tools=tools,
-                config=config.model_copy(update={"max_tokens": bound, "parallel_tool_calls": False}))
-        except LimitExceededError as exc:
-            # Inspect records the completed ModelEvent before its token limit raises.
-            completed = [event.output for event in transcript().events[history_start:]
-                         if isinstance(event, ModelEvent) and event.output is not None]
-            usage = completed[-1].usage if completed else None
-            attempt.ledger.record(usage, time.monotonic() - started)
-            attempt.event("generation_usage", **attempt.ledger.calls[-1], inspect_limit=exc.type,
-                completion_bound_exceeded_observed=usage is not None and usage.output_tokens > bound)
-            raise
-        except BaseException as exc:
-            completed = [event.output for event in transcript().events[history_start:]
-                         if isinstance(event, ModelEvent) and event.output is not None]
-            usage = completed[-1].usage if completed else None
-            attempt.ledger.record(usage, time.monotonic() - started)
-            attempt.event("generation_failed", **attempt.ledger.calls[-1], failure_type=type(exc).__name__)
-            raise
+        failures = 0
+        while True:
+            started = time.monotonic()
+            started_utc = datetime.now(timezone.utc).isoformat()
+            try:
+                state.output = await get_model().generate(state.messages, tools=tools,
+                    config=config.model_copy(update={"max_tokens": bound, "parallel_tool_calls": False}))
+                break
+            except LimitExceededError as exc:
+                # Inspect records the completed ModelEvent before its token limit raises.
+                completed = [event.output for event in transcript().events[history_start:]
+                             if isinstance(event, ModelEvent) and event.output is not None]
+                usage = completed[-1].usage if completed else None
+                attempt.ledger.record(usage, time.monotonic() - started)
+                attempt.event("generation_usage", **attempt.ledger.calls[-1], inspect_limit=exc.type,
+                    completion_bound_exceeded_observed=usage is not None and usage.output_tokens > bound)
+                raise
+            except BaseException as exc:
+                if failures < len(attempt.generation_retry_waits) and transient_failure(exc):
+                    # The provider may have accepted and billed this request: charge its bound, report no usage.
+                    wait = attempt.generation_retry_waits[failures]
+                    attempt.ledger.record_lost(context + bound, time.monotonic() - started, type(unwrap_failure(exc)).__name__,
+                                               started_utc, datetime.now(timezone.utc).isoformat())
+                    attempt.event("generation_request_lost", **attempt.ledger.lost[-1], retry_in_seconds=wait)
+                    failures += 1
+                    await asyncio.sleep(wait)
+                    continue
+                completed = [event.output for event in transcript().events[history_start:]
+                             if isinstance(event, ModelEvent) and event.output is not None]
+                usage = completed[-1].usage if completed else None
+                attempt.ledger.record(usage, time.monotonic() - started)
+                attempt.event("generation_failed", **attempt.ledger.calls[-1], failure_type=type(exc).__name__)
+                raise
         attempt.ledger.record(state.output.usage, time.monotonic() - started)
         attempt.event("generation_usage", **attempt.ledger.calls[-1], stop_reason=state.output.stop_reason,
                       completion_bound_exceeded_observed=state.output.usage is not None and state.output.usage.output_tokens > bound)
@@ -252,15 +295,19 @@ def budgeted_generation(attempt: Attempt, config: GenerateConfig):
 
 def stonebench_task(mcp_url: str, budget: Budget, artifact_dir: Path, task_id="2x2-volume",
                     config: GenerateConfig | None = None, initialize=True, prompt=PROMPT,
-                    max_context_bytes=None, stop_on_missing_usage=False):
-    """One task, one attempt, one server; create a fresh Task for each attempt."""
+                    max_context_bytes=None, stop_on_missing_usage=False, server_root=None, generation_retry_waits=()):
+    """One task, one attempt, one server; create a fresh Task for each attempt.
+
+    `server_root` is the server's local directory; the scorer reads its complete verification audit there.
+    Without it a selected checkpoint cannot score positively."""
     config = config or GenerateConfig()
     if config.extra_headers and config.extra_headers != {"X-OpenRouter-Metadata": "enabled"}:
         raise ValueError("Only nonsecret OpenRouter response metadata may be requested through recorded headers; authentication belongs in provider environment")
     if not isinstance(prompt, str):
         raise ValueError("Alpha harness requires a text prompt")
     attempt = Attempt(budget, artifact_dir, max_context_bytes=max_context_bytes,
-                      stop_on_missing_usage=stop_on_missing_usage)
+                      stop_on_missing_usage=stop_on_missing_usage, server_root=server_root,
+                      generation_retry_waits=generation_retry_waits)
     server = mcp_server_http(url=mcp_url, name="stonebench", timeout=2450)
 
     @solver
@@ -289,7 +336,8 @@ def stonebench_task(mcp_url: str, budget: Budget, artifact_dir: Path, task_id="2
                 finally:
                     state.metadata["stonebench"] = {"selected_checkpoint_id": attempt.selected,
                         "total_tokens": attempt.ledger.total_tokens, "known_tokens_subtotal": attempt.ledger.known_tokens,
-                        "phase": attempt.ledger.phase, "calls": attempt.ledger.calls}
+                        "phase": attempt.ledger.phase, "calls": attempt.ledger.calls,
+                        "lost_requests": attempt.ledger.lost, "generation_retry_waits": list(attempt.generation_retry_waits)}
                     (attempt.root / "run.json").write_text(encode({"inspect_version": version("inspect_ai"), "mcp_version": version("mcp"),
                         "prompt": prompt, "tool_catalogue": attempt.catalog, "budget": asdict(budget),
                         "generation_config": config.model_dump(mode="json"), "model": str(get_model()),
@@ -310,8 +358,7 @@ def stonebench_task(mcp_url: str, budget: Budget, artifact_dir: Path, task_id="2
                     attempt.report = {"status": "verification_error", "checkpoint_id": attempt.selected,
                                       "diagnostic": str(exc)}
             (attempt.root / "result.json").write_text(encode(attempt.report), encoding="utf-8")
-            report = attempt.report.get("verification", {})
-            return Score(value=int(report.get("conforms_to_alpha") is True), answer=attempt.selected,
+            return Score(value=int(attempt.report.get("audit_positive") is True), answer=attempt.selected,
                          explanation=attempt.report["status"], metadata=attempt.report)
         return score
 

@@ -64,14 +64,14 @@ class MeasurementsRuntimeIntegration(verification.VerificationRuntimeIntegration
         # piston movement must extend rest but never replace door completion.
         blocks=[]
         for x in (1030,1031):
-            blocks.append({"x":x,"y":80,"z":1025,"block":"minecraft:stone"})
+            blocks.append({"x":x,"y":80,"z":1025,"block":"minecraft:quartz_block"})
         blocks += [
             {"x":1030,"y":81,"z":1025,"block":"minecraft:redstone_wire"},
             {"x":1031,"y":81,"z":1025,"block":"minecraft:repeater","parameters":{"facing":"west","delay":"4"}},
             {"x":1032,"y":81,"z":1025,"block":"minecraft:sticky_piston","parameters":{"facing":"up"}},
             # Redundant stone beside the piston is read, never actuates the door.
             # Its outer x extent must remain conditional rather than exact wiring.
-            {"x":1033,"y":81,"z":1025,"block":"minecraft:stone"},
+            {"x":1033,"y":81,"z":1025,"block":"minecraft:quartz_block"},
         ]
         self.assert_ok(await self.call(session,"modify_blocks",{"blocks":blocks,"notify_neighbors":True}))
         settled=await self.call(session,"transition",{"max_ticks":36000,"trace":True})
@@ -83,9 +83,9 @@ class MeasurementsRuntimeIntegration(verification.VerificationRuntimeIntegration
 
     async def transient_pulse(self,session):
         self.assert_ok(await self.call(session,"start_attempt",{"task_id":"2x2-volume"}))
-        blocks=[{"x":x,"y":80,"z":1030,"block":"minecraft:stone"} for x in (1038,1039)]
+        blocks=[{"x":x,"y":80,"z":1030,"block":"minecraft:quartz_block"} for x in (1038,1039)]
         blocks += [
-            {"x":1038,"y":81,"z":1030,"block":"minecraft:stone"},
+            {"x":1038,"y":81,"z":1030,"block":"minecraft:quartz_block"},
             {"x":1037,"y":81,"z":1030,"block":"minecraft:lever","parameters":{"face":"wall","facing":"west"}},
             {"x":1039,"y":81,"z":1030,"block":"minecraft:redstone_wire"},
             {"x":1040,"y":81,"z":1030,"block":"minecraft:observer","parameters":{"facing":"west"}},

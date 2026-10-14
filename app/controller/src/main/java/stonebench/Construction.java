@@ -3,6 +3,7 @@ package stonebench;
 import com.google.gson.*;
 import java.util.*;
 import net.minecraft.block.*;
+import net.minecraft.block.enums.DoubleBlockHalf;
 import net.minecraft.inventory.Inventory;
 import net.minecraft.item.*;
 import net.minecraft.server.world.ServerWorld;
@@ -14,7 +15,7 @@ import net.minecraft.util.math.*;
 public final class Construction {
     record Placement(BlockPos pos,BlockCatalog.Entry entry,JsonObject parameters,List<ItemStack> inventory,BlockState state) {}
     private static Map<BlockPos,BlockState> preview;
-    private static BlockPos placementPosition;
+    private static BlockPos placementPosition,placementClear;
     static boolean failNextLot;
     private static boolean installing; private static int deferredComparators;
     public static boolean deferComparatorUpdate() {if(!installing) return false;deferredComparators++;return true;}
@@ -28,7 +29,7 @@ public final class Construction {
         }
         JsonObject event=new JsonObject();event.addProperty("kind",kind);event.add("position",Task.position(pos.getX(),pos.getY(),pos.getZ()));event.addProperty("root_index",rootIndex);event.addProperty("geometry_complete",geometry);event.addProperty("inventories_complete",inventories);event.addProperty("parameters_complete",parameters);events.add(event);
     }
-    public static BlockState previewState(BlockPos pos) {return preview==null?null:pos.equals(placementPosition)?Blocks.AIR.getDefaultState():preview.get(pos);}
+    public static BlockState previewState(BlockPos pos) {return preview==null?null:pos.equals(placementPosition)||pos.equals(placementClear)?Blocks.AIR.getDefaultState():preview.get(pos);}
     static List<Placement> validate(ServerWorld world,JsonObject args) {
         JsonElement raw=args.get("blocks");if(raw==null || !raw.isJsonArray() || raw.getAsJsonArray().size()<1 || raw.getAsJsonArray().size()>256) throw new IllegalArgumentException("blocks must contain 1..256 ordered placements");
         if(!args.has("notify_neighbors") || !args.get("notify_neighbors").isJsonPrimitive() || !args.get("notify_neighbors").getAsJsonPrimitive().isBoolean()) throw new IllegalArgumentException("notify_neighbors must be an explicit boolean");
@@ -45,6 +46,13 @@ public final class Construction {
             BlockState state=BlockCatalog.parameters(entry.block().getDefaultState(),parameters,entry);
             List<ItemStack> inventory=BlockCatalog.inventory(row.get("inventory"),entry,pos,state,world);
             overlay.put(pos,state);placements.add(new Placement(pos,entry,parameters,inventory,state));
+            // A door entry names the lower half; reserve the upper cell now so every conflict refuses the whole lot.
+            if(entry.block() instanceof DoorBlock) {
+                BlockPos upper=pos.up();
+                if(!world.isInBuildLimit(upper) || !world.getWorldBorder().contains(upper)) throw new IllegalArgumentException("Upper door half outside vanilla build limits/world border at "+upper);
+                if(overlay.containsKey(upper)) throw new IllegalArgumentException("Duplicate placement coordinate (upper door half)");
+                overlay.put(upper,state.with(DoorBlock.HALF,DoubleBlockHalf.UPPER));
+            }
         }
         preview=overlay;
         try {
@@ -62,15 +70,25 @@ public final class Construction {
                     @Override public float getPlayerYaw() {return getHorizontalPlayerFacing().getPositiveHorizontalDegrees();}
                     @Override public Direction[] getPlacementDirections() {return new Direction[]{side.getOpposite(),Direction.DOWN,Direction.NORTH,Direction.SOUTH,Direction.WEST,Direction.EAST,Direction.UP};}
                 };
-                placementPosition=pos;BlockState state;
-                try {state=placement.entry.block().getPlacementState(context);} finally {placementPosition=null;}
+                boolean door=placement.entry.block() instanceof DoorBlock;
+                placementPosition=pos;placementClear=door?pos.up():null;BlockState state;
+                try {state=placement.entry.block().getPlacementState(context);} finally {placementPosition=null;placementClear=null;}
                 if(state==null) throw new IllegalArgumentException("No vanilla placement state at "+pos);
                 state=BlockCatalog.parameters(state,placement.parameters,placement.entry);
                 if(!state.canPlaceAt(world,pos)) throw new IllegalArgumentException("Vanilla placement lacks support at "+pos);
                 resolved.add(new Placement(pos,placement.entry,placement.parameters,placement.inventory,state));
+                // Later entries see this one as resolved (support distance, shapes), as sequential vanilla placement would.
+                preview.put(pos,state);
+                if(door) {
+                    // Install order and notification order: lower half, then its upper half, before the next submitted entry.
+                    BlockState upper=state.with(DoorBlock.HALF,DoubleBlockHalf.UPPER);
+                    if(!upper.canPlaceAt(world,pos.up())) throw new IllegalArgumentException("Vanilla placement lacks support at "+pos.up());
+                    resolved.add(new Placement(pos.up(),placement.entry,placement.parameters,null,upper));
+                    preview.put(pos.up(),upper);
+                }
             }
             return resolved;
-        } finally {preview=null;placementPosition=null;}
+        } finally {preview=null;placementPosition=null;placementClear=null;}
     }
     static JsonArray read(ServerWorld world,List<Placement> placements) {JsonArray result=new JsonArray();for(Placement p:placements) result.add(BlockCatalog.read(world,p.pos));return result;}
     static JsonObject apply(ServerWorld world,List<Placement> placements,boolean notify) {
