@@ -13,7 +13,9 @@ from inspect_ai import Task,eval_async
 from inspect_ai.dataset import Sample
 from inspect_ai.solver import generate
 from inspect_ai.model import GenerateConfig,get_model
-from app.campaign.plan import MODEL,PROVIDER,REASONING_REQUEST
+from app.campaign.plan import MODEL,PROVIDER,PROVIDER_NAME,REASONING_REQUEST
+
+SLUG=MODEL.removeprefix("openrouter/")
 from app.campaign.run_attempt import provider_records,validate_provider,usable_output
 from app.harness.inspect_task import Attempt,budgeted_generation
 from app.harness.budget import Budget
@@ -33,14 +35,14 @@ class ProviderTests(unittest.IsolatedAsyncioTestCase):
             with self.subTest(name=name),tempfile.TemporaryDirectory() as tmp,patch.dict(os.environ,{"OPENROUTER_API_KEY":"sentinel-offline-only"}):
                 def completion(request):
                     return httpx2.Response(200,json={"id":"gen-offline-length","object":"chat.completion","created":1,
-                        "model":"xiaomi/mimo-v2.6-flash","choices":[{"index":0,"finish_reason":"length",
+                        "model":SLUG,"choices":[{"index":0,"finish_reason":"length",
                             "message":{"role":"assistant",**message}}],
                         "usage":{"prompt_tokens":200,"completion_tokens":100,"total_tokens":300,"cost":.000054}})
                 async with httpx2.AsyncClient(transport=httpx2.MockTransport(completion)) as client:
                     logs=await eval_async(Task(dataset=[Sample(input="Offline length fixture")],solver=generate(tool_calls="none")),
-                        model=get_model(MODEL,memoize=False,provider=PROVIDER,max_retries=0,http_client=client,reasoning_enabled=True),
+                        model=get_model(MODEL,memoize=False,provider=PROVIDER,max_retries=0,http_client=client),
                         log_dir=tmp,log_format="json",log_model_api=True,ctl_server=False,retry_on_error=0,
-                        max_tokens=65536,max_retries=0,reasoning_tokens=REASONING_REQUEST["max_tokens"])
+                        max_tokens=65536,max_retries=0)
                 if name=="empty-text-parts":
                     # Pinned Inspect rejects list content before creating a ModelEvent.
                     # Exercise the raw-content normalization separately too.
@@ -49,14 +51,14 @@ class ProviderTests(unittest.IsolatedAsyncioTestCase):
                     self.assertFalse(usable_output(message))
                     rows=[{"response_id":"gen-offline-length","raw_provider_usage":{"prompt_tokens":200,
                         "completion_tokens":100,"total_tokens":300},"requested_max_tokens":65536,
-                        "requested_model":"xiaomi/mimo-v2.6-flash","requested_provider":PROVIDER,"requested_reasoning":REASONING_REQUEST,
+                        "requested_model":SLUG,"requested_provider":PROVIDER,"requested_reasoning":REASONING_REQUEST,
                         "finish_reason":"length","usable_visible_or_tool_output":usable_output(message)}]
                 else:
                     self.assertEqual(logs[0].status,"success",logs[0].error)
                     rows=provider_records(logs[0])
                 self.assertEqual(rows[0]["usable_visible_or_tool_output"],accepted)
                 def metadata(request):
-                    return httpx.Response(200,json={"data":{"id":"gen-offline-length","provider_name":"Makora","total_cost":.000054}})
+                    return httpx.Response(200,json={"data":{"id":"gen-offline-length","provider_name":PROVIDER_NAME,"total_cost":.000054}})
                 with patch("httpx.AsyncClient",side_effect=lambda **kwargs:real_metadata_client(transport=httpx.MockTransport(metadata),**kwargs)):
                     validation=await validate_provider(rows)
                 self.assertEqual(validation["accepted"],accepted)
@@ -88,17 +90,17 @@ class ProviderTests(unittest.IsolatedAsyncioTestCase):
             self.assertEqual(request.headers["X-OpenRouter-Metadata"],"enabled")
             body=json.loads(request.content);requests.append(body)
             self.assertEqual(body["provider"],PROVIDER)
-            self.assertEqual(body["reasoning"],REASONING_REQUEST)
-            self.assertEqual(body["max_tokens"],65536)
+            self.assertNotIn("reasoning",body)
+            self.assertEqual(body.get("max_tokens",body.get("max_completion_tokens")),65536)
             return httpx2.Response(200,json={"id":"gen-offline-15","object":"chat.completion","created":1,
-                "model":"xiaomi/mimo-v2.6-flash","choices":[{"index":0,"finish_reason":"stop", "message":{"role":"assistant","content":"Offline response","reasoning":"Reasoning is retained"}}],
+                "model":SLUG,"choices":[{"index":0,"finish_reason":"stop", "message":{"role":"assistant","content":"Offline response","reasoning":"Reasoning is retained"}}],
                 "usage":{"prompt_tokens":200,"completion_tokens":100,"total_tokens":300,"cost":.000054,
                     "completion_tokens_details":{"reasoning_tokens":90}},
-                "openrouter_metadata":{"endpoints":{"available":[{"provider":"Makora","selected":True}]}}})
+                "openrouter_metadata":{"endpoints":{"available":[{"provider":PROVIDER_NAME,"selected":True}]}}})
         with tempfile.TemporaryDirectory() as tmp,patch.dict(os.environ,{"OPENROUTER_API_KEY":sentinel}):
             async with httpx2.AsyncClient(transport=httpx2.MockTransport(transport)) as client:
-                model=get_model(MODEL,memoize=False,provider=PROVIDER,max_retries=0,http_client=client,reasoning_enabled=True)
-                config=GenerateConfig(max_tokens=65536,max_retries=0,reasoning_tokens=REASONING_REQUEST["max_tokens"],extra_headers={"X-OpenRouter-Metadata":"enabled"})
+                model=get_model(MODEL,memoize=False,provider=PROVIDER,max_retries=0,http_client=client)
+                config=GenerateConfig(max_tokens=65536,max_retries=0,extra_headers={"X-OpenRouter-Metadata":"enabled"})
                 task=Task(dataset=[Sample(input="Return one response")],solver=generate())
                 logs=await eval_async(task,model=model,log_dir=tmp,log_format="json",log_model_api=True,
                     ctl_server=False,retry_on_error=0,**config.model_dump(exclude_none=True))

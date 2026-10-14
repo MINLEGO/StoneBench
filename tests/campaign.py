@@ -23,19 +23,19 @@ class CampaignTests(unittest.TestCase):
         self.assertEqual(BUDGET.final_completion,65536)
         self.assertEqual(BUDGET.reserve(12345),110649)
         forecast=plan()["forecast"]
-        self.assertAlmostEqual(forecast["worst_split_campaign_usd"],BUDGET.total*8*.28/1000000)
+        self.assertAlmostEqual(forecast["worst_split_campaign_usd"],BUDGET.total*8*.5/1000000)
         self.assertAlmostEqual(forecast["conditional_calibration_plus_excess_usd"],
-            (400000+1114112)*.28/1000000)
+            (400000+1114112)*.5/1000000)
         self.assertAlmostEqual(forecast["conditional_campaign_plus_excess_and_calibration_usd"],
-            4.48+9*1114112*.28/1000000+.112)
+            8.0+9*1114112*.5/1000000+.2)
         self.assertTrue(all(value>0 for value in asdict(BUDGET).values()))
 
     def test_exact_endpoint_allowlist(self):
-        self.assertEqual(MODEL,"openrouter/xiaomi/mimo-v2.6-flash")
-        self.assertEqual(PROVIDER["order"],["makora/fp8"])
-        self.assertEqual(PROVIDER["only"],["makora/fp8"])
+        self.assertEqual(MODEL,"openrouter/openai/gpt-6-luna")
+        self.assertEqual(PROVIDER["order"],["openai"])
+        self.assertEqual(PROVIDER["only"],["openai"])
+        self.assertIs(PROVIDER["allow_fallbacks"],False)
         self.assertEqual(PROVIDER["only"],PROVIDER["order"])
-        self.assertEqual(PROVIDER["quantizations"],["fp8"])
         self.assertNotIn("reasoning",PROVIDER)
 
     def test_recorded_header_is_metadata_only(self):

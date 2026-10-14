@@ -4,16 +4,21 @@ from pathlib import Path
 from unittest.mock import patch
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]))
 import httpx
-from app.campaign.plan import PROVIDER, REASONING_REQUEST
+from app.campaign.plan import MODEL, PROVIDER, PROVIDER_NAME, REASONING_REQUEST
 from app.campaign.run_attempt import validate_provider
 
 FIXTURES=Path(__file__).resolve().parents[1]/"docs/evidence/issue-15/calibration"
 
 
+def historical(name):
+    # Real responses of the first model: only its model and provider names are rebound to the current plan.
+    return (FIXTURES/name).read_text().replace("xiaomi/mimo-v2.6-flash",MODEL.removeprefix("openrouter/")).replace("Makora",PROVIDER_NAME)
+
+
 def response_rows():
     # The real responses were requested under the earlier two-endpoint plan: only the recorded request is rebound to the current plan.
-    rows=json.loads((FIXTURES/"response-fixtures.json").read_text())
-    for row in rows:row["requested_provider"]=copy.deepcopy(PROVIDER);row["requested_reasoning"]=dict(REASONING_REQUEST)
+    rows=json.loads(historical("response-fixtures.json"))
+    for row in rows:row["requested_provider"]=copy.deepcopy(PROVIDER);row["requested_reasoning"]=REASONING_REQUEST
     return rows
 
 class RevalidationTests(unittest.IsolatedAsyncioTestCase):
@@ -30,7 +35,7 @@ class RevalidationTests(unittest.IsolatedAsyncioTestCase):
     async def test_actual_direct_response_and_later_get_agree(self):
         rows=response_rows()
         self.assertTrue((await self.check_rows(copy.deepcopy(rows)))["accepted"])
-        fetched={r["id"]:r["data"] for r in json.loads((FIXTURES/"generation-reread.json").read_text())}
+        fetched={r["id"]:r["data"] for r in json.loads(historical("generation-reread.json"))}
         self.assertTrue((await self.check_rows(rows,fetched))["accepted"])
         self.assertTrue(all(r["resolved_provider_evidence"]["provider_source"]=="generation_get" for r in rows))
 
@@ -47,7 +52,7 @@ class RevalidationTests(unittest.IsolatedAsyncioTestCase):
             with self.subTest(mutation=mutation):self.assertFalse((await self.check_rows(rows))["accepted"])
         for mutation,value in (("provider_name","Xiaomi"),("total_cost",.9),("native_tokens_prompt",999),("native_tokens_reasoning",999),("id","other-id")):
             rows=copy.deepcopy(base)
-            fetched={r["id"]:r["data"].copy() for r in json.loads((FIXTURES/"generation-reread.json").read_text())}
+            fetched={r["id"]:r["data"].copy() for r in json.loads(historical("generation-reread.json"))}
             fetched[rows[0]["response_id"]][mutation]=value
             with self.subTest(disagreement=mutation):self.assertFalse((await self.check_rows(rows,fetched))["accepted"])
 
@@ -67,14 +72,14 @@ class RevalidationTests(unittest.IsolatedAsyncioTestCase):
         for field in ("native_tokens_prompt","native_tokens_completion","native_tokens_reasoning"):
             for value in (True,-1):
                 rows=copy.deepcopy(base)
-                fetched={r["id"]:r["data"].copy() for r in json.loads((FIXTURES/"generation-reread.json").read_text())}
+                fetched={r["id"]:r["data"].copy() for r in json.loads(historical("generation-reread.json"))}
                 fetched[rows[0]["response_id"]][field]=value
                 with self.subTest(native=field,value=value):
                     self.assertFalse((await self.check_rows(rows,fetched))["accepted"])
 
     async def test_valid_get_cannot_override_wrong_request_without_routing(self):
         base=response_rows()
-        fetched={r["id"]:r["data"].copy() for r in json.loads((FIXTURES/"generation-reread.json").read_text())}
+        fetched={r["id"]:r["data"].copy() for r in json.loads(historical("generation-reread.json"))}
         for row in base:row["routing_metadata"]=None
         self.assertTrue((await self.check_rows(copy.deepcopy(base),fetched))["accepted"])
         for field,value in (("requested_model","other/model"),("requested_provider",{"order":["other/fp16"],"allow_fallbacks":True}),
@@ -86,13 +91,5 @@ class RevalidationTests(unittest.IsolatedAsyncioTestCase):
         construction=copy.deepcopy(base);construction[0]["requested_max_tokens"]=32768
         self.assertTrue((await self.check_rows(copy.deepcopy(construction),fetched,"paid"))["accepted"])
         self.assertFalse((await self.check_rows(construction,fetched,"calibration"))["accepted"])
-
-    async def test_reasoning_above_the_requested_cap_is_rejected(self):
-        rows=response_rows()
-        rows[0]["raw_provider_usage"].update(completion_tokens=9000,total_tokens=3122+9000)
-        rows[0]["raw_provider_usage"]["completion_tokens_details"]["reasoning_tokens"]=REASONING_REQUEST["max_tokens"]+1
-        validation=await self.check_rows(rows)
-        self.assertFalse(validation["accepted"])
-        self.assertIn("reasoning_cap_exceeded_observed",validation["gaps"])
 
 if __name__=="__main__":unittest.main()

@@ -10,7 +10,7 @@ from pathlib import Path
 import sys
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
-from app.campaign.plan import BUDGET, CALIBRATION_BUDGET, GENERATION_RETRY_WAITS, MODEL, REASONING_REQUEST, PINS, PROVIDER, digest, load_secret, plan_hash, require_authorization
+from app.campaign.plan import BUDGET, CALIBRATION_BUDGET, GENERATION_RETRY_WAITS, MODEL, REASONING_REQUEST, PINS, PROVIDER, PROVIDER_NAME, digest, load_secret, plan_hash, require_authorization
 from app.harness.inspect_task import stonebench_task, encode
 import app.harness.scripted
 from inspect_ai import eval_async
@@ -79,15 +79,14 @@ def resolve_provider_evidence(row,mode="paid"):
     slug=MODEL.removeprefix("openrouter/")
     request_bound=row.get("requested_model")==slug and row.get("requested_provider")==PROVIDER
     if not request_bound:gaps.append("requested_model_or_provider_outside_plan")
-    reasoning=row.get("requested_reasoning") or {}
-    if reasoning!=REASONING_REQUEST:gaps.append("requested_reasoning_outside_plan")
+    if row.get("requested_reasoning")!=REASONING_REQUEST:gaps.append("requested_reasoning_outside_plan")
     allowed_caps={CALIBRATION_BUDGET.final_completion} if mode=="calibration" else {BUDGET.construction_output,BUDGET.final_completion}
     if not token_count(row.get("requested_max_tokens")) or row["requested_max_tokens"] not in allowed_caps:
         gaps.append("requested_completion_bound_outside_plan")
     direct=None
     if routing:
         if (routing.get("strategy")=="direct" and routing.get("requested")==slug and len(selected)==1
-            and selected[0].get("provider")=="Makora"
+            and selected[0].get("provider")==PROVIDER_NAME
             and (selected[0].get("model")==slug or selected[0].get("model","").startswith(slug+"-"))
             and row.get("requested_model")==slug and row.get("requested_provider")==PROVIDER):
             direct=selected[0]["provider"]
@@ -98,7 +97,7 @@ def resolve_provider_evidence(row,mode="paid"):
         gaps.append("generation_model_outside_requested_model")
     if served_model is not None and direct is not None and served_model!=selected[0].get("model"):
         gaps.append("provider_model_sources_disagree")
-    if metadata and provider!="Makora":gaps.append("provider_identity_unavailable_or_unexpected")
+    if metadata and provider!=PROVIDER_NAME:gaps.append("provider_identity_unavailable_or_unexpected")
     if provider is not None and direct is not None and provider!=direct:gaps.append("provider_sources_disagree")
     cost=(row.get("raw_provider_usage") or {}).get("cost")
     numeric=lambda value:isinstance(value,(int,float)) and not isinstance(value,bool) and math.isfinite(value) and value>=0
@@ -116,7 +115,6 @@ def resolve_provider_evidence(row,mode="paid"):
     for field,raw in (("native_tokens_prompt","prompt_tokens"),("native_tokens_completion","completion_tokens")):
         if metadata.get(field) is not None and metadata[field]!=usage.get(raw):gaps.append("provider_usage_sources_disagree")
     reasoning=(usage.get("completion_tokens_details") or {}).get("reasoning_tokens")
-    if token_count(reasoning) and reasoning>REASONING_REQUEST["max_tokens"]:gaps.append("reasoning_cap_exceeded_observed")
     if metadata.get("native_tokens_reasoning") is not None and reasoning is not None and metadata["native_tokens_reasoning"]!=reasoning:
         gaps.append("provider_reasoning_sources_disagree")
     if not metadata and direct is None:gaps.append("provider_identity_unavailable_or_unexpected")
@@ -125,7 +123,7 @@ def resolve_provider_evidence(row,mode="paid"):
         "cost":fetched_cost if metadata else cost,
         "provider_source":"generation_get" if metadata else "direct_response_bound_to_exact_request",
         "cost_source":"generation_get" if metadata else "response_usage_cost",
-        "endpoint_tag":("makora/fp8" if (provider or direct)=="Makora" else None) if request_bound else None,
+        "endpoint_tag":(PROVIDER["order"][0] if (provider or direct)==PROVIDER_NAME else None) if request_bound else None,
         "endpoint_tag_is_inferred_from_exact_request_allowlist":request_bound}
     return gaps
 
@@ -290,7 +288,6 @@ async def run():
             save(root,"reset-check.json",{"checked":True,"preparation_ticks":description["preparation_ticks"],
                 "world_time":snapshot["checkpoint_state"]["world_time"],"sampled_positions":empty_positions})
         config = GenerateConfig(temperature=0, parallel_tool_calls=False, max_retries=0, cache_prompt=False,
-            reasoning_tokens=REASONING_REQUEST["max_tokens"],
             extra_headers={"X-OpenRouter-Metadata":"enabled"})
         task, attempt = stonebench_task(url, budget, root / "harness", task_id=task_id, config=config, initialize=False,
             max_context_bytes=524288,stop_on_missing_usage=True,server_root=server_root,
@@ -304,7 +301,7 @@ async def run():
         else:
             # Only inherited environment auth; no secret in model args/logs/archive.
             load_secret()
-            model = get_model(MODEL,provider=PROVIDER,max_retries=0,reasoning_enabled=True)
+            model = get_model(MODEL,provider=PROVIDER,max_retries=0)
         logs = await eval_async(task, model=model, log_dir=str(root / "inspect-logs"), log_format="json",
             log_model_api=True, ctl_server=False, max_samples=1,max_tasks=1,retry_on_error=0)
         log = logs[0]

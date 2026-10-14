@@ -8,9 +8,11 @@ from app.harness.budget import Budget
 from app.harness.inspect_task import PROMPT
 
 TASKS = tuple(f"{size}x{size}-{objective}" for size in range(2, 6) for objective in ("volume", "speed"))
-MODEL = "openrouter/xiaomi/mimo-v2.6-flash"
-PROVIDER = {"order": ["makora/fp8"], "only": ["makora/fp8"],
-            "allow_fallbacks": False, "quantizations": ["fp8"]}
+MODEL = "openrouter/openai/gpt-6-luna"
+# OpenRouter lists the base endpoint (tag `openai`) beside `openai/flex` and `openai/fast` variants with other prices and
+# availability; the observed cost of every response is checked, and the serving endpoint stays in the OpenRouter log.
+PROVIDER = {"order": ["openai"], "only": ["openai"], "allow_fallbacks": False}
+PROVIDER_NAME = "OpenAI"
 BUDGET = Budget(total=2000000, construction_output=32768, final_output=8192,
                 final_reasoning=57344, margin=32768, final_calls=8)
 CALIBRATION_BUDGET = Budget(total=400000, construction_output=32768, final_output=8192,
@@ -18,9 +20,9 @@ CALIBRATION_BUDGET = Budget(total=400000, construction_output=32768, final_outpu
 # Waits before each resend of an identical request after a transient provider/transport failure (connection loss,
 # timeout, 429, 5xx). Calibration never resends: it must show the provider's raw behaviour.
 GENERATION_RETRY_WAITS = (10, 30)
-# Cap on reasoning tokens per request (user decision 2026-10-14): without it the model spent its whole completion
-# bound designing in thought. Whether the route honours it is checked on every observed response.
-REASONING_REQUEST = {"enabled": True, "max_tokens": 8000}
+# No reasoning parameter is sent: the provider default is preserved (xiaomi/mimo-v2.6-flash ignored a 8,000-token cap and
+# its documented effort levels do not change real effort, so that model was abandoned on 2026-10-14).
+REASONING_REQUEST = None
 SECRET_FILE = Path(r"C:\Users\minle\Documents\projets\StoneBench\.runtime\openrouter.env")
 PINS = {"minecraft": "1.21.11", "yarn": "1.21.11+build.3", "fabric_loader": "0.19.5",
         "inspect_ai": "0.3.278", "mcp": "1.26.0", "controller": "0.1.0", "protocol": "alpha-issue12-13",
@@ -36,23 +38,23 @@ def plan():
     # No cache discount assumed. Reasoning is completion, never a second charge.
     return {"schema": 1, "status": "provisional_offline_not_provider_calibrated", "tasks": list(TASKS),
             "model": MODEL, "provider": PROVIDER, "pins": PINS, "budget": asdict(BUDGET),
-            "reasoning_request":dict(REASONING_REQUEST),
+            "reasoning_request":REASONING_REQUEST,
             "max_context_bytes":524288,"stop_on_missing_usage":True,
             "generation_retry_waits_seconds":list(GENERATION_RETRY_WAITS),
             "retry_accounting":"a request lost without a response is never counted as usage: total_tokens becomes null, its context+completion bound counts against the budget",
             "calibration_budget": asdict(CALIBRATION_BUDGET), "prompt": PROMPT,
-            "input_usd_per_million": {"makora/fp8": .13},
-            "completion_usd_per_million": .28, "cache_discount_assumed": False,
+            "input_usd_per_million": {"openai": .10},
+            "completion_usd_per_million": .50, "cache_discount_assumed": False,
             "forecast": {"tokens_per_attempt": BUDGET.total, "campaign_tokens": BUDGET.total * len(TASKS),
-                "worst_split_usd_per_attempt": .56, "worst_split_campaign_usd": 4.48,
+                "worst_split_usd_per_attempt": 1.0, "worst_split_campaign_usd": 8.0,
                 "example_input_fraction": .8, "example_completion_fraction": .2,
-                "example_makora_usd_per_attempt": .32,
-                "example_makora_campaign_usd": 2.56,
-                "calibration_worst_split_usd": .112,
+                "example_openai_usd_per_attempt": .36,
+                "example_openai_campaign_usd": 2.88,
+                "calibration_worst_split_usd": .2,
                 "conditional_one_inflight_excess_tokens_per_attempt":1114112,
-                "conditional_campaign_plus_excess_usd":6.97561088,
-                "conditional_calibration_plus_excess_usd":.42395136,
-                "conditional_campaign_plus_excess_and_calibration_usd":7.39956224,
+                "conditional_campaign_plus_excess_usd":12.456448,
+                "conditional_calibration_plus_excess_usd":.757056,
+                "conditional_campaign_plus_excess_and_calibration_usd":13.213504,
                 "limitations": "Token total is an observed stop threshold, not a hard monetary cap. One in-flight request, hidden input overhead, retries and provider bound violations can exceed it; actual usage/cost fields remain authoritative."}}
 
 
