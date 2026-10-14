@@ -11,12 +11,13 @@ class Budget:
     final_reasoning: int
     margin: int
     final_calls: int = 8
-    # shortcut: fixed 2 bytes/token divisor under-forecasts text below 2 bytes/token (real text is ~13), upgrade with per-model token calibration. The hard guard stays in raw bytes.
+    # shortcut: fixed 2 bytes/token divisor under-forecasts text below 2 bytes/token (real text is ~13), upgrade with per-model token calibration.
     bytes_per_token: int = 2
-    max_context_bytes: int = 1000000
+    # Model window in tokens, compared with the token estimate (a raw-byte limit stopped a run at 10% of the real window).
+    context_window_tokens: int = 1000000
 
     def __post_init__(self):
-        positive = {"total", "construction_output", "final_output", "final_calls", "bytes_per_token", "max_context_bytes"}
+        positive = {"total", "construction_output", "final_output", "final_calls", "bytes_per_token", "context_window_tokens"}
         for name, value in asdict(self).items():
             if type(value) is not int or value < (1 if name in positive else 0):
                 raise ValueError(f"Invalid budget field {name}")
@@ -30,6 +31,9 @@ class Budget:
 
     def reserve(self, context_estimate):
         return context_estimate + self.final_completion + self.margin
+
+    def fits_window(self, context_estimate, completion):
+        return context_estimate + completion <= self.context_window_tokens
 
 
 @dataclass
@@ -79,6 +83,9 @@ class Ledger:
             self.finalize("usage_unavailable")
         elif self.committed_tokens + forecast + reserve > self.budget.total:
             self.finalize("next_construction_call_would_enter_reserve")
+        elif not self.budget.fits_window(context_estimate, self.budget.construction_output + self.budget.final_completion + self.budget.margin):
+            # The final request must still fit the model window after one more construction call.
+            self.finalize("next_construction_call_would_exceed_context_window")
         if self.phase == "finalization":
             self.final_calls += 1
         return {"phase": self.phase, "total_budget": self.budget.total,
@@ -96,7 +103,9 @@ class Ledger:
             self.last_total_tokens = self.last_input_tokens = None
         else:
             self.known_tokens += values["total_tokens"]
-            self.last_total_tokens, self.last_input_tokens = values["total_tokens"], values["input_tokens"]
+            # Full input including cached tokens: the reported total minus the completion.
+            self.last_total_tokens = values["total_tokens"]
+            self.last_input_tokens = values["total_tokens"] - values["output_tokens"] if values["output_tokens"] is not None else None
         self.calls.append({"phase": self.phase, "usage": values, "wall_seconds": wall_seconds,
                            "known_tokens_subtotal": self.known_tokens,
                            "budget_exceeded_observed": self.known_tokens > self.budget.total})

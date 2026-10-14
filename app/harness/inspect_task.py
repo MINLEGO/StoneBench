@@ -250,11 +250,15 @@ def budgeted_generation(attempt: Attempt, config: GenerateConfig):
             attempt.event("context_guard_stop", context_bytes=context_bytes, max_context_bytes=attempt.max_context_bytes)
             raise ToolError("Serialized context exceeds campaign client byte guard; no provider request sent")
         status = attempt.ledger.before_call(context_bytes)
+        bound = attempt.ledger.budget.final_completion if attempt.ledger.phase == "finalization" else attempt.ledger.budget.construction_output
+        if not attempt.ledger.budget.fits_window(status["context_estimate"], bound):
+            attempt.event("context_window_stop", context_estimate=status["context_estimate"], completion_bound=bound,
+                          context_window_tokens=attempt.ledger.budget.context_window_tokens)
+            raise ToolError("Estimated context plus completion bound exceeds the model window; no provider request sent")
         notice = "StoneBench phase/budget: " + encode(status)
         if attempt.ledger.phase == "finalization":
             notice += " Finalization now: consult/verify copies and call submit_checkpoint with your chosen existing ID. No mutation/restore/advance permitted."
         state.messages.append(ChatMessageUser(content=notice))
-        bound = attempt.ledger.budget.final_completion if attempt.ledger.phase == "finalization" else attempt.ledger.budget.construction_output
         attempt.event("before_generation", **status, max_tokens=bound)
         history_start = len(transcript().events)
         failures = 0

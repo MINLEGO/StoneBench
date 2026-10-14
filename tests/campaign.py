@@ -30,8 +30,9 @@ class CampaignTests(unittest.TestCase):
         self.assertAlmostEqual(forecast["conditional_campaign_plus_excess_and_calibration_usd"],
             8.0+9*1114112*.5/1000000+.2)
         self.assertTrue(all(value>0 for value in asdict(BUDGET).values()))
-        self.assertEqual((BUDGET.bytes_per_token,BUDGET.max_context_bytes),(2,1000000))
-        self.assertEqual(plan()["budget"]["max_context_bytes"],1000000)
+        self.assertEqual((BUDGET.bytes_per_token,BUDGET.context_window_tokens),(2,1000000))
+        self.assertEqual(plan()["budget"]["context_window_tokens"],1000000)
+        self.assertNotIn("max_context_bytes",plan())
 
     def test_exact_endpoint_allowlist(self):
         self.assertEqual(MODEL,"openrouter/openai/gpt-6-luna")
@@ -46,8 +47,8 @@ class CampaignTests(unittest.TestCase):
             with self.assertRaises(ValueError):stonebench_task("http://127.0.0.1:1/mcp",BUDGET,Path(tmp)/"bad",
                 config=GenerateConfig(extra_headers={"Authorization":"secret"}))
             task,attempt=stonebench_task("http://127.0.0.1:1/mcp",BUDGET,Path(tmp)/"okay",
-                config=GenerateConfig(extra_headers={"X-OpenRouter-Metadata":"enabled"}),max_context_bytes=BUDGET.max_context_bytes,stop_on_missing_usage=True)
-            self.assertEqual(attempt.max_context_bytes,BUDGET.max_context_bytes)
+                config=GenerateConfig(extra_headers={"X-OpenRouter-Metadata":"enabled"}),max_context_bytes=123456,stop_on_missing_usage=True)
+            self.assertEqual(attempt.max_context_bytes,123456)
             self.assertTrue(attempt.stop_on_missing_usage)
 
     def test_synthetic_eighteen_call_replay_has_no_early_finalization(self):

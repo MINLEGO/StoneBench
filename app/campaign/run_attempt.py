@@ -290,7 +290,7 @@ async def run():
         config = GenerateConfig(temperature=0, parallel_tool_calls=False, max_retries=0, cache_prompt=False,
             extra_headers={"X-OpenRouter-Metadata":"enabled"})
         task, attempt = stonebench_task(url, budget, root / "harness", task_id=task_id, config=config, initialize=False,
-            max_context_bytes=budget.max_context_bytes,stop_on_missing_usage=True,server_root=server_root,
+            stop_on_missing_usage=True,server_root=server_root,
             generation_retry_waits=() if mode == "calibration" else GENERATION_RETRY_WAITS)
         if mode == "calibration":
             # At most two provider calls in a read-only phase with the actual schema/context.

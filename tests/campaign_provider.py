@@ -105,6 +105,27 @@ class ProviderTests(unittest.IsolatedAsyncioTestCase):
             self.assertEqual(attempt.ledger.calls,[])
             self.assertIn("context_guard_stop",(attempt.root/"events.jsonl").read_text())
 
+    async def test_token_window_stops_before_the_provider_and_reports_it(self):
+        called=False
+        def forbidden(*args):
+            nonlocal called
+            called=True
+            raise AssertionError("Provider request must not be sent")
+        with tempfile.TemporaryDirectory() as tmp:
+            # The first request already needs more than 1,000 estimated tokens: construction cannot leave room for the final one.
+            attempt=Attempt(Budget(30000,1000,1000,4000,500,context_window_tokens=1000),Path(tmp)/"attempt")
+            task=Task(dataset=[Sample(input="Small window")],solver=react(submit=False,
+                model=budgeted_generation(attempt,GenerateConfig())))
+            logs=await eval_async(task,model=get_model("stonebench-scripted/window",script=forbidden,memoize=False),
+                log_dir=str(Path(tmp)/"logs"),log_model_api=False,ctl_server=False)
+            self.assertEqual(logs[0].status,"error")
+            self.assertFalse(called)
+            self.assertEqual(attempt.ledger.calls,[])
+            events=[json.loads(line) for line in (attempt.root/"events.jsonl").read_text(encoding="utf-8").splitlines()]
+            stop=[event for event in events if event["kind"]=="context_window_stop"]
+            self.assertEqual(len(stop),1)
+            self.assertGreater(stop[0]["context_estimate"]+stop[0]["completion_bound"],1000)
+
     async def test_lost_request_bound_uses_the_forecast_not_raw_bytes(self):
         calls=[]
         with tempfile.TemporaryDirectory() as tmp:

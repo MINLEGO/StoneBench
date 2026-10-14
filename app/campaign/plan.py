@@ -13,8 +13,8 @@ MODEL = "openrouter/openai/gpt-6-luna"
 # availability; the observed cost of every response is checked, and the serving endpoint stays in the OpenRouter log.
 PROVIDER = {"order": ["openai"], "only": ["openai"], "allow_fallbacks": False}
 PROVIDER_NAME = "OpenAI"
-# Client guard on the serialized context (Budget.max_context_bytes, raw bytes). A token is at least one byte, so 1,000,000 bytes
-# keeps every request under gpt-6-luna's 1,050,000-token window. The earlier 524,288 stopped a run at 39,406 real tokens: bytes overstate them ~13x.
+# The context is bounded in tokens (Budget.context_window_tokens, below gpt-6-luna's 1,050,000-token window) against the estimate built
+# from reported usage; raw serialized bytes overstate real tokens ~10-13x and stopped two runs at 4-10% of the window.
 BUDGET = Budget(total=2000000, construction_output=32768, final_output=8192,
                 final_reasoning=57344, margin=32768, final_calls=8)
 CALIBRATION_BUDGET = Budget(total=400000, construction_output=32768, final_output=8192,
@@ -43,7 +43,7 @@ def plan():
     return {"schema": 1, "status": "provisional_offline_not_provider_calibrated", "tasks": list(TASKS),
             "model": MODEL, "provider": PROVIDER, "pins": PINS, "budget": asdict(BUDGET),
             "reasoning_request":REASONING_REQUEST,"strict_tools":STRICT_TOOLS,
-            "max_context_bytes":BUDGET.max_context_bytes,"stop_on_missing_usage":True,
+            "stop_on_missing_usage":True,
             "generation_retry_waits_seconds":list(GENERATION_RETRY_WAITS),
             "retry_accounting":"a request lost without a response is never counted as usage: total_tokens becomes null, its context+completion bound counts against the budget",
             "calibration_budget": asdict(CALIBRATION_BUDGET), "prompt": PROMPT,

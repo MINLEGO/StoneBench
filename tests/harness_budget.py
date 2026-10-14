@@ -104,9 +104,27 @@ class HarnessBudgetTests(unittest.TestCase):
             self.assertEqual(notice["transition_reason"], "usage_unavailable")
 
     def test_new_budget_fields_must_be_positive_integers(self):
-        for field in ("bytes_per_token", "max_context_bytes"):
+        for field in ("bytes_per_token", "context_window_tokens"):
             with self.assertRaises(ValueError):
                 Budget(1000, 100, 100, 200, 50, **{field: 0})
+
+    def test_window_triggers_finalization_before_the_final_request_cannot_fit(self):
+        budget = Budget(10**9, 1000, 500, 500, 100, context_window_tokens=10000)
+        ledger = Ledger(budget)
+        ledger.before_call(100)
+        ledger.record(ModelUsage(input_tokens=6000, output_tokens=200, total_tokens=6200), .01)
+        self.assertEqual(ledger.before_call(100)["phase"], "construction", "6200 + 1000 + 1000 + 100 fits 10000")
+        ledger.record(ModelUsage(input_tokens=7800, output_tokens=200, total_tokens=8000), .01)
+        notice = ledger.before_call(100)
+        self.assertEqual((notice["phase"], notice["transition_reason"]), ("finalization", "next_construction_call_would_exceed_context_window"))
+        self.assertTrue(budget.fits_window(9000, 1000))
+        self.assertFalse(budget.fits_window(9001, 1000))
+
+    def test_observed_bytes_per_token_counts_cached_input(self):
+        ledger = Ledger(Budget(10**6, 100, 100, 200, 50))
+        ledger.before_call(5000)
+        ledger.record(ModelUsage(input_tokens=3, input_tokens_cache_read=997, output_tokens=100, total_tokens=1100), .01)
+        self.assertEqual(ledger.before_call(5000)["observed_bytes_per_token"], 5.0)
 
 
 if __name__ == "__main__":
