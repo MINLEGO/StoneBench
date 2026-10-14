@@ -57,9 +57,9 @@ class ObservationRuntimeIntegration(StoneBenchRuntimeIntegration):
 
     async def transients(self, session):
         observer, piston, stone = point(1030, 80, 1030), point(1030, 80, 1029), point(1031, 80, 1029)
-        await self.modify(session, [placement(observer, "minecraft:observer", {"facing": "south"}), placement(piston, "minecraft:sticky_piston", {"facing": "east"}), placement(stone, "minecraft:stone")])
+        await self.modify(session, [placement(observer, "minecraft:observer", {"facing": "south"}), placement(piston, "minecraft:sticky_piston", {"facing": "east"}), placement(stone, "minecraft:quartz_block")])
         self.assert_ok(await self.call(session, "advance", {"ticks": 8}))
-        changed = await self.modify(session, [placement(point(1030, 80, 1031), "minecraft:stone")])
+        changed = await self.modify(session, [placement(point(1030, 80, 1031), "minecraft:quartz_block")])
         self.assertGreater(changed["initial"]["world_time"], 0)
         # The observer queues its ordinary 2-tick callback while the world remains frozen.
         self.assertTrue(changed["final"]["state"]["block_ticks"], changed)

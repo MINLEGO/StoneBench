@@ -213,6 +213,7 @@ public final class Controller implements ModInitializer {
             case "read_artifact" -> Set.of("artifact_id","offset","limit");
             case "compare_traces" -> Set.of("left","right");
             case "restore_checkpoint" -> Set.of("checkpoint_id");
+            case "describe_block" -> Set.of("id");
             case "__test_checkpoint_compare" -> Set.of("checkpoint_id","count");
             case "modify_blocks" -> Set.of("blocks","notify_neighbors");
             case "__test_release_chunks" -> Set.of("after_ticks");
@@ -220,7 +221,7 @@ public final class Controller implements ModInitializer {
         };
         if(!allowed.containsAll(active.args.keySet())) throw new IllegalArgumentException("Unexpected argument");
         if (!server.isOnThread()) throw new IllegalStateException("Operation outside server thread");
-        if(Verification.running() && !Set.of("verification_status","cancel_verification","verification_snapshot","describe_task","describe_rules","describe_blocks","list_checkpoints","read_artifact","compare_traces").contains(active.tool))throw new IllegalArgumentException("Verification owns frozen working state; cancel or await its completion before mutation, simulation or expanding observation coverage");
+        if(Verification.running() && !Set.of("verification_status","cancel_verification","verification_snapshot","describe_task","describe_rules","describe_blocks","describe_block","list_checkpoints","read_artifact","compare_traces").contains(active.tool))throw new IllegalArgumentException("Verification owns frozen working state; cancel or await its completion before mutation, simulation or expanding observation coverage");
         if((restorePending || restoreFailed) && !Set.of("describe_task","list_checkpoints","restore_checkpoint","read_artifact","compare_traces").contains(active.tool)) throw new IllegalArgumentException("Restore pending or divergent: reconnect/inspect restoration or restore a valid checkpoint before simulation");
         boolean evidenceRead=Set.of("read_artifact","compare_traces","list_checkpoints","restore_checkpoint","describe_task","verification_status").contains(active.tool);
         if (!active.tool.equals("start_attempt") && task==null && !(artifactRecovery && evidenceRead)) throw new IllegalArgumentException("start_attempt is required; recovered attempts permit immutable evidence reads only");
@@ -283,6 +284,7 @@ public final class Controller implements ModInitializer {
             }
             case "describe_task" -> succeedDescription();
             case "describe_blocks" -> succeed(BlockCatalog.describe());
+            case "describe_block" -> succeed(BlockCatalog.describeBlock(Task.string(active.args,"id")));
             case "describe_rules" -> {JsonObject full=Rules.describe();succeed(Rules.agentRules(full),full);}
             case "check_geometry" -> {
                 Set<ChunkPos> chunks=new LinkedHashSet<>();for(BlockPos p:RegularDoorGeometry.requiredPositions(task,active.args)) chunks.add(new ChunkPos(p));

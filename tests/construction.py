@@ -4,6 +4,80 @@ import unittest
 from integration import BLOCK_POSITION, TASK_ID, StoneBenchRuntimeIntegration
 
 
+EXPECTED_CATALOG = [
+    "minecraft:air",
+    "minecraft:quartz_block",
+    "minecraft:white_wool",
+    "minecraft:orange_wool",
+    "minecraft:magenta_wool",
+    "minecraft:light_blue_wool",
+    "minecraft:yellow_wool",
+    "minecraft:lime_wool",
+    "minecraft:pink_wool",
+    "minecraft:gray_wool",
+    "minecraft:light_gray_wool",
+    "minecraft:cyan_wool",
+    "minecraft:purple_wool",
+    "minecraft:blue_wool",
+    "minecraft:brown_wool",
+    "minecraft:green_wool",
+    "minecraft:red_wool",
+    "minecraft:black_wool",
+    "minecraft:obsidian",
+    "minecraft:honey_block",
+    "minecraft:sand",
+    "minecraft:smooth_stone_slab",
+    "minecraft:stone_stairs",
+    "minecraft:glass",
+    "minecraft:glass_pane",
+    "minecraft:water",
+    "minecraft:scaffolding",
+    "minecraft:stone_brick_wall",
+    "minecraft:player_head",
+    "minecraft:beacon",
+    "minecraft:oak_log",
+    "minecraft:oak_leaves",
+    "minecraft:piston",
+    "minecraft:sticky_piston",
+    "minecraft:observer",
+    "minecraft:dispenser",
+    "minecraft:dropper",
+    "minecraft:repeater",
+    "minecraft:comparator",
+    "minecraft:redstone_wire",
+    "minecraft:redstone_torch",
+    "minecraft:redstone_wall_torch",
+    "minecraft:stone_button",
+    "minecraft:oak_button",
+    "minecraft:lever",
+    "minecraft:stone_pressure_plate",
+    "minecraft:oak_pressure_plate",
+    "minecraft:light_weighted_pressure_plate",
+    "minecraft:heavy_weighted_pressure_plate",
+    "minecraft:redstone_block",
+    "minecraft:redstone_lamp",
+    "minecraft:target",
+    "minecraft:note_block",
+    "minecraft:hopper",
+    "minecraft:chest",
+    "minecraft:trapped_chest",
+    "minecraft:barrel",
+    "minecraft:composter",
+    "minecraft:iron_trapdoor",
+    "minecraft:oak_trapdoor",
+    "minecraft:iron_door",
+    "minecraft:oak_door",
+    "minecraft:oak_fence_gate",
+    "minecraft:furnace",
+    "minecraft:shulker_box",
+    "minecraft:rail",
+    "minecraft:powered_rail",
+    "minecraft:detector_rail",
+    "minecraft:activator_rail",
+    "minecraft:waxed_copper_grate",
+]
+
+
 def point(x, y, z):
     return {"x": x, "y": y, "z": z}
 
@@ -75,6 +149,7 @@ class ConstructionRuntimeIntegration(StoneBenchRuntimeIntegration):
             await self._assert_chunk_expansion_without_simulation(session_b)
             await self._assert_comparator_notification_scope(session_b)
             await self._assert_powered_neighbor_batch(session_a)
+            await self._assert_new_block_construction(session_b)
             await self._assert_clock_and_readiness(session_a)
         finally:
             await self.stack.aclose()
@@ -82,31 +157,79 @@ class ConstructionRuntimeIntegration(StoneBenchRuntimeIntegration):
     async def _assert_block_catalog(self, session):
         catalog = await self.call(session, "describe_blocks")
         self.assert_ok(catalog)
-        entries = {item["id"]: item for item in catalog.get("catalog", [])}
-        for block_id in (
-            "minecraft:lever",
-            "minecraft:repeater",
-            "minecraft:hopper",
-            "minecraft:chest",
-            "minecraft:redstone_wire",
-        ):
-            self.assertIn(block_id, entries, catalog)
-            self.assertIsInstance(entries[block_id].get("configurable"), dict, entries[block_id])
-            self.assertIsInstance(entries[block_id].get("computed"), dict, entries[block_id])
-            self.assertIn("inventory_slots", entries[block_id], entries[block_id])
+        # The global list carries ids only, in the published order, with no detail.
+        self.assertEqual(catalog["catalog"], EXPECTED_CATALOG, catalog)
+        self.assertEqual(len(EXPECTED_CATALOG), 70)
+        self.assertEqual(len(set(catalog["catalog"])), 70, catalog)
+        self.assertNotIn("inventory_contract", catalog)
+        self.assertTrue(all(isinstance(block, str) for block in catalog["catalog"]), catalog)
 
-        self.assertIn("powered", entries["minecraft:lever"]["computed"])
-        self.assertNotIn("powered", entries["minecraft:lever"]["configurable"])
-        self.assertIn("locked", entries["minecraft:repeater"]["computed"])
-        self.assertIn("powered", entries["minecraft:repeater"]["computed"])
-        self.assertIn("cooldown", entries["minecraft:hopper"]["computed"])
-        self.assertGreater(entries["minecraft:chest"]["inventory_slots"], 0)
+        lever = await self._describe_block(session, "minecraft:lever")
+        self.assertIn("powered", lever["computed"])
+        self.assertNotIn("powered", lever["configurable"])
+        repeater = await self._describe_block(session, "minecraft:repeater")
+        self.assertIn("locked", repeater["computed"])
+        self.assertIn("powered", repeater["computed"])
+        self.assertIn("north", repeater["configurable"]["facing"])
+        self.assertIn("east", repeater["configurable"]["facing"])
+        self.assertIn("1", [str(value) for value in repeater["configurable"]["delay"]])
+        self.assertIn("4", [str(value) for value in repeater["configurable"]["delay"]])
+        hopper = await self._describe_block(session, "minecraft:hopper")
+        self.assertIn("cooldown", hopper["computed"])
+        self.assertEqual(hopper["inventory_slots"], 5, hopper)
+        self.assertEqual((await self._describe_block(session, "minecraft:chest"))["inventory_slots"], 27)
+        self.assertEqual((await self._describe_block(session, "minecraft:furnace"))["inventory_slots"], 3)
+        for block_id in ("minecraft:composter", "minecraft:beacon", "minecraft:player_head", "minecraft:redstone_wire"):
+            self.assertEqual((await self._describe_block(session, block_id))["inventory_slots"], 0, block_id)
+        self.assertIn("level", (await self._describe_block(session, "minecraft:composter"))["configurable"])
 
-        repeater = entries["minecraft:repeater"]["configurable"]
-        self.assertIn("north", repeater["facing"])
-        self.assertIn("east", repeater["facing"])
-        self.assertIn("1", [str(value) for value in repeater["delay"]])
-        self.assertIn("4", [str(value) for value in repeater["delay"]])
+        # Water-bearing blocks publish waterlogged as configurable; no block keeps it computed.
+        waterlogged = []
+        for block_id in EXPECTED_CATALOG:
+            detail = await self._describe_block(session, block_id)
+            self.assertNotIn("waterlogged", detail["computed"], detail)
+            if "waterlogged" in detail["configurable"]:
+                waterlogged.append(block_id)
+                self.assertEqual(sorted(detail["configurable"]["waterlogged"]), ["false", "true"], detail)
+        for block_id in ("minecraft:oak_trapdoor", "minecraft:iron_trapdoor", "minecraft:waxed_copper_grate", "minecraft:glass_pane", "minecraft:chest"):
+            self.assertIn(block_id, waterlogged)
+        for block_id in ("minecraft:oak_log", "minecraft:lever", "minecraft:hopper", "minecraft:oak_door"):
+            self.assertNotIn(block_id, waterlogged)
+
+        # Placement settings of the new blocks; electrical/derived states stay computed.
+        oak_door = await self._describe_block(session, "minecraft:oak_door")
+        self.assertTrue({"facing", "hinge", "open"} <= set(oak_door["configurable"]), oak_door)
+        self.assertIn("half", oak_door["computed"])
+        self.assertIn("powered", oak_door["computed"])
+        self.assertNotIn("open", (await self._describe_block(session, "minecraft:iron_door"))["configurable"])
+        self.assertIn("open", (await self._describe_block(session, "minecraft:oak_trapdoor"))["configurable"])
+        self.assertIn("open", (await self._describe_block(session, "minecraft:oak_fence_gate"))["configurable"])
+        self.assertIn("level", (await self._describe_block(session, "minecraft:water"))["computed"])
+
+        # Unknown or withdrawn ids never fall back to the full catalogue.
+        for removed in ("minecraft:stone", "minecraft:spruce_button", "minecraft:command_block", "stone"):
+            rejected = await self.call(session, "describe_block", {"id": removed})
+            self.assert_error(rejected, "unsupported", "unsupported_component")
+            self.assertNotIn("catalog", rejected, rejected)
+        self.assert_error(await self.call(session, "describe_block", {}), "validation", "invalid_arguments")
+        self.assert_error(
+            await self.call(session, "describe_block", {"id": "minecraft:lever", "extra": 1}),
+            "validation",
+            "invalid_arguments",
+        )
+
+    async def _describe_block(self, session, block_id):
+        before = await self.call(session, "describe_task")
+        detail = await self.call(session, "describe_block", {"id": block_id})
+        self.assert_ok(detail)
+        self.assertEqual(detail["id"], block_id, detail)
+        for key in ("configurable", "computed"):
+            self.assertIsInstance(detail[key], dict, detail)
+        self.assertIsInstance(detail["inventory_slots"], int, detail)
+        self.assertNotIn("catalog", detail)
+        # Both discovery tools are reads: no mutation and no time advance.
+        self.assert_no_effect(detail, before)
+        return detail
 
     async def _read(self, session, positions):
         result = await self.call(session, "read_blocks", {"positions": positions})
@@ -155,7 +278,7 @@ class ConstructionRuntimeIntegration(StoneBenchRuntimeIntegration):
             session,
             {
                 "blocks": [
-                    placement(first, "minecraft:stone"),
+                    placement(first, "minecraft:quartz_block"),
                     placement(second, "minecraft:repeater", {"locked": "true"}),
                 ],
                 "notify_neighbors": True,
@@ -253,15 +376,15 @@ class ConstructionRuntimeIntegration(StoneBenchRuntimeIntegration):
 
         await self._assert_rejected_without_effect(
             session,
-            {"blocks": [placement(target, "minecraft:stone")]},
+            {"blocks": [placement(target, "minecraft:quartz_block")]},
             [target],
         )
         await self._assert_rejected_without_effect(
             session,
             {
                 "blocks": [
-                    placement(target, "minecraft:stone"),
-                    placement(target, "minecraft:dirt"),
+                    placement(target, "minecraft:quartz_block"),
+                    placement(target, "minecraft:obsidian"),
                 ],
                 "notify_neighbors": True,
             },
@@ -272,7 +395,7 @@ class ConstructionRuntimeIntegration(StoneBenchRuntimeIntegration):
         too_many = [
             placement(
                 point(1024 + index % 16, 110 + index // 256, 1024 + (index // 16) % 16),
-                "minecraft:stone",
+                "minecraft:quartz_block",
             )
             for index in range(257)
         ]
@@ -284,7 +407,7 @@ class ConstructionRuntimeIntegration(StoneBenchRuntimeIntegration):
 
         before = await self.call(session, "describe_task")
         valid_limit = [
-            placement(point(1024 + x, 100, 1024 + z), "minecraft:stone")
+            placement(point(1024 + x, 100, 1024 + z), "minecraft:quartz_block")
             for x in range(16)
             for z in range(16)
         ]
@@ -306,8 +429,8 @@ class ConstructionRuntimeIntegration(StoneBenchRuntimeIntegration):
             session,
             [point(1024, 100, 1024), point(1039, 100, 1039)],
         )
-        self.assert_block_record(sample[(1024, 100, 1024)], "minecraft:stone")
-        self.assert_block_record(sample[(1039, 100, 1039)], "minecraft:stone")
+        self.assert_block_record(sample[(1024, 100, 1024)], "minecraft:quartz_block")
+        self.assert_block_record(sample[(1039, 100, 1039)], "minecraft:quartz_block")
 
     def assert_callback_order(self, report, submitted):
         expected = [coordinates(block) for block in submitted]
@@ -355,9 +478,9 @@ class ConstructionRuntimeIntegration(StoneBenchRuntimeIntegration):
             placement(repeater, "minecraft:repeater", {"delay": "4", "facing": "east"}),
             placement(comparator, "minecraft:comparator", {"mode": "subtract", "facing": "north"}),
             placement(hopper, "minecraft:hopper", {"facing": "down"}, [{"slot": 0, "item": "minecraft:diamond", "count": 2}]),
-            placement(point(1030, 81, 1027), "minecraft:stone"),
-            placement(point(1029, 79, 1026), "minecraft:stone"),
-            placement(point(1031, 79, 1026), "minecraft:stone"),
+            placement(point(1030, 81, 1027), "minecraft:quartz_block"),
+            placement(point(1029, 79, 1026), "minecraft:quartz_block"),
+            placement(point(1031, 79, 1026), "minecraft:quartz_block"),
         ]
         before = await self.call(session, "describe_task")
         result = await self.call(session, "modify_blocks", {"blocks": submitted, "notify_neighbors": True})
@@ -401,7 +524,7 @@ class ConstructionRuntimeIntegration(StoneBenchRuntimeIntegration):
                 inventory=[{"slot": 3, "item": "minecraft:emerald", "count": 4}],
             ),
             placement(dust_center, "minecraft:redstone_wire"),
-            *[placement(position, "minecraft:stone") for position in support_positions],
+            *[placement(position, "minecraft:quartz_block") for position in support_positions],
         ]
         before = await self.call(session, "describe_task")
         result = await self.call(
@@ -468,7 +591,7 @@ class ConstructionRuntimeIntegration(StoneBenchRuntimeIntegration):
             second_chest,
         )
         for position in support_positions:
-            self.assert_block_record(records[coordinates(position)], "minecraft:stone")
+            self.assert_block_record(records[coordinates(position)], "minecraft:quartz_block")
 
     async def _assert_default_wire_placement(self, session):
         wire = point(1036, 80, 1030)
@@ -481,7 +604,7 @@ class ConstructionRuntimeIntegration(StoneBenchRuntimeIntegration):
 
         before_setup = await self.call(session, "describe_task")
         supports_and_piston = [
-            placement(point(1036, 79, 1030), "minecraft:stone"),
+            placement(point(1036, 79, 1030), "minecraft:quartz_block"),
             placement(
                 point(1037, 80, 1030),
                 "minecraft:sticky_piston",
@@ -546,7 +669,7 @@ class ConstructionRuntimeIntegration(StoneBenchRuntimeIntegration):
             "modify_blocks",
             {
                 "blocks": [
-                    placement(position, "minecraft:stone")
+                    placement(position, "minecraft:quartz_block")
                     for position in support_positions
                 ],
                 "notify_neighbors": False,
@@ -637,14 +760,14 @@ class ConstructionRuntimeIntegration(StoneBenchRuntimeIntegration):
             session,
             "modify_blocks",
             {
-                "blocks": [placement(chest_position, "minecraft:stone")],
+                "blocks": [placement(chest_position, "minecraft:quartz_block")],
                 "notify_neighbors": False,
             },
         )
         self.assert_ok(replaced)
         self.assertEqual(replaced.get("events"), [], replaced)
         replacement = await self._read(session, [chest_position])
-        self.assert_block_record(replacement[coordinates(chest_position)], "minecraft:stone")
+        self.assert_block_record(replacement[coordinates(chest_position)], "minecraft:quartz_block")
         self.assertEqual(replacement[coordinates(chest_position)]["inventory"], [])
 
         deleted = await self.call(
@@ -712,7 +835,7 @@ class ConstructionRuntimeIntegration(StoneBenchRuntimeIntegration):
             session,
             "modify_blocks",
             {
-                "blocks": [placement(target, "minecraft:stone")],
+                "blocks": [placement(target, "minecraft:quartz_block")],
                 "notify_neighbors": False,
             },
         )
@@ -724,7 +847,7 @@ class ConstructionRuntimeIntegration(StoneBenchRuntimeIntegration):
         self.assertEqual(repaired.get("world_time"), before_repair["world_time"], repaired)
         self.assertIs(repaired.get("frozen"), True, repaired)
         actual_repair = await self._read(session, [target])
-        self.assert_block_record(actual_repair[coordinates(target)], "minecraft:stone")
+        self.assert_block_record(actual_repair[coordinates(target)], "minecraft:quartz_block")
         self.assertEqual(actual_repair[coordinates(target)]["inventory"], [])
     async def _assert_chunk_expansion_without_simulation(self, session):
         positions = [point(1215, 80, 1216), point(1216, 80, 1216)]
@@ -743,8 +866,8 @@ class ConstructionRuntimeIntegration(StoneBenchRuntimeIntegration):
             "modify_blocks",
             {
                 "blocks": [
-                    placement(positions[0], "minecraft:stone"),
-                    placement(positions[1], "minecraft:stone"),
+                    placement(positions[0], "minecraft:quartz_block"),
+                    placement(positions[1], "minecraft:quartz_block"),
                 ],
                 "notify_neighbors": False,
             },
@@ -760,7 +883,7 @@ class ConstructionRuntimeIntegration(StoneBenchRuntimeIntegration):
         self.assertIs(result.get("frozen"), True, result)
         records = await self._read(session, positions)
         for position in positions:
-            self.assert_block_record(records[coordinates(position)], "minecraft:stone")
+            self.assert_block_record(records[coordinates(position)], "minecraft:quartz_block")
 
     async def _assert_comparator_notification_scope(self, session):
         comparator = point(1032, 80, 1037)
@@ -769,9 +892,9 @@ class ConstructionRuntimeIntegration(StoneBenchRuntimeIntegration):
         unrelated = point(1032, 80, 1035)
         setup = [
             placement(comparator, "minecraft:comparator", {"facing": "east"}),
-            placement(chest, "minecraft:chest", inventory=[{"slot": 0, "item": "minecraft:stone", "count": 64}]),
-            placement(point(1032, 79, 1037), "minecraft:stone"),
-            placement(bridge, "minecraft:stone"),
+            placement(chest, "minecraft:chest", inventory=[{"slot": 0, "item": "minecraft:quartz_block", "count": 64}]),
+            placement(point(1032, 79, 1037), "minecraft:quartz_block"),
+            placement(bridge, "minecraft:quartz_block"),
         ]
         result = await self.call(session, "modify_blocks", {"blocks": setup, "notify_neighbors": True})
         self.assert_ok(result)
@@ -784,7 +907,7 @@ class ConstructionRuntimeIntegration(StoneBenchRuntimeIntegration):
         self.assert_ok(await self.call(session, "advance", {"ticks": 4}))
         stale = await self._read(session, [comparator])
         self.assertEqual(stale[coordinates(comparator)]["parameters"]["powered"], "true", stale)
-        stone = await self.call(session, "modify_blocks", {"blocks": [placement(unrelated, "minecraft:stone")], "notify_neighbors": True})
+        stone = await self.call(session, "modify_blocks", {"blocks": [placement(unrelated, "minecraft:quartz_block")], "notify_neighbors": True})
         self.assert_ok(stone)
         self.assert_ok(await self.call(session, "advance", {"ticks": 4}))
         after_stone = await self._read(session, [comparator])
@@ -804,7 +927,7 @@ class ConstructionRuntimeIntegration(StoneBenchRuntimeIntegration):
         source = point(1031, 80, 1034)
         submitted = [
             placement(piston, "minecraft:sticky_piston", {"facing": "east"}),
-            placement(front, "minecraft:stone"),
+            placement(front, "minecraft:quartz_block"),
             placement(source, "minecraft:redstone_block"),
         ]
         before = await self.call(session, "describe_task")
@@ -821,7 +944,206 @@ class ConstructionRuntimeIntegration(StoneBenchRuntimeIntegration):
         moved = await self._read(session, [piston, front, destination])
         self.assertEqual(moved[coordinates(piston)]["parameters"]["extended"], "true", moved)
         self.assert_block_record(moved[coordinates(front)], "minecraft:piston_head")
-        self.assert_block_record(moved[coordinates(destination)], "minecraft:stone")
+        self.assert_block_record(moved[coordinates(destination)], "minecraft:quartz_block")
+    async def _apply(self, session, blocks, notify=True):
+        before = await self.call(session, "describe_task")
+        result = await self.call(session, "modify_blocks", {"blocks": blocks, "notify_neighbors": notify})
+        self.assert_ok(result)
+        # Construction never advances simulation or world time.
+        self.assertEqual(result.get("ticks_executed"), 0, result)
+        for key in ("simulation_ticks", "preparation_ticks", "world_time"):
+            self.assertEqual(result.get(key), before[key], result)
+        return result
+
+    async def _assert_new_block_construction(self, session):
+        floor = [placement(point(x, 89, z), "minecraft:quartz_block") for x in range(1024, 1040) for z in range(1028, 1040)]
+        for start in range(0, len(floor), 128):
+            await self._apply(session, floor[start:start + 128], False)
+        await self._assert_waterlogged(session)
+        await self._assert_free_water(session)
+        await self._assert_doors(session)
+        await self._assert_shapes_and_block_entities(session)
+        await self._assert_open_settings_and_withdrawn_ids(session)
+
+    async def _assert_waterlogged(self, session):
+        trapdoor, grate, stairs, log = point(1024, 90, 1028), point(1025, 90, 1028), point(1026, 90, 1028), point(1027, 90, 1028)
+        await self._apply(session, [
+            placement(trapdoor, "minecraft:oak_trapdoor", {"waterlogged": "true", "facing": "north", "half": "bottom"}),
+            placement(grate, "minecraft:waxed_copper_grate", {"waterlogged": "true"}),
+            placement(stairs, "minecraft:stone_stairs", {"waterlogged": "true"}),
+        ])
+        records = await self._read(session, [trapdoor, grate, stairs])
+        for position, block_id in ((trapdoor, "minecraft:oak_trapdoor"), (grate, "minecraft:waxed_copper_grate"), (stairs, "minecraft:stone_stairs")):
+            self.assert_block_record(records[coordinates(position)], block_id)
+            self.assertEqual(records[coordinates(position)]["parameters"]["waterlogged"], "true", records)
+        self.assertEqual(records[coordinates(trapdoor)]["parameters"]["facing"], "north", records)
+        # An update with false removes the water: same block, different parameter.
+        await self._apply(session, [
+            placement(trapdoor, "minecraft:oak_trapdoor", {"waterlogged": "false", "facing": "north", "half": "bottom"}),
+            placement(grate, "minecraft:waxed_copper_grate", {"waterlogged": "false"}),
+        ])
+        records = await self._read(session, [trapdoor, grate])
+        for position in (trapdoor, grate):
+            self.assertEqual(records[coordinates(position)]["parameters"]["waterlogged"], "false", records)
+        # The default is dry, and only blocks that own the property accept it.
+        await self._apply(session, [placement(trapdoor, "minecraft:oak_trapdoor")])
+        self.assertEqual((await self._read(session, [trapdoor]))[coordinates(trapdoor)]["parameters"]["waterlogged"], "false")
+        for block_id in ("minecraft:oak_log", "minecraft:lever", "minecraft:oak_door"):
+            await self._assert_rejected_without_effect(
+                session,
+                {"blocks": [placement(log, block_id, {"waterlogged": "true"})], "notify_neighbors": True},
+                [log],
+            )
+        await self._assert_rejected_without_effect(
+            session,
+            {"blocks": [placement(log, "minecraft:oak_trapdoor", {"waterlogged": "wet"})], "notify_neighbors": True},
+            [log],
+        )
+
+    async def _assert_free_water(self, session):
+        source, side = point(1030, 90, 1030), point(1031, 90, 1030)
+        for rejected in ({"level": "3"}, {"falling": "true"}):
+            await self._assert_rejected_without_effect(
+                session,
+                {"blocks": [placement(source, "minecraft:water", rejected)], "notify_neighbors": True},
+                [source],
+            )
+        await self._apply(session, [placement(source, "minecraft:water")])
+        records = await self._read(session, [source, side])
+        self.assert_block_record(records[coordinates(source)], "minecraft:water")
+        self.assertEqual(records[coordinates(source)]["parameters"]["level"], "0", records)
+        # The lot does not run the simulation: nothing has flowed yet.
+        self.assert_block_record(records[coordinates(side)], "minecraft:air")
+        self.assert_ok(await self.call(session, "advance", {"ticks": 10}))
+        flowed = await self._read(session, [side])
+        self.assert_block_record(flowed[coordinates(side)], "minecraft:water")
+        self.assertEqual(flowed[coordinates(side)]["parameters"]["level"], "1", flowed)
+
+    async def _assert_doors(self, session):
+        oak, iron = point(1032, 90, 1034), point(1034, 90, 1034)
+        result = await self._apply(session, [
+            placement(oak, "minecraft:oak_door", {"facing": "north", "hinge": "left", "open": "true"}),
+            placement(iron, "minecraft:iron_door", {"facing": "east"}),
+        ])
+        self.assertEqual(result["placements_applied"], 4, result)
+        # Lower then upper after each submitted entry; the upper half is never submitted.
+        self.assertEqual(
+            [coordinates(position) for position in result["notification_order"]],
+            [coordinates(oak), (1032, 91, 1034), coordinates(iron), (1034, 91, 1034)],
+            result,
+        )
+        upper_oak, upper_iron = point(1032, 91, 1034), point(1034, 91, 1034)
+        records = await self._read(session, [oak, upper_oak, iron, upper_iron])
+        for lower, upper, block_id in ((oak, upper_oak, "minecraft:oak_door"), (iron, upper_iron, "minecraft:iron_door")):
+            low, high = records[coordinates(lower)], records[coordinates(upper)]
+            self.assert_block_record(low, block_id)
+            self.assert_block_record(high, block_id)
+            self.assertEqual(low["parameters"]["half"], "lower", low)
+            self.assertEqual(high["parameters"]["half"], "upper", high)
+            for key in ("facing", "hinge", "open"):
+                self.assertEqual(low["parameters"][key], high["parameters"][key], records)
+        self.assertEqual(records[coordinates(oak)]["parameters"]["open"], "true", records)
+        self.assertEqual(records[coordinates(oak)]["parameters"]["hinge"], "left", records)
+        self.assertEqual(records[coordinates(iron)]["parameters"]["facing"], "east", records)
+
+        # Every refusal leaves the whole lot, including the other door, unplaced.
+        free, unsupported, second = point(1036, 90, 1034), point(1037, 92, 1034), point(1038, 90, 1034)
+        above_free, top = point(1036, 91, 1034), point(1036, 319, 1034)
+        invalid = [
+            [placement(free, "minecraft:oak_door"), placement(unsupported, "minecraft:iron_door")],
+            [placement(free, "minecraft:oak_door"), placement(top, "minecraft:oak_door")],
+            [placement(free, "minecraft:oak_door"), placement(above_free, "minecraft:quartz_block")],
+            [placement(above_free, "minecraft:quartz_block"), placement(free, "minecraft:oak_door")],
+            [placement(free, "minecraft:oak_door"), placement(second, "minecraft:iron_door", {"half": "upper"})],
+            [placement(free, "minecraft:oak_door"), placement(above_free, "minecraft:oak_door")],
+        ]
+        for blocks in invalid:
+            await self._assert_rejected_without_effect(
+                session,
+                {"blocks": blocks, "notify_neighbors": True},
+                [free, above_free, unsupported, point(1037, 93, 1034), top, second, point(1038, 91, 1034)],
+            )
+
+    async def _assert_shapes_and_block_entities(self, session):
+        pane_a, pane_b = point(1024, 90, 1036), point(1025, 90, 1036)
+        wall_a, wall_b = point(1024, 90, 1038), point(1025, 90, 1038)
+        scaffold, scaffold_top = point(1028, 90, 1036), point(1028, 91, 1036)
+        head, beacon, composter = point(1030, 90, 1036), point(1032, 90, 1036), point(1034, 90, 1036)
+        furnace, chest = point(1036, 90, 1036), point(1038, 90, 1036)
+        await self._apply(session, [
+            placement(pane_a, "minecraft:glass_pane"), placement(pane_b, "minecraft:glass_pane"),
+            placement(wall_a, "minecraft:stone_brick_wall"), placement(wall_b, "minecraft:stone_brick_wall"),
+            placement(scaffold, "minecraft:scaffolding"), placement(scaffold_top, "minecraft:scaffolding"),
+            placement(head, "minecraft:player_head", {"rotation": "4"}),
+            placement(beacon, "minecraft:beacon"),
+            placement(composter, "minecraft:composter", {"level": "5"}),
+            placement(furnace, "minecraft:furnace", {"facing": "south"}, [{"slot": 0, "item": "minecraft:diamond", "count": 2}]),
+            placement(chest, "minecraft:chest", {"waterlogged": "true"}, [{"slot": 1, "item": "minecraft:emerald", "count": 3}]),
+        ])
+        records = await self._read(session, [pane_a, pane_b, wall_a, wall_b, scaffold, scaffold_top, head, beacon, composter, furnace, chest])
+        # Connections are computed by Minecraft from the neighbours, never submitted.
+        self.assertEqual(records[coordinates(pane_a)]["parameters"]["east"], "true", records)
+        self.assertEqual(records[coordinates(pane_b)]["parameters"]["west"], "true", records)
+        self.assertEqual(records[coordinates(wall_a)]["parameters"]["east"], "low", records)
+        self.assertEqual(records[coordinates(wall_b)]["parameters"]["west"], "low", records)
+        for position in (scaffold, scaffold_top):
+            self.assert_block_record(records[coordinates(position)], "minecraft:scaffolding")
+            self.assertIn("distance", records[coordinates(position)]["parameters"])
+        self.assertEqual(records[coordinates(head)]["parameters"]["rotation"], "4", records)
+        for position, block_id in ((head, "minecraft:player_head"), (beacon, "minecraft:beacon")):
+            self.assert_block_record(records[coordinates(position)], block_id)
+            self.assertIn("block_entity_type", records[coordinates(position)], records)
+        self.assertEqual(records[coordinates(composter)]["parameters"]["level"], "5", records)
+        self.assertEqual(records[coordinates(furnace)]["inventory"], [{"slot": 0, "item": "minecraft:diamond", "count": 2}], records)
+        self.assertEqual(records[coordinates(chest)]["inventory"], [{"slot": 1, "item": "minecraft:emerald", "count": 3}], records)
+        self.assertEqual(records[coordinates(chest)]["parameters"]["waterlogged"], "true", records)
+        spare = point(1039, 92, 1039)
+        for block_id in ("minecraft:composter", "minecraft:beacon", "minecraft:player_head"):
+            await self._assert_rejected_without_effect(
+                session,
+                {"blocks": [placement(spare, block_id, inventory=[{"slot": 0, "item": "minecraft:diamond", "count": 1}])], "notify_neighbors": True},
+                [spare],
+            )
+
+    async def _assert_open_settings_and_withdrawn_ids(self, session):
+        trapdoor, gate = point(1026, 90, 1030), point(1027, 90, 1030)
+        await self._apply(session, [
+            placement(trapdoor, "minecraft:oak_trapdoor", {"open": "true"}),
+            placement(gate, "minecraft:oak_fence_gate", {"open": "true", "facing": "south"}),
+        ])
+        records = await self._read(session, [trapdoor, gate])
+        self.assertEqual(records[coordinates(trapdoor)]["parameters"]["open"], "true", records)
+        self.assertEqual(records[coordinates(gate)]["parameters"]["open"], "true", records)
+        # Iron elements stay redstone-driven, leaves keep vanilla persistence, no water level, no power.
+        target = point(1028, 90, 1030)
+        for block_id, parameters in (
+            ("minecraft:iron_door", {"open": "true"}),
+            ("minecraft:iron_trapdoor", {"open": "true"}),
+            ("minecraft:oak_leaves", {"persistent": "false"}),
+            ("minecraft:oak_door", {"half": "upper"}),
+            ("minecraft:oak_trapdoor", {"powered": "true"}),
+        ):
+            await self._assert_rejected_without_effect(
+                session,
+                {"blocks": [placement(target, block_id, parameters)], "notify_neighbors": True},
+                [target],
+            )
+        # Withdrawn ids are refused in construction and as an input device, not only in details.
+        await self._assert_rejected_without_effect(
+            session,
+            {"blocks": [placement(target, "minecraft:stone")], "notify_neighbors": True},
+            [target],
+            kind="unsupported",
+            code="unsupported_component",
+        )
+        declared = await self.call(session, "declare_input", {
+            "device": "minecraft:spruce_button",
+            "position": target,
+            "orientation": "west",
+            "input_block": point(1029, 90, 1030),
+        })
+        self.assert_error(declared, "unsupported", "unsupported_component")
+
     async def _assert_clock_and_readiness(self, session):
         before_invalid = await self.call(session, "describe_task")
         for ticks in (0, 6001):

@@ -71,7 +71,7 @@ public final class McpHttp implements AutoCloseable {
         finally {exchange.close();if(responseWritten && restoreResponseId!=null) Controller.restoreResponseSent(restoreResponseId);}
     }
     private static Set<String> names() {
-        Set<String> names=new LinkedHashSet<>(List.of("start_attempt","describe_task","read_blocks","read_region","read_artifact","compare_traces","describe_blocks","modify_blocks","advance","transition","declare_input","prepare_input","act_input","describe_rules","check_geometry","create_checkpoint","list_checkpoints","restore_checkpoint","verify_checkpoint","verification_snapshot"));
+        Set<String> names=new LinkedHashSet<>(List.of("start_attempt","describe_task","read_blocks","read_region","read_artifact","compare_traces","describe_blocks","describe_block","modify_blocks","advance","transition","declare_input","prepare_input","act_input","describe_rules","check_geometry","create_checkpoint","list_checkpoints","restore_checkpoint","verify_checkpoint","verification_snapshot"));
         names.addAll(List.of("verification_status","cancel_verification"));
         if(Controller.TEST) names.addAll(List.of("__test_release_chunks","__test_restore_chunks","__test_place_block","__test_fail_next_lot","__test_default_wire","__test_outside_influence","__test_water_source","__test_transition_fixture","__test_transition_toggle","__test_transition_external_tick","__test_geometry_entity","__test_checkpoint_fixture","__test_checkpoint_toggle","__test_checkpoint_snapshot","__test_checkpoint_compare","__test_verification_fixture","__test_verification_config","__test_verification_mutate"));return names;
     }
@@ -99,7 +99,8 @@ public final class McpHttp implements AutoCloseable {
                 case "read_blocks"->"Read 1..256 actual block states in prepared chunks; larger reads must be split.";
                 case "describe_rules"->"Read the frozen regular DOOR alpha criteria and measurement event/exclusion contract; documentary sources stay in the local audit.";
                 case "check_geometry"->"Observe fixed regular DOOR frame/passage, physical enclosure, continuation, material, input and entities without advancing time; unresolved functional/coverage criteria remain indeterminate.";
-                case "describe_blocks"->"Discover explicit construction coverage, in-game configurable parameters, computed states and inventory slots.";
+                case "describe_blocks"->"List the complete ids of every block modify_blocks supports, in a fixed order; no details.";
+                case "describe_block"->"Read one block's configurable parameters, computed states, inventory slots and observation limits by exact id; only when its details are needed.";
                 case "modify_blocks"->"Validate an entire ordered lot, place all geometry/inventories with deferred callbacks then optionally notify in submitted order; errors report actual effects.";
                 case "declare_input"->"Declare an existing inactive wall lever/button on a lateral exterior construction surface.";
                 case "prepare_input"->"Prepare a real external vanilla repeater adapter while frozen; verify exact construction state preservation.";
@@ -127,6 +128,7 @@ public final class McpHttp implements AutoCloseable {
                 case "verify_checkpoint"->{properties.add("checkpoint_id",property("string"));required.add("checkpoint_id");properties.add("frame_min_z",integer(-30000000,30000000));properties.add("frame_max_z",integer(-30000000,30000000));}
                 case "verification_status", "cancel_verification"->{properties.add("request_id",property("string"));required.add("request_id");}
                 case "restore_checkpoint"->{properties.add("checkpoint_id",property("string"));required.add("checkpoint_id");}
+                case "describe_block"->{properties.add("id",property("string"));required.add("id");}
                 case "__test_checkpoint_compare"->{properties.add("checkpoint_id",property("string"));properties.add("count",integer(1,64));required.add("checkpoint_id");required.add("count");}
                 case "read_blocks"->{JsonObject positions=property("array"),position=property("object"),coords=new JsonObject();for(String axis:List.of("x","y","z")) coords.add(axis,property("integer"));position.add("properties",coords);JsonArray axes=new JsonArray();axes.add("x");axes.add("y");axes.add("z");position.add("required",axes);positions.add("items",position);positions.addProperty("minItems",1);positions.addProperty("maxItems",256);properties.add("positions",positions);required.add("positions");}
                 case "modify_blocks"->{JsonObject blocks=property("array");blocks.addProperty("minItems",1);blocks.addProperty("maxItems",256);blocks.add("items",placementSchema());properties.add("blocks",blocks);properties.add("notify_neighbors",property("boolean"));required.add("blocks");required.add("notify_neighbors");}

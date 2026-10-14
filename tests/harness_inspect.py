@@ -26,7 +26,7 @@ class HarnessRuntimeIntegration(verification.VerificationRuntimeIntegration):
             first = self.sessions[0]
             self.assert_ok(await self.call(first, "start_attempt", {"task_id": integration.TASK_ID, "budget_tokens": 300000}))
             # Early incomplete checkpoint; then a real conforming door and a newer checkpoint.
-            self.assert_ok(await self.call(first, "modify_blocks", {"blocks": [{"x": 1024, "y": 79, "z": 1024, "block": "minecraft:stone"}], "notify_neighbors": True}))
+            self.assert_ok(await self.call(first, "modify_blocks", {"blocks": [{"x": 1024, "y": 79, "z": 1024, "block": "minecraft:quartz_block"}], "notify_neighbors": True}))
             self.assert_ok(await self.call(first, "transition", {"max_ticks": 20, "trace": True}))
             early = await self.call(first, "create_checkpoint")
             self.assert_ok(early)

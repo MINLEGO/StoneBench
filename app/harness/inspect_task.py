@@ -21,13 +21,13 @@ from inspect_ai.tool import Tool, ToolDef, ToolError, mcp_server_http, tool
 from . import audit
 from .budget import Budget, Ledger
 
-READ_TOOLS = frozenset({"describe_task", "describe_blocks", "describe_rules", "read_blocks", "read_region",
+READ_TOOLS = frozenset({"describe_task", "describe_blocks", "describe_block", "describe_rules", "read_blocks", "read_region",
     "read_artifact", "compare_traces", "check_geometry", "list_checkpoints", "verification_snapshot",
     "verify_checkpoint", "verification_status", "cancel_verification"})
 WRITE_TOOLS = frozenset({"modify_blocks", "advance", "transition", "declare_input", "prepare_input",
     "act_input", "create_checkpoint", "restore_checkpoint"})
 PROMPT = """Construct the task's regular DOOR using the discovered StoneBench MCP tools.
-Read the task, rules, block catalogue and diagnostic limits. Game ticks and wall time are separate.
+Read the task, rules and diagnostic limits. List block ids with describe_blocks; call describe_block only for a block whose details you need. Game ticks and wall time are separate.
 Save immutable checkpoints only at established rest; incomplete constructions may be saved.
 The harness reports phase and budget before each model call. Reported tokens include construction
 and finalization (including reasoning). Forecasts are estimates. In finalization you may consult,
