@@ -25,6 +25,9 @@ GENERATION_RETRY_WAITS = (10, 30)
 REASONING_REQUEST = None
 # OpenAI rejects the optional-field tool schemas (400 "required must include every key") when Inspect marks them strict.
 STRICT_TOOLS = False
+# Client guard on the serialized context. A token is at least one byte, so 1,000,000 bytes keeps every request under
+# gpt-6-luna's 1,050,000-token window. The earlier 524,288 stopped a run at 39,406 real tokens: bytes overstate them ~13x.
+MAX_CONTEXT_BYTES = 1000000
 SECRET_FILE = Path(r"C:\Users\minle\Documents\projets\StoneBench\.runtime\openrouter.env")
 PINS = {"minecraft": "1.21.11", "yarn": "1.21.11+build.3", "fabric_loader": "0.19.5",
         "inspect_ai": "0.3.278", "mcp": "1.26.0", "controller": "0.1.0", "protocol": "alpha-issue12-13",
@@ -41,7 +44,7 @@ def plan():
     return {"schema": 1, "status": "provisional_offline_not_provider_calibrated", "tasks": list(TASKS),
             "model": MODEL, "provider": PROVIDER, "pins": PINS, "budget": asdict(BUDGET),
             "reasoning_request":REASONING_REQUEST,"strict_tools":STRICT_TOOLS,
-            "max_context_bytes":524288,"stop_on_missing_usage":True,
+            "max_context_bytes":MAX_CONTEXT_BYTES,"stop_on_missing_usage":True,
             "generation_retry_waits_seconds":list(GENERATION_RETRY_WAITS),
             "retry_accounting":"a request lost without a response is never counted as usage: total_tokens becomes null, its context+completion bound counts against the budget",
             "calibration_budget": asdict(CALIBRATION_BUDGET), "prompt": PROMPT,

@@ -10,7 +10,7 @@ from pathlib import Path
 import sys
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
-from app.campaign.plan import BUDGET, CALIBRATION_BUDGET, GENERATION_RETRY_WAITS, MODEL, REASONING_REQUEST, STRICT_TOOLS, PINS, PROVIDER, PROVIDER_NAME, digest, load_secret, plan_hash, require_authorization
+from app.campaign.plan import BUDGET, CALIBRATION_BUDGET, GENERATION_RETRY_WAITS, MAX_CONTEXT_BYTES, MODEL, REASONING_REQUEST, STRICT_TOOLS, PINS, PROVIDER, PROVIDER_NAME, digest, load_secret, plan_hash, require_authorization
 from app.harness.inspect_task import stonebench_task, encode
 import app.harness.scripted
 from inspect_ai import eval_async
@@ -290,7 +290,7 @@ async def run():
         config = GenerateConfig(temperature=0, parallel_tool_calls=False, max_retries=0, cache_prompt=False,
             extra_headers={"X-OpenRouter-Metadata":"enabled"})
         task, attempt = stonebench_task(url, budget, root / "harness", task_id=task_id, config=config, initialize=False,
-            max_context_bytes=524288,stop_on_missing_usage=True,server_root=server_root,
+            max_context_bytes=MAX_CONTEXT_BYTES,stop_on_missing_usage=True,server_root=server_root,
             generation_retry_waits=() if mode == "calibration" else GENERATION_RETRY_WAITS)
         if mode == "calibration":
             # At most two provider calls in a read-only phase with the actual schema/context.
