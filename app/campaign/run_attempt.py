@@ -10,7 +10,7 @@ from pathlib import Path
 import sys
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
-from app.campaign.plan import BUDGET, CALIBRATION_BUDGET, GENERATION_RETRY_WAITS, MODEL, REASONING_REQUEST, PINS, PROVIDER, PROVIDER_NAME, digest, load_secret, plan_hash, require_authorization
+from app.campaign.plan import BUDGET, CALIBRATION_BUDGET, GENERATION_RETRY_WAITS, MODEL, REASONING_REQUEST, STRICT_TOOLS, PINS, PROVIDER, PROVIDER_NAME, digest, load_secret, plan_hash, require_authorization
 from app.harness.inspect_task import stonebench_task, encode
 import app.harness.scripted
 from inspect_ai import eval_async
@@ -301,7 +301,7 @@ async def run():
         else:
             # Only inherited environment auth; no secret in model args/logs/archive.
             load_secret()
-            model = get_model(MODEL,provider=PROVIDER,max_retries=0)
+            model = get_model(MODEL,provider=PROVIDER,max_retries=0,strict_tools=STRICT_TOOLS)
         logs = await eval_async(task, model=model, log_dir=str(root / "inspect-logs"), log_format="json",
             log_model_api=True, ctl_server=False, max_samples=1,max_tasks=1,retry_on_error=0)
         log = logs[0]

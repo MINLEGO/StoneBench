@@ -23,6 +23,8 @@ GENERATION_RETRY_WAITS = (10, 30)
 # No reasoning parameter is sent: the provider default is preserved (xiaomi/mimo-v2.6-flash ignored a 8,000-token cap and
 # its documented effort levels do not change real effort, so that model was abandoned on 2026-10-14).
 REASONING_REQUEST = None
+# OpenAI rejects the optional-field tool schemas (400 "required must include every key") when Inspect marks them strict.
+STRICT_TOOLS = False
 SECRET_FILE = Path(r"C:\Users\minle\Documents\projets\StoneBench\.runtime\openrouter.env")
 PINS = {"minecraft": "1.21.11", "yarn": "1.21.11+build.3", "fabric_loader": "0.19.5",
         "inspect_ai": "0.3.278", "mcp": "1.26.0", "controller": "0.1.0", "protocol": "alpha-issue12-13",
@@ -38,7 +40,7 @@ def plan():
     # No cache discount assumed. Reasoning is completion, never a second charge.
     return {"schema": 1, "status": "provisional_offline_not_provider_calibrated", "tasks": list(TASKS),
             "model": MODEL, "provider": PROVIDER, "pins": PINS, "budget": asdict(BUDGET),
-            "reasoning_request":REASONING_REQUEST,
+            "reasoning_request":REASONING_REQUEST,"strict_tools":STRICT_TOOLS,
             "max_context_bytes":524288,"stop_on_missing_usage":True,
             "generation_retry_waits_seconds":list(GENERATION_RETRY_WAITS),
             "retry_accounting":"a request lost without a response is never counted as usage: total_tokens becomes null, its context+completion bound counts against the budget",
