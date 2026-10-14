@@ -12,8 +12,9 @@ sys.path.insert(0,str(Path(__file__).resolve().parents[1]))
 from app.campaign.plan import BUDGET, MODEL, PROVIDER, TASKS, load_secret, plan, plan_hash, require_authorization
 from app.campaign.launch import archive
 from app.campaign.run_attempt import assert_clean, Rehearsal
+from app.harness.budget import Ledger
 from app.harness.inspect_task import stonebench_task
-from inspect_ai.model import GenerateConfig
+from inspect_ai.model import GenerateConfig, ModelUsage
 
 
 class CampaignTests(unittest.TestCase):
@@ -29,6 +30,8 @@ class CampaignTests(unittest.TestCase):
         self.assertAlmostEqual(forecast["conditional_campaign_plus_excess_and_calibration_usd"],
             8.0+9*1114112*.5/1000000+.2)
         self.assertTrue(all(value>0 for value in asdict(BUDGET).values()))
+        self.assertEqual((BUDGET.bytes_per_token,BUDGET.max_context_bytes),(2,1000000))
+        self.assertEqual(plan()["budget"]["max_context_bytes"],1000000)
 
     def test_exact_endpoint_allowlist(self):
         self.assertEqual(MODEL,"openrouter/openai/gpt-6-luna")
@@ -43,9 +46,22 @@ class CampaignTests(unittest.TestCase):
             with self.assertRaises(ValueError):stonebench_task("http://127.0.0.1:1/mcp",BUDGET,Path(tmp)/"bad",
                 config=GenerateConfig(extra_headers={"Authorization":"secret"}))
             task,attempt=stonebench_task("http://127.0.0.1:1/mcp",BUDGET,Path(tmp)/"okay",
-                config=GenerateConfig(extra_headers={"X-OpenRouter-Metadata":"enabled"}),max_context_bytes=524288,stop_on_missing_usage=True)
-            self.assertEqual(attempt.max_context_bytes,524288)
+                config=GenerateConfig(extra_headers={"X-OpenRouter-Metadata":"enabled"}),max_context_bytes=BUDGET.max_context_bytes,stop_on_missing_usage=True)
+            self.assertEqual(attempt.max_context_bytes,BUDGET.max_context_bytes)
             self.assertTrue(attempt.stop_on_missing_usage)
+
+    def test_synthetic_eighteen_call_replay_has_no_early_finalization(self):
+        # Stand-in for the stopped gpt-6-luna trial, whose per-call usage is not archived; real text runs ~13 bytes per token.
+        ledger=Ledger(BUDGET)
+        for call in range(18):
+            context_bytes=20000+50000*call
+            real_input=-(-context_bytes//13)
+            status=ledger.before_call(context_bytes)
+            self.assertGreaterEqual(status["context_estimate"],real_input,"forecast must not undercount the real input")
+            self.assertEqual(status["phase"],"construction",f"finalized at call {call} with {ledger.known_tokens} real tokens")
+            ledger.record(ModelUsage(input_tokens=real_input,output_tokens=32000,total_tokens=real_input+32000),.1)
+        self.assertGreater(ledger.known_tokens,1000000)
+        self.assertEqual(ledger.phase,"construction")
 
     def test_scripted_provider_receives_schema_infos_not_callable_tools(self):
         from inspect_ai.model import ChatMessageUser

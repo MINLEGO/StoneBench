@@ -1,5 +1,6 @@
 """Actual Inspect/OpenRouter/OpenAI SDK transport under an offline HTTP fixture."""
 import json
+import math
 import os
 from pathlib import Path
 import sys
@@ -12,7 +13,8 @@ import httpx2
 from inspect_ai import Task,eval_async
 from inspect_ai.dataset import Sample
 from inspect_ai.solver import generate
-from inspect_ai.model import GenerateConfig,get_model
+from inspect_ai.model import ChatCompletionChoice,ChatMessageAssistant,GenerateConfig,ModelOutput,ModelUsage,get_model
+from inspect_ai.tool import ToolCall,tool
 from app.campaign.plan import MODEL,PROVIDER,PROVIDER_NAME,REASONING_REQUEST
 
 SLUG=MODEL.removeprefix("openrouter/")
@@ -21,6 +23,28 @@ from app.harness.inspect_task import Attempt,budgeted_generation
 from app.harness.budget import Budget
 from inspect_ai.agent import react
 import app.harness.scripted
+
+
+@tool
+def probe():
+    async def execute():
+        """Return a large observation."""
+        return "x"*12000
+    return execute
+
+
+def probing_script(calls):
+    # Asks for the probe once (1000 reported tokens); loses the second request before any response, then answers its resend.
+    def script(messages,tools,config):
+        calls.append(len(messages))
+        if len(calls)==1:
+            return ModelOutput(model="stonebench-scripted/probe",usage=ModelUsage(input_tokens=600,output_tokens=400,total_tokens=1000),
+                choices=[ChatCompletionChoice(message=ChatMessageAssistant(content="",tool_calls=[ToolCall(id="probe-1",function="probe",arguments={})]),stop_reason="tool_calls")])
+        if len(calls)==2:
+            raise ConnectionError("connection lost before response")
+        return ModelOutput(model="stonebench-scripted/probe",usage=ModelUsage(input_tokens=700,output_tokens=40,total_tokens=740),
+            choices=[ChatCompletionChoice(message=ChatMessageAssistant(content="done"),stop_reason="stop")])
+    return script
 
 
 class ProviderTests(unittest.IsolatedAsyncioTestCase):
@@ -80,6 +104,40 @@ class ProviderTests(unittest.IsolatedAsyncioTestCase):
             self.assertFalse(called)
             self.assertEqual(attempt.ledger.calls,[])
             self.assertIn("context_guard_stop",(attempt.root/"events.jsonl").read_text())
+
+    async def test_lost_request_bound_uses_the_forecast_not_raw_bytes(self):
+        calls=[]
+        with tempfile.TemporaryDirectory() as tmp:
+            attempt=Attempt(Budget(10000000,1000,1000,4000,500),Path(tmp)/"attempt",generation_retry_waits=(0,))
+            task=Task(dataset=[Sample(input="Probe twice")],solver=react(tools=[probe()],submit=False,
+                model=budgeted_generation(attempt,GenerateConfig(max_retries=0))))
+            logs=await eval_async(task,model=get_model("stonebench-scripted/probe",script=probing_script(calls),memoize=False),
+                log_dir=str(Path(tmp)/"logs"),log_model_api=False,ctl_server=False,retry_on_error=0)
+            self.assertEqual(logs[0].status,"success",logs[0].error)
+            events=[json.loads(line) for line in (attempt.root/"events.jsonl").read_text(encoding="utf-8").splitlines()]
+            before=[event for event in events if event["kind"]=="before_generation"]
+            lost=[event for event in events if event["kind"]=="generation_request_lost"]
+            self.assertEqual(len(before),2)
+            self.assertEqual(before[0]["context_estimate"],before[0]["context_bytes"],"first call has no reported total")
+            forecast=1000+math.ceil((before[1]["context_bytes"]-before[0]["context_bytes"])/2)
+            self.assertEqual(before[1]["context_estimate"],forecast)
+            self.assertEqual([event["upper_bound_tokens"] for event in lost],[forecast+1000])
+
+    async def test_hard_guard_counts_raw_bytes_not_the_forecast(self):
+        calls=[]
+        with tempfile.TemporaryDirectory() as tmp:
+            # Forecast for the second request is ~7 KB and its raw context ~15 KB: only raw bytes may stop it.
+            attempt=Attempt(Budget(10000000,1000,1000,4000,500),Path(tmp)/"attempt",max_context_bytes=10000)
+            task=Task(dataset=[Sample(input="Probe twice")],solver=react(tools=[probe()],submit=False,
+                model=budgeted_generation(attempt,GenerateConfig(max_retries=0))))
+            logs=await eval_async(task,model=get_model("stonebench-scripted/probe",script=probing_script(calls),memoize=False),
+                log_dir=str(Path(tmp)/"logs"),log_model_api=False,ctl_server=False,retry_on_error=0)
+            self.assertEqual(logs[0].status,"error")
+            self.assertEqual(len(calls),1,"the second request must not be sent")
+            events=[json.loads(line) for line in (attempt.root/"events.jsonl").read_text(encoding="utf-8").splitlines()]
+            guard=[event for event in events if event["kind"]=="context_guard_stop"]
+            self.assertEqual(len(guard),1)
+            self.assertGreater(guard[0]["context_bytes"],10000)
 
     async def test_exact_wire_route_reasoning_usage_and_secret_redaction(self):
         sentinel="SENTINEL_SECRET_NEVER_LOGGED_15"

@@ -1,5 +1,6 @@
 """Budget decisions use reported usage; forecasts are explicitly estimates."""
 from dataclasses import asdict, dataclass, field
+import math
 
 
 @dataclass(frozen=True)
@@ -10,10 +11,14 @@ class Budget:
     final_reasoning: int
     margin: int
     final_calls: int = 8
+    # shortcut: fixed 2 bytes/token divisor under-forecasts text below 2 bytes/token (real text is ~13), upgrade with per-model token calibration. The hard guard stays in raw bytes.
+    bytes_per_token: int = 2
+    max_context_bytes: int = 1000000
 
     def __post_init__(self):
+        positive = {"total", "construction_output", "final_output", "final_calls", "bytes_per_token", "max_context_bytes"}
         for name, value in asdict(self).items():
-            if type(value) is not int or value < (1 if name in {"total", "construction_output", "final_output", "final_calls"} else 0):
+            if type(value) is not int or value < (1 if name in positive else 0):
                 raise ValueError(f"Invalid budget field {name}")
         if self.total <= self.final_output + self.final_reasoning + self.margin:
             raise ValueError("Total must leave room for final context and construction")
@@ -37,6 +42,9 @@ class Ledger:
     final_calls: int = 0
     transition_reason: str | None = None
     lost: list = field(default_factory=list)
+    last_context_bytes: int | None = None
+    last_total_tokens: int | None = None
+    last_input_tokens: int | None = None
 
     @property
     def total_tokens(self):
@@ -56,7 +64,15 @@ class Ledger:
             self.phase = "finalization"
             self.transition_reason = reason
 
-    def before_call(self, context_estimate):
+    def before_call(self, context_bytes):
+        if self.last_total_tokens is None or self.last_context_bytes is None:
+            context_estimate = context_bytes
+        else:
+            # The previous reported total already counts its context and completion; only the growth is estimated.
+            growth = max(0, context_bytes - self.last_context_bytes)
+            context_estimate = self.last_total_tokens + math.ceil(growth / self.budget.bytes_per_token)
+        observed_bytes_per_token = self.last_context_bytes / self.last_input_tokens if self.last_context_bytes and self.last_input_tokens else None
+        self.last_context_bytes = context_bytes
         reserve = self.budget.reserve(context_estimate)
         forecast = context_estimate + self.budget.construction_output
         if not self.usage_complete:
@@ -69,6 +85,7 @@ class Ledger:
                 "used_tokens": self.total_tokens, "known_tokens_subtotal": self.known_tokens,
                 "lost_requests": len(self.lost), "lost_upper_bound_tokens": self.committed_tokens - self.known_tokens,
                 "reserve_estimate": reserve, "context_estimate": context_estimate,
+                "context_bytes": context_bytes, "observed_bytes_per_token": observed_bytes_per_token,
                 "next_construction_forecast": forecast, "transition_reason": self.transition_reason}
 
     def record(self, usage, wall_seconds):
@@ -76,8 +93,10 @@ class Ledger:
                   for name in type(usage).model_fields} if usage is not None else None
         if values is None or values["total_tokens"] is None:
             self.usage_complete = False
+            self.last_total_tokens = self.last_input_tokens = None
         else:
             self.known_tokens += values["total_tokens"]
+            self.last_total_tokens, self.last_input_tokens = values["total_tokens"], values["input_tokens"]
         self.calls.append({"phase": self.phase, "usage": values, "wall_seconds": wall_seconds,
                            "known_tokens_subtotal": self.known_tokens,
                            "budget_exceeded_observed": self.known_tokens > self.budget.total})

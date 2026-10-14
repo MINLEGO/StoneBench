@@ -244,12 +244,12 @@ def budgeted_generation(attempt: Attempt, config: GenerateConfig):
     async def execute(state: AgentState, tools: list[Tool]):
         schema = [{"name": ToolDef(item).name, "description": ToolDef(item).description,
                    "parameters": ToolDef(item).parameters.model_dump(mode="json")} for item in tools]
-        context = len(encode({"messages": [item.model_dump(mode="json") for item in state.messages],
-                              "tool_schemas": schema}).encode("utf-8")) + 1024
-        if attempt.max_context_bytes is not None and context > attempt.max_context_bytes:
-            attempt.event("context_guard_stop", context_bytes=context, max_context_bytes=attempt.max_context_bytes)
+        context_bytes = len(encode({"messages": [item.model_dump(mode="json") for item in state.messages],
+                                    "tool_schemas": schema}).encode("utf-8")) + 1024
+        if attempt.max_context_bytes is not None and context_bytes > attempt.max_context_bytes:
+            attempt.event("context_guard_stop", context_bytes=context_bytes, max_context_bytes=attempt.max_context_bytes)
             raise ToolError("Serialized context exceeds campaign client byte guard; no provider request sent")
-        status = attempt.ledger.before_call(context)
+        status = attempt.ledger.before_call(context_bytes)
         notice = "StoneBench phase/budget: " + encode(status)
         if attempt.ledger.phase == "finalization":
             notice += " Finalization now: consult/verify copies and call submit_checkpoint with your chosen existing ID. No mutation/restore/advance permitted."
@@ -278,7 +278,7 @@ def budgeted_generation(attempt: Attempt, config: GenerateConfig):
                 if failures < len(attempt.generation_retry_waits) and transient_failure(exc):
                     # The provider may have accepted and billed this request: charge its bound, report no usage.
                     wait = attempt.generation_retry_waits[failures]
-                    attempt.ledger.record_lost(context + bound, time.monotonic() - started, type(unwrap_failure(exc)).__name__,
+                    attempt.ledger.record_lost(status["context_estimate"] + bound, time.monotonic() - started, type(unwrap_failure(exc)).__name__,
                                                started_utc, datetime.now(timezone.utc).isoformat())
                     attempt.event("generation_request_lost", **attempt.ledger.lost[-1], retry_in_seconds=wait)
                     failures += 1
