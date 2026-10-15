@@ -18,7 +18,7 @@ final class BlockCatalog {
     static final Map<String,Entry> ENTRIES=new LinkedHashMap<>();
     // One add() per run of consecutive ids, in the published order of docs/blocs-a-prendre-en-charge.md.
     static {
-        add("air quartz_block white_wool orange_wool magenta_wool light_blue_wool yellow_wool lime_wool pink_wool gray_wool light_gray_wool cyan_wool purple_wool blue_wool brown_wool green_wool red_wool black_wool obsidian honey_block sand",0);
+        add("air quartz_block white_wool orange_wool magenta_wool light_blue_wool yellow_wool lime_wool pink_wool gray_wool light_gray_wool cyan_wool purple_wool blue_wool brown_wool green_wool red_wool black_wool obsidian honey_block slime_block sand",0);
         add("smooth_stone_slab",0,"type"); add("stone_stairs",0,"facing","half");
         add("glass glass_pane water scaffolding stone_brick_wall",0);
         add("player_head",0,"rotation"); add("beacon",0); add("oak_log",0,"axis"); add("oak_leaves",0);

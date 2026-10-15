@@ -25,6 +25,7 @@ EXPECTED_CATALOG = [
     "minecraft:black_wool",
     "minecraft:obsidian",
     "minecraft:honey_block",
+    "minecraft:slime_block",
     "minecraft:sand",
     "minecraft:smooth_stone_slab",
     "minecraft:stone_stairs",
@@ -159,8 +160,8 @@ class ConstructionRuntimeIntegration(StoneBenchRuntimeIntegration):
         self.assert_ok(catalog)
         # The global list carries ids only, in the published order, with no detail.
         self.assertEqual(catalog["catalog"], EXPECTED_CATALOG, catalog)
-        self.assertEqual(len(EXPECTED_CATALOG), 70)
-        self.assertEqual(len(set(catalog["catalog"])), 70, catalog)
+        self.assertEqual(len(EXPECTED_CATALOG), 71)
+        self.assertEqual(len(set(catalog["catalog"])), 71, catalog)
         self.assertNotIn("inventory_contract", catalog)
         self.assertTrue(all(isinstance(block, str) for block in catalog["catalog"]), catalog)
 

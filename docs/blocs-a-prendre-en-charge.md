@@ -18,6 +18,7 @@ red_wool
 black_wool
 obsidian
 honey_block
+slime_block
 sand
 smooth_stone_slab
 stone_stairs
